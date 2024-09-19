@@ -12,7 +12,7 @@ export default function DashboardLayout({
             <div className="col-span-2 p-4 h-screen bg-red-500">
             <Sidebar />
             </div>
-            <div className="col-span-10 px-4 py-4 flex flex-col space-y-2 bg-white"> 
+            <div className="col-span-10 px-4 py-4 flex flex-col space-y-2 bg-gray-300"> 
             <Navbar />
             <div>
             <section>{children}</section>
