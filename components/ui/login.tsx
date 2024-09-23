@@ -41,7 +41,12 @@ function Login() {
               <Input id="password" className="bg-white" type="password"  placeholder="Password" required />
             </div>
             <Button type="submit" className="w-full mt-4 bg-red-800">
-              Login
+            <Link
+                  href="/dashboard"
+                  className=" text-base"
+                >
+                  Login
+                </Link>
             </Button>
             <Button variant="outline" className="w-full ">
               Login with Google

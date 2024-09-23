@@ -8,7 +8,7 @@ export const description =
 
   export default function home() {
   return (
-    <div className="w-full lg:grid lg:min-h-[800px]  bg-zinc-800 lg:grid-cols-2 xl:min-h-[1000px]">
+    <div className="w-full lg:grid lg:min-h-[800px]  bg-zinc-800 lg:grid-cols-2 xl:h-[100vh]">
       <div className="flex items-center justify-center py-12">
         <Login/>
       </div>

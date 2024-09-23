@@ -7,14 +7,16 @@ export default function DashboardLayout({
     children: React.ReactNode
   }) {
     return (
-     <div className="w-full h-screen">
-        <div className="grid grid-cols-12 w-full ">
-            <div className="col-span-2 py-4 h-screen bg-red-600">
+     <div className="w-full h-[100vh]">
+        <div className="grid grid-cols-12 h-full w-full ">
+            <div className="col-span-2  h-full bg-red-700">
               <Sidebar />
             </div>
-            <div className="col-span-10 py-4 flex flex-col space-y-2 bg-white"> 
+            <div className="col-span-10 h-full flex flex-col bg-white"> 
+              <div className="">
               <Navbar />
-              <div>
+              </div>
+              <div className="max-h-screen">
               <section>{children}</section>
               </div>
             </div>
