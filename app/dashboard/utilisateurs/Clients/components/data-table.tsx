@@ -1,20 +1,4 @@
-"use client"
-
-import {
-  ColumnDef,
-  ColumnFiltersState,
-  SortingState,
-  VisibilityState,
-  flexRender,
-  getCoreRowModel,
-  getFacetedRowModel,
-  getFacetedUniqueValues,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table"
-import * as React from "react"
+"use client";
 
 import {
   Table,
@@ -22,33 +6,45 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
-} from "@/components/ui/table"
-import { DataTablePagination } from "./data-table-pagination"
-import { DataTableToolbar } from "./data-table-toolbar"
+  TableRow,
+} from "@/components/ui/table";
+import {
+  ColumnDef,
+  ColumnFiltersState,
+  SortingState,
+  VisibilityState,
+  flexRender,
+  getCoreRowModel,
+  getFilteredRowModel,
+  getPaginationRowModel,
+  getSortedRowModel,
+  useReactTable,
+} from "@tanstack/react-table";
+import * as React from "react";
+import { DataTablePagination } from "./data-table-pagination";
+import { DataTableToolbar } from "./data-table-toolbar";
 
-
-interface DataTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
-}
-
-// Modify DataTableProps to include onRowClick
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
-  onRowClick?: (row: TData) => void; // Add optional onRowClick prop
+  onRowClick?: (row: TData) => void;
+  fetchUsers: (page: number, pageSize: number, search: string) => Promise<void>;
+  currentPage: number;
+  total: number;
+  setCurrentPage: (page: number) => void; // Ajoutez cette prop
 }
 
-// Update DataTable component to handle row click
 export function DataTable<TData, TValue>({
   columns,
   data,
-  onRowClick, // Use the onRowClick prop
+  onRowClick,
+  fetchUsers,
+  currentPage,
+  total,
+  setCurrentPage,
 }: DataTableProps<TData, TValue>) {
   const [rowSelection, setRowSelection] = React.useState({});
-  const [columnVisibility, setColumnVisibility] =
-    React.useState<VisibilityState>({});
+  const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({});
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([]);
   const [sorting, setSorting] = React.useState<SortingState>([]);
 
@@ -70,60 +66,66 @@ export function DataTable<TData, TValue>({
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
     getSortedRowModel: getSortedRowModel(),
-    getFacetedRowModel: getFacetedRowModel(),
-    getFacetedUniqueValues: getFacetedUniqueValues(),
   });
 
-    return (
-      <div className="space-y-8 ">
-      <DataTableToolbar table={table} />
+  const handlePageChange = (newPage: number) => {
+    setCurrentPage(newPage);
+    fetchUsers(newPage, 10, ""); // Remplacez par le filtre de recherche si nécessaire
+  };
+
+  return (
+    <div className="space-y-8">
+      <DataTableToolbar 
+        table={table} 
+        fetchUsers={fetchUsers} 
+      /> 
       <div className="rounded-md border max-h-[60vh] overflow-y-auto">
-          <Table>
-            <TableHeader>
+        <Table>
+          <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => {
-                  return (
-                    <TableHead key={header.id} colSpan={header.colSpan}>
-                      {header.isPlaceholder
-                        ? null
-                        : flexRender(
-                            header.column.columnDef.header,
-                            header.getContext()
-                          )}
-                    </TableHead>
-                  );
-                })}
+                {headerGroup.headers.map((header) => (
+                  <TableHead key={header.id} colSpan={header.colSpan}>
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(header.column.columnDef.header, header.getContext())}
+                  </TableHead>
+                ))}
               </TableRow>
             ))}
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowClick && onRowClick(row.original)} // Gestion du clic ici
-                    className="cursor-pointer hover:bg-gray-200" // Ajoutez un style de curseur pour indiquer que c'est cliquable
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={columns.length} className="h-24 text-center">
-                    No results.
-                  </TableCell>
+          </TableHeader>
+          <TableBody>
+            {table.getRowModel().rows.length ? (
+              table.getRowModel().rows.map((row) => (
+                <TableRow
+                  key={row.id}
+                  data-state={row.getIsSelected() && "selected"}
+                  onClick={() => onRowClick && onRowClick(row.original)}
+                  className="cursor-pointer hover:bg-gray-200"
+                >
+                  {row.getVisibleCells().map((cell) => (
+                    <TableCell key={cell.id}>
+                      {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                    </TableCell>
+                  ))}
                 </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-        <DataTablePagination table={table} />
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan={columns.length} className="h-24 text-center">
+                  No results.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-    );
+      <DataTablePagination 
+        table={table}
+        onPageChange={handlePageChange} 
+        total={total} 
+        currentPage={currentPage}
+      />
+    </div>
+  );
 }

@@ -110,9 +110,9 @@ function Sidebar() {
           </div>
 
           <Link
-            href="/annonces"
+            href="/dashboard/annonces"
             className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
-              pathname === "/annonces"
+              pathname === "/dashboard/annonces"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}
@@ -122,9 +122,9 @@ function Sidebar() {
           </Link>
 
           <Link
-            href="/commandes"
+            href="/dashboard/commandes"
             className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
-              pathname === "/commandes"
+              pathname === "/dashboard/commandes"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}

@@ -8,20 +8,20 @@ import { Input } from "@/components/ui/input"
 import { DataTableViewOptions } from "./data-table-view-options"
 
 interface DataTableToolbarProps<TData> {
-  table: Table<TData>
+  table: Table<TData>;
+  fetchUsers: (currentPage: number, pageSize: number, filterValue: string) => void; // Ajoutez fetchUsers en tant que prop
 }
 
 export function DataTableToolbar<TData>({
   table,
+  fetchUsers, // Recevez fetchUsers en tant que prop
 }: DataTableToolbarProps<TData>) {
-  const isFiltered = table.getState().columnFilters.length > 0
+  const isFiltered = table.getState().columnFilters.length > 0;
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const filterValue = event.target.value.toLowerCase()
-
-    // Appliquer un filtre global personnalisé
-    table.setGlobalFilter(filterValue)
-  }
+    const filterValue = event.target.value;
+    fetchUsers(1, 10, filterValue); // Utilisez fetchUsers avec des paramètres
+  };
 
   return (
     <div className="flex items-center justify-between">
@@ -46,20 +46,5 @@ export function DataTableToolbar<TData>({
       </div>
       <DataTableViewOptions table={table} />
     </div>
-  )
+  );
 }
-
-/* {table.getColumn("nom") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("nom")}
-            title="Nom"
-            options={[]} // Add options if needed or remove this filter
-          />
-        )}
-        {table.getColumn("Tel") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("Tel")}
-            title="Téléphone"
-            options={[]} // Add options if needed or remove this filter
-          />
-        )} */
