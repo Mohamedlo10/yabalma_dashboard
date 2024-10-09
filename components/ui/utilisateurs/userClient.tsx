@@ -5,34 +5,72 @@ import {
   CardHeader,
   CardTitle
 } from "@/components/ui/card"
-import {
-  ChartConfig
-} from "@/components/ui/chart"
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar"
-import { User } from "lucide-react"
 import Image from "next/image"
 import { useRouter } from 'next/navigation'
+import { CSSProperties, useEffect, useState } from "react"
+import BeatLoader from "react-spinners/BeatLoader"
 import { Button } from "../button"
 export const description = "A stacked bar chart with a legend"
-const chartData = [
-  { nom: "Client", actifs: 3450, inactifs: 1200 },
-  { nom: "Client", actifs: 10380, inactifs: 3420 },
-]
-const chartConfig = {
-  actifs: {
-    label: "actifs",
-    color: "#dc2626",
-    icon: User,
-  },
-  inactifs: {
-    label: "inactifs",
-    color: "#4D4D4D",
-    icon: User,
-  },
-} satisfies ChartConfig
+
+
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
 
 export function UserClient() {
+
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [client, setClient] = useState<any| null>(null);
+  let [color, setColor] = useState("#ffffff");
+
+  useEffect(() => {
+    // Fonction pour récupérer les données des utilisateurs
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/clients/top");
+  
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération du top client");
+        }
+  
+        const data = await response.json();
+        console.log(data);
+        setClient(data);
+       
+      } catch (err:any) {
+        setError(err.message);
+        console.error("Erreur:", err);
+      }
+      finally {
+      setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
   const router = useRouter()
   return (
     <Card className="flex flex-col p-4">
@@ -65,12 +103,12 @@ export function UserClient() {
                             </div>
                             <div className="flex flex-col items-center gap-2 ">
                                 <Avatar className="hidden h-14 w-14  sm:flex">
-                                <AvatarImage src="/avatars/01.png" className="rounded-full object-cover w-full h-full" alt="Avatar" />
+                                <AvatarImage src={client.img_url} className="rounded-full object-cover w-full h-full" alt="Avatar" />
                                 <AvatarFallback>ML</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
                                 <p className="text-base font-bold leading-none">
-                                    Mohamed LO
+                                    {client.prenom} {client.nom}
                                 </p>
                                 </div>
                             </div> 

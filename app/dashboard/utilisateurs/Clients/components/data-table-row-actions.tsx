@@ -5,15 +5,15 @@ import { Row } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuShortcut,
-  DropdownMenuTrigger,
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuSeparator,
+    DropdownMenuShortcut,
+    DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { clientSchema } from "../data/schema"
+import { clientSchema } from "../../schema"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>

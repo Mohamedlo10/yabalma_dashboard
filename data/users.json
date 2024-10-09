@@ -7,9 +7,10 @@
     "nom": "Dupont",
     "Tel": "+221701234567",
     "Pays": "Senegal",
-    "delivery": 124,
+    "delivery": 424,
     "is_gp": true,
     "fcm_token": "token_12345",
+    "actif":true,
     "ville": "Dakar",
     "img_url": "https://i.pinimg.com/564x/3e/e6/0d/3ee60daf615fed89180c5675aff3fa15.jpg"
   },
@@ -21,9 +22,10 @@
     "nom": "Diop",
     "Tel": "+221773234567",
     "Pays": "Senegal",
-    "commande": 24,
+    "commande": 400,
     "is_gp": false,
     "fcm_token": "token_67890",
+    "actif":true,
     "ville": "Thies",
     "img_url": "https://i.pinimg.com/564x/4b/c7/67/4bc767b2d1604a81245e5c970647d23f.jpg"
   },
@@ -38,6 +40,7 @@
     "delivery": 94,
     "is_gp": true,
     "fcm_token": "token_54321",
+    "actif":true,
     "ville": "Thies",
     "img_url": "https://i.pinimg.com/736x/ad/bc/d0/adbcd04cb2cd14c8d1ce1e185bd5c3ff.jpg"
   },
@@ -50,8 +53,9 @@
     "Tel": "+221761234567",
     "Pays": "Senegal",
     "commande": 24,
-    "is_gp": false,
+    "is_gp": null,
     "fcm_token": "token_98765",
+    "actif":true,
     "ville": "Saint-Louis",
     "img_url": "https://i.pinimg.com/736x/93/89/51/9389513d967178922dd0e33ef4ddc4c1.jpg"
   },
@@ -66,6 +70,7 @@
     "delivery": 85,
     "is_gp": true,
     "fcm_token": "token_45678",
+    "actif":true,
     "ville": "Kindia",
     "img_url": "https://i.pinimg.com/564x/b4/af/e8/b4afe84cd0bbb8ac1747e569221161a4.jpg"
   },
@@ -80,6 +85,7 @@
     "commande": 24,
     "is_gp": false,
     "fcm_token": "token_11223",
+    "actif":true,
     "ville": "Kaolack",
     "img_url": "https://i.pinimg.com/736x/2e/a6/3b/2ea63b6779dc505ea6f2a848e1934a89.jpg"
   },
@@ -94,6 +100,7 @@
     "delivery": 102,
     "is_gp": true,
     "fcm_token": "token_33445",
+    "actif":true,
     "ville": "Dakar",
     "img_url": "https://i.pinimg.com/736x/5c/1e/2a/5c1e2a4d2634d53ae91e0b84fcd3e79b.jpg"
   },
@@ -108,6 +115,7 @@
     "commande": 24,
     "is_gp": false,
     "fcm_token": "token_55678",
+    "actif":true,
     "ville": "Abidjan",
     "img_url": "https://i.pinimg.com/564x/7f/58/01/7f5801e8193e461647af109b634cf54b.jpg"
   },
@@ -122,6 +130,7 @@
     "delivery": 67,
     "is_gp": true,
     "fcm_token": "token_66554",
+    "actif":true,
     "ville": "Bouaké",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -136,6 +145,7 @@
     "commande": 36,
     "is_gp": false,
     "fcm_token": "token_22334",
+    "actif":true,
     "ville": "Luanda",
     "img_url": "https://i.pinimg.com/564x/2a/ae/fb/2aaefbf644e0153946b50fab2c191587.jpg"
   },
@@ -150,6 +160,7 @@
     "delivery": 120,
     "is_gp": true,
     "fcm_token": "token_99887",
+    "actif":true,
     "ville": "Benguela",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -164,6 +175,7 @@
     "commande": 54,
     "is_gp": false,
     "fcm_token": "token_77654",
+    "actif":true,
     "ville": "Bamako",
     "img_url": "https://i.pinimg.com/564x/99/2e/48/992e488f1d880f40644286740d014460.jpg"
   },
@@ -178,6 +190,7 @@
     "delivery": 78,
     "is_gp": true,
     "fcm_token": "token_54321",
+    "actif":true,
     "ville": "Sikasso",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -192,6 +205,7 @@
     "commande": 54,
     "is_gp": false,
     "fcm_token": "token_87654",
+    "actif":true,
     "ville": "Lomé",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -206,6 +220,7 @@
     "delivery": 58,
     "is_gp": true,
     "fcm_token": "token_34567",
+    "actif":true,
     "ville": "Sokodé",
     "img_url": "https://i.pinimg.com/564x/a8/ca/35/a8ca35cd952830f4683dd2da34faa956.jpg"
   },
@@ -220,6 +235,7 @@
     "commande": 54,
     "is_gp": false,
     "fcm_token": "token_99881",
+    "actif":true,
     "ville": "Douala",
     "img_url": "https://i.pinimg.com/736x/9b/a9/a8/9ba9a88cb92468d3cadd166d8770a7be.jpg"
   },
@@ -234,6 +250,7 @@
     "delivery": 92,
     "is_gp": true,
     "fcm_token": "token_22445",
+    "actif":true,
     "ville": "Yaoundé",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -248,6 +265,7 @@
     "delivery": 134,
     "is_gp": true,
     "fcm_token": "token_10012",
+    "actif":false,
     "ville": "Casablanca",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -262,6 +280,7 @@
     "commande": 21,
     "is_gp": false,
     "fcm_token": "token_13456",
+    "actif":false,
     "ville": "Tunis",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -276,6 +295,7 @@
     "delivery": 152,
     "is_gp": true,
     "fcm_token": "token_22345",
+    "actif":false,
     "ville": "Ouagadougou",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -290,6 +310,7 @@
     "commande": 44,
     "is_gp": false,
     "fcm_token": "token_54321",
+    "actif":false,
     "ville": "Nairobi",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -304,6 +325,7 @@
     "delivery": 101,
     "is_gp": true,
     "fcm_token": "token_98765",
+    "actif":false,
     "ville": "Accra",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -318,6 +340,7 @@
     "commande": 34,
     "is_gp": false,
     "fcm_token": "token_99876",
+    "actif":false,
     "ville": "Lagos",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -332,6 +355,7 @@
     "delivery": 200,
     "is_gp": true,
     "fcm_token": "token_66789",
+    "actif":false,
     "ville": "Freetown",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -346,6 +370,7 @@
     "commande": 33,
     "is_gp": false,
     "fcm_token": "token_11223",
+    "actif":false,
     "ville": "Libreville",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -360,6 +385,7 @@
     "delivery": 89,
     "is_gp": true,
     "fcm_token": "token_77654",
+    "actif":false,
     "ville": "Kigali",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -374,6 +400,7 @@
     "commande": 289,
     "is_gp": false,
     "fcm_token": "token_33456",
+    "actif":false,
     "ville": "Ziguinchor",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -388,6 +415,7 @@
     "delivery": 289,
     "is_gp": true,
     "fcm_token": "token_33456",
+    "actif":false,
     "ville": "Ziguinchor",
     "img_url": "https://i.pinimg.com/564x/8f/ef/cd/8fefcd4e48888ce44cc9b03c2dea5f68.jpg"
   },
@@ -402,6 +430,7 @@
     "commande": 29,
     "is_gp": false,
     "fcm_token": "f5c6a3a2-68b2-447b-83e2-58a723695cb3",
+    "actif":false,
     "ville": "DAKAR",
     "img_url": "https://media.istockphoto.com/id/1353379051/fr/photo/portrait-dune-belle-femme-africaine-mature-regardant-lappareil-photo-en-plein-air.jpg?s=612x612&w=0&k=20&c=3twGE5hhnJ17bSsLtX5K5Ofxt2YRbX4WWFNodxNuppw="
   },
@@ -416,6 +445,7 @@
     "commande": 89,
     "is_gp": false,
     "fcm_token": "fe0e22a3-ecdd-4cd6-bbb0-14790f613edc",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   },
@@ -430,6 +460,7 @@
     "commande": 28,
     "is_gp": false,
     "fcm_token": "4e0dfe8b-17de-416a-8f48-0e3152f2f922",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   },
@@ -444,6 +475,7 @@
     "commande": 24,
     "is_gp": false,
     "fcm_token": "6e4da4b4-3475-4a21-87de-aa070ee28fdd",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   },
@@ -458,6 +490,7 @@
     "commande": 4,
     "is_gp": false,
     "fcm_token": "64e44acf-180d-47f7-9a92-bc04ad5cc834",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   },
@@ -472,6 +505,7 @@
     "commande": 6,
     "is_gp": false,
     "fcm_token": "96f95ec2-6609-44e8-9d8f-8d02f3c2551a",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   },
@@ -486,6 +520,7 @@
     "delivery": 0,
     "is_gp": true,
     "fcm_token": "e4530676-5921-4903-a3e3-f4f8d36af737",
+    "actif":true,
     "ville": "Rome",
     "img_url": ""
   },
@@ -500,6 +535,7 @@
     "commande": 0,
     "is_gp": false,
     "fcm_token": "58c32695-f40a-479d-9c2f-acbde16a4e4e",
+    "actif":true,
     "ville": "DAKAR",
     "img_url": ""
   }

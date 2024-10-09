@@ -1,14 +1,16 @@
-import { clientSchema } from "@/app/dashboard/utilisateurs/Clients/data/schema";
-import { promises as fs } from "fs";
+import { clientSchema } from "@/app/dashboard/utilisateurs/schema";
+import { supabase } from '@/lib/supabaseClient';
 import { NextResponse } from "next/server";
-import path from "path";
 import { z } from "zod";
 
 export async function GET(request: Request, context:any) {
     try {
-        const data = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-        const users = JSON.parse(data.toString());
-        const validatedUsers = z.array(clientSchema).parse(users);
+      const { data, error } = await supabase.from('client').select('*');
+
+      if (error) {
+        throw error;
+      }
+        const validatedUsers = z.array(clientSchema).parse(data);
 
         const {params}=context;
         const client = validatedUsers.filter(x=>(params.clientId === x.id_client))

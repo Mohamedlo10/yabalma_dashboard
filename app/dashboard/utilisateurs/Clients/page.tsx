@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { supabase } from '@/lib/supabaseClient';
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -25,6 +26,7 @@ export default function UserPage() {
   const [isAddingClient, setIsAddingClient] = useState(false);
   let [color, setColor] = useState("#ffffff");
   const [currentPage, setCurrentPage] = useState(1);
+  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [total, setTotal] = useState(0);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [client, setClient] = useState({
@@ -66,8 +68,61 @@ export default function UserPage() {
     setClient({ ...client, img_url: "" });
   };
 
-  const handleSubmit = async (e  : React.FormEvent<HTMLFormElement>) => {
+
+
+
+  const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+  
+    if (file) {
+      // Étape 1: Lire le fichier pour l'afficher
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setUploadedImage(reader.result as string); // Stocker l'URL de l'image téléchargée
+      };
+      reader.readAsDataURL(file);
+  
+      // Mettez à jour l'état avec le fichier d'origine
+      setUploadedFile(file);
+    }
+  };
+  
+
+
+
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+  
+    // Vérifiez si une image a été téléchargée
+    if (uploadedImage && uploadedFile) {
+      // Étape 2: Télécharger l'image dans Supabase
+      const fileName = `${Date.now()}_${uploadedFile.name}`;
+      const { error: uploadError } = await supabase.storage
+        .from('yabalma/images') // Assurez-vous que ce chemin est correct
+        .upload(fileName, uploadedFile);
+  
+      if (uploadError) {
+        console.error("Erreur lors du téléchargement de l'image :", uploadError.message);
+        toast.error("Erreur lors du téléchargement de l'image");
+        return;
+      }
+  
+      // Étape 3: Obtenir l'URL publique de l'image
+      const { data } = supabase.storage.from('yabalma/images').getPublicUrl(fileName); // Corrigez le chemin ici
+      const publicUrl = data?.publicUrl;
+  
+      // Vérifiez si l'URL publique a été obtenue
+      if (!publicUrl) {
+        console.error("Erreur lors de l'obtention de l'URL publique");
+        return;
+      }
+  
+      // Étape 4: Mettre à jour l'état du client avec l'URL de l'image
+      client.img_url=publicUrl;
+    }
+  
+    // Après avoir géré le téléchargement de l'image et mis à jour l'URL
     try {
       const response = await fetch("/api/clients", {
         method: "POST",
@@ -76,9 +131,11 @@ export default function UserPage() {
         },
         body: JSON.stringify(client),
       });
+  
       if (response.ok) {
         const newClient = await response.json();
         console.log("Client ajouté avec succès:", newClient);
+  
         // Réinitialiser le formulaire si nécessaire
         setClient({
           prenom: "",
@@ -89,13 +146,14 @@ export default function UserPage() {
           img_url: "",
         });
         setUploadedImage(null);
+        setUploadedFile(null);
         setIsDrawerOpen(false);
         setSelectedUser(null);
         setIsAddingClient(false);
-        fetchUsers( 1, 10,'');
+        fetchUsers(1, 10, '');
         toast.success(`Client ajouté avec succès: ${newClient.prenom}`);
         console.log(`Client ajouté avec succès: ${newClient.prenom}`);
-
+  
       } else {
         console.error("Erreur lors de l'ajout du client");
         toast.error("Erreur lors de l'ajout du client");
@@ -104,17 +162,8 @@ export default function UserPage() {
       console.error("Erreur lors de la requête POST:", error);
     }
   };
-
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files && e.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setUploadedImage(reader.result as string); // Stocker l'URL de l'image téléchargée
-      };
-      reader.readAsDataURL(file);
-    }
-  };
+  
+  
 
 
   const handleUserClick = (user: any) => {
@@ -317,10 +366,10 @@ export default function UserPage() {
                   <div className="font-normal text-base">Ville</div>
                   {selectedUser.ville}
                 </div>
-                <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
+                {/* <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Commandes effectuées</div>
                   {selectedUser.commande}
-                </div>
+                </div> */}
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Date d'inscription</div>
                   <div>
@@ -328,6 +377,10 @@ export default function UserPage() {
                     {` à ${format(new Date(selectedUser.created_at), 'HH:mm')}`}
                   </div>
                 </div>
+                {/* <div className="text-base grid grid-cols-2 p-3 items-center rounded-md shadow-sm w-full gap-full">
+                          <div className="font-normal text-base">Actif</div>
+                          {selectedUser.actif ? (<div className="bg-green-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Oui</div>) : (<div className="bg-red-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Non</div>)}
+                </div> */}
                 <div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
                   <Button className="w-fit h-10 font-bold">Voir Détails</Button>
                 </div>

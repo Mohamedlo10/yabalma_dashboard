@@ -1,6 +1,7 @@
-"use client"
+"use client";
 
 import { TrendingUp } from "lucide-react";
+import { CSSProperties, useEffect, useState } from "react";
 import Flag from "react-world-flags";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
@@ -18,22 +19,17 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import BeatLoader from "react-spinners/BeatLoader";
+
 
 export const description = "A bar chart"
-const chartData = [
-  { pays: "Senegal", code: "SN", GP: 886 },
-  { pays: "France", code: "FR", GP: 305 },
-  { pays: "Belgique", code: "BE", GP: 237 },
-  { pays: "Guinee Bissau", code: "GW", GP: 73 },
-  { pays: "Mali", code: "ML", GP: 209 },
-  { pays: "Suisse", code: "CH", GP: 214 },
-  { pays: "Cameroun", code: "CM", GP: 186 },
-  { pays: "Maroc", code: "MA", GP: 305 },
-  { pays: "Espagne", code: "ES", GP: 637 },
-  { pays: "Italie", code: "IT", GP: 373 },
-  { pays: "England", code: "GB", GP: 109 },
-  { pays: "USA", code: "US", GP: 214 },
-];
+
+
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
 const chartConfig = {
   GP: {
@@ -43,6 +39,56 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function GpPays() {
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [gp, setGp] = useState([]);
+  let [color, setColor] = useState("#ffffff");
+
+
+  useEffect(() => {
+    // Fonction pour récupérer les données des utilisateurs
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/gp/pays");
+  
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        }
+  
+        const data = await response.json();
+        console.log(data);
+        setGp(data.data);
+       
+      } catch (err:any) {
+        setError(err.message);
+        console.error("Erreur:", err);
+      }
+      finally {
+      setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card>
       <CardHeader>
@@ -51,7 +97,7 @@ export function GpPays() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={gp}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="code"
@@ -62,9 +108,9 @@ export function GpPays() {
             />
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              content={<ChartTooltipContent indicator="dot" />}
             />
-            <Bar dataKey="GP" fill="var(--color-GP)" radius={8} />
+            <Bar dataKey="gp" fill="var(--color-GP)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>

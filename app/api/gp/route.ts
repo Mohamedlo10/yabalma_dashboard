@@ -1,7 +1,7 @@
-import { userSchema } from "@/app/dashboard/utilisateurs/gp/data/schema";
-import { promises as fs } from "fs";
+// app/api/users/route.ts
+import { clientSchema } from "@/app/dashboard/utilisateurs/schema";
+import { supabase } from '@/lib/supabaseClient';
 import { NextResponse } from "next/server";
-import path from "path";
 import { v4 as uuidv4 } from "uuid";
 import { z } from "zod";
 
@@ -12,9 +12,13 @@ export async function GET(request: Request) {
   const search = url.searchParams.get('search')?.toLowerCase() || '';
 
   try {
-    const data = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-    const users = JSON.parse(data.toString());
-    const validatedUsers = z.array(userSchema).parse(users);
+    const { data, error } = await supabase.from('client').select('*');
+
+    if (error) {
+      throw error;
+    }
+
+    const validatedUsers = z.array(clientSchema).parse(data);
     
 
     const filteredUsers = validatedUsers.filter(user => user.is_gp === true);
@@ -28,14 +32,13 @@ export async function GET(request: Request) {
     );
 
     // Tri des utilisateurs
-    const usersSort = [...searchedUsers].sort((a, b) => (b.delivery ?? 0) - (a.delivery ?? 0));
+    // const usersSort = [...searchedUsers].sort((a, b) => (b.commande ?? 0) - (a.commande ?? 0));
 
     // Pagination
-    const paginatedUsers = usersSort.slice((page - 1) * pageSize, page * pageSize);
-
+    const paginatedUsers = searchedUsers.slice((page - 1) * pageSize, page * pageSize);
     return NextResponse.json({
       users: paginatedUsers,
-      total: usersSort.length, // Total des utilisateurs pour la pagination
+      total: searchedUsers.length, // Total des utilisateurs pour la pagination
     });
   } catch (error: any) {
     console.error("Validation Error:", error.errors);
@@ -47,38 +50,47 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const data = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-    const users = JSON.parse(data.toString());
-    const validatedUsers = z.array(userSchema).parse(users);
+    // Récupérer tous les clients existants
+    const { data: clients, error: fetchError } = await supabase.from('client').select('*');
 
-    // Get the highest ID and increment it by 1
-    const newId = validatedUsers.length > 0 ? Math.max(...validatedUsers.map(user => user.id)) + 1 : 1;
+    if (fetchError) {
+      throw new Error(`Error fetching clients: ${fetchError.message}`);
+    }
 
-    // Generate a unique client ID, for example "C001"
-    const idClient = uuidv4().substring(0, 5);
-    const tokentest=uuidv4();
+    // Valider les clients existants avec Zod
+    const validatedUsers = z.array(clientSchema).parse(clients);
 
-    // Get the new client data from the request
+    // Générer le nouvel ID
+    const newId = validatedUsers.length > 0 ? Math.max(...validatedUsers.map(user => user.id ?? 0)) + 1 : 1;
+
+    // Générer un identifiant client unique
+    const idClient = uuidv4();
+
+    // Récupérer les nouvelles données du client depuis la requête
     const json = await request.json();
-    const newUser = userSchema.parse({
+    const newUser = clientSchema.parse({
       ...json,
       id: newId,
       created_at: new Date().toISOString(),
       id_client: idClient,
-      fcm_token: tokentest,
-      is_gp: true,
-      delivery: 0,
+      fcm_token: null,
+      is_gp: true, // Valeur par défaut
     });
 
-    // Add the new client to the list
-    validatedUsers.push(newUser);
+    // Insérer le nouveau client dans Supabase
+    const { data: insertedData, error: insertError } = await supabase
+      .from('client')
+      .insert([newUser]);
 
-    // Write the updated list back to the file
-    await fs.writeFile(path.join(process.cwd(), "data/users.json"), JSON.stringify(validatedUsers, null, 2));
+    if (insertError) {
+      throw new Error(`Error inserting client: ${insertError.message}`);
+    }
 
-    return NextResponse.json(newUser, { status: 201 });
+    // Renvoie le nouveau client en JSON avec un statut 201
+    return NextResponse.json(insertedData, { status: 201 });
+
   } catch (error: any) {
-    console.error("Validation Error:", error.errors);
-    return NextResponse.json({ error: "Invalid user data" }, { status: 500 });
+    console.error("Error:", error.message || error);
+    return NextResponse.json({ error: "Invalid user data or Supabase error" }, { status: 500 });
   }
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { TrendingUp } from "lucide-react";
+import { CSSProperties, useEffect, useState } from "react";
 import Flag from "react-world-flags";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
@@ -18,23 +19,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
+import BeatLoader from "react-spinners/BeatLoader";
 
 export const description = "A bar chart";
 
-const chartData = [
-  { pays: "Senegal", code: "SN", Client: 886 },
-  { pays: "France", code: "FR", Client: 305 },
-  { pays: "Belgique", code: "BE", Client: 237 },
-  { pays: "Guinee Bissau", code: "GW", Client: 73 },
-  { pays: "Mali", code: "ML", Client: 209 },
-  { pays: "Suisse", code: "CH", Client: 214 },
-  { pays: "Cameroun", code: "CM", Client: 186 },
-  { pays: "Maroc", code: "MA", Client: 305 },
-  { pays: "Espagne", code: "ES", Client: 637 },
-  { pays: "Italie", code: "IT", Client: 373 },
-  { pays: "England", code: "GB", Client: 109 },
-  { pays: "USA", code: "US", Client: 214 },
-];
+
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
 const chartConfig = {
   Client: {
@@ -44,6 +38,58 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 export function ClientPays() {
+  const [error, setError] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [clients, setClients] = useState([]);
+  let [color, setColor] = useState("#ffffff");
+
+
+
+  useEffect(() => {
+    // Fonction pour récupérer les données des utilisateurs
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/clients/pays");
+  
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        }
+  
+        const data = await response.json();
+        console.log(data);
+        setClients(data.data);
+       
+      } catch (err:any) {
+        setError(err.message);
+        console.error("Erreur:", err);
+      }
+      finally {
+      setIsLoading(false);
+      }
+    };
+  
+    fetchUsers();
+  }, []);
+
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  
   return (
     <Card>
       <CardHeader>
@@ -52,7 +98,7 @@ export function ClientPays() {
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={chartData}>
+          <BarChart accessibilityLayer data={clients}>
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="code"
@@ -63,7 +109,7 @@ export function ClientPays() {
             />
              <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent indicator="dashed" />}
+              content={<ChartTooltipContent indicator="dot" />}
             />
             <Bar dataKey="Client" fill="var(--color-Client)" radius={8} />
           </BarChart>

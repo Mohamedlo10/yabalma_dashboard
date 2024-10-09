@@ -1,47 +1,75 @@
-// app/api/users/route.ts
+// app/api/annonces/route.ts
 import { annonceSchema } from "@/app/dashboard/annonces/schema";
+import { type User } from "@/app/dashboard/utilisateurs/gp/data/schema";
 import { promises as fs } from "fs";
 import { NextResponse } from "next/server";
 import path from "path";
-/* import { v4 as uuidv4 } from "uuid"; */
-import { type User } from "@/app/dashboard/utilisateurs/gp/data/schema";
 import { z } from "zod";
 
+export async function GET(req: Request) {
+  const { searchParams } = new URL(req.url);
+  const page = parseInt(searchParams.get("page") || "1", 10);
+  const limit = parseInt(searchParams.get("limit") || "10", 10);
 
-export async function GET() {
   try {
     // Lire les annonces
     const annoncesData = await fs.readFile(path.join(process.cwd(), "data/annonces.json"));
     const annonces = JSON.parse(annoncesData.toString());
     const validatedAnnonces = z.array(annonceSchema).parse(annonces);
-    
-    // Lire les GP
-    const gpData = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-    const gps:User[] = JSON.parse(gpData.toString());
 
-    // Créer un dictionnaire pour un accès rapide
+    // Lire les GP (utilisateurs)
+    const gpData = await fs.readFile(path.join(process.cwd(), "data/users.json"));
+    const gps: User[] = JSON.parse(gpData.toString());
+
+    // Créer un dictionnaire pour un accès rapide aux GP
     const gpMap: Record<string, User> = {};
-    gps.forEach(gp => {
+    gps.forEach((gp) => {
       gpMap[gp.id_client] = gp;
     });
 
-    // Ajouter le GP à chaque annonce
-    const annoncesAvecGp = validatedAnnonces.map(annonce => {
-      const gp = gpMap[annonce.idGp] || null; // Récupérer le gp ou null si non trouvé
+    // Ajouter les informations GP à chaque annonce
+    const annoncesAvecGp = validatedAnnonces.map((annonce) => {
+      const gp = gpMap[annonce.idGp] || null; // Si le GP n'existe pas, renvoyer null
       return { ...annonce, gp };
     });
 
-    // Trier les annonces
+    // Trier les annonces par date de création (ordre décroissant)
     const annoncesSort = annoncesAvecGp.sort((a, b) => {
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     });
 
-    return NextResponse.json(annoncesSort);
+    // Paginer les résultats
+    const start = (page - 1) * limit;
+    const paginatedAnnonces = annoncesSort.slice(start, start + limit);
+
+    // Agrégations (exemple : compter les annonces par GP)
+    const annonceCountByGp = annoncesAvecGp.reduce((acc, annonce) => {
+      const gpId = annonce.idGp;
+      if (gpId) {
+        acc[gpId] = (acc[gpId] || 0) + 1;
+      }
+      return acc;
+    }, {} as Record<string, number>);
+
+    // Agrégations supplémentaires (si nécessaire)
+    const totalAnnonces = validatedAnnonces.length;
+    const totalGp = Object.keys(gpMap).length;
+
+    // Réponse JSON avec les données paginées et agrégées
+    return NextResponse.json({
+      annonces: paginatedAnnonces,
+      stats: {
+        totalAnnonces,
+        totalGp,
+        annonceCountByGp,
+      },
+    });
   } catch (error) {
-    console.error("Validation Error:", error);
-    return NextResponse.json({ error: "Invalid user data" }, { status: 500 });
+    console.error("Erreur lors de la récupération des annonces:", error);
+    return NextResponse.json({ error: "Données invalides ou erreur serveur" }, { status: 500 });
   }
 }
+
 
 
 

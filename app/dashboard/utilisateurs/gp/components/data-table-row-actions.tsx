@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { userSchema } from "../data/schema"
+import { clientSchema } from "@/app/dashboard/utilisateurs/schema"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
@@ -22,7 +22,7 @@ interface DataTableRowActionsProps<TData> {
 export function DataTableRowActions<TData>({
   row,
 }: DataTableRowActionsProps<TData>) {
-  const user = userSchema.parse(row.original)
+  const user = clientSchema.parse(row.original)
 
   return (
     <DropdownMenu>

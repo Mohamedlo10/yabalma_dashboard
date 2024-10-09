@@ -17,14 +17,39 @@ const override: CSSProperties = {
 function Page() {
   const [isLoading, setIsLoading] = useState(true);
   let [color, setColor] = useState("#ffffff");
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalActifs, setTotalActifs] = useState(0);
+  const [totalnonActifs, setTotalnonActifs] = useState(0);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Simulate a loading period (e.g., fetching data)
-    setTimeout(() => {
+    // Fonction pour récupérer les données des utilisateurs
+    const fetchUsers = async () => {
+      try {
+        const response = await fetch("/api/users");
+
+        if (!response.ok) {
+          throw new Error("Erreur lors de la récupération des utilisateurs");
+        }
+
+        const data = await response.json();
+
+        setTotalUsers(data.total);
+        setTotalActifs(data.actifs);
+        setTotalnonActifs(data.nonActifs);
+      } catch (err:any) {
+        setError(err.message);
+        console.error("Erreur:", err);
+      }
+      finally {
       setIsLoading(false);
-    },0); // Change this duration as needed
+      }
+    };
+
+    fetchUsers();
   }, []);
 
+ 
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -46,16 +71,16 @@ function Page() {
     <div className="flex flex-col h-[92vh] px-4 overflow-y-auto w-full">
       <div className="max-h-64 min-h-28 w-full flex justify-center md:gap-12 lg:gap-56 xl:gap-96 gap-auto items-center content-center p-1">
         <div className="flex flex-col justify-center items-center content-center">
-          <p className="text-5xl text-red-600 font-bold">25692</p>
+          <p className="text-5xl text-red-600 font-bold">{totalUsers}</p>
           <p className="text-black font-bold">Utilisateurs</p>
         </div>
         <div className="flex flex-col justify-center items-center content-center">
-          <p className="text-7xl text-red-600 font-bold">23602</p>
+          <p className="text-7xl text-red-600 font-bold">{totalActifs}</p>
           <p className="text-black font-bold">Actifs</p>
         </div>
 
         <div className="flex flex-col justify-center items-center content-center">
-          <p className="text-5xl text-zinc-500 font-bold">2090</p>
+          <p className="text-5xl text-zinc-500 font-bold">{totalnonActifs}</p>
           <p className="text-black font-bold">Inactifs</p>
         </div>
       </div>

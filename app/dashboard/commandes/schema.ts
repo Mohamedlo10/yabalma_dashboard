@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { annonceSchema } from "../annonces/schema";
-import { clientSchema } from "../utilisateurs/Clients/data/schema";
+import { clientSchema } from "../utilisateurs/schema";
 
 
 
