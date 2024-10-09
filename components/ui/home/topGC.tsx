@@ -26,34 +26,34 @@ function TopGC() {
                     <div className="grid grid-cols-3 gap-4 mt-2">
                             <div className="flex flex-col items-center gap-4 ">
                                 <Avatar className="hidden h-14 w-14 sm:flex">
-                                <AvatarImage src="/avatars/01.png" alt="Avatar" />
+                                <AvatarImage src="/avatars/01.png" className="object-cover" alt="Avatar" />
                                 <AvatarFallback>MD</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
-                                <p className="text-base font-medium leading-none">
+                                <p className="text-sm font-bold leading-none">
                                     Miniane Diouf
                                 </p>
                                 </div>
                             </div> 
                             <div className="flex flex-col items-center gap-4 ">
                                 <Avatar className="hidden h-16 w-16 sm:flex">
-                                <AvatarImage src="/avatars/01.png" alt="Avatar" />
-                                <AvatarFallback>MD</AvatarFallback>
+                                <AvatarImage src="/avatars/02.png" className="object-cover" alt="Avatar" />
+                                <AvatarFallback>SF</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
-                                <p className="text-base font-medium leading-none">
-                                    Miniane Diouf
+                                <p className="text-sm font-bold leading-none">
+                                    Safietou Fall
                                 </p>
                                 </div>
                             </div> 
                             
                             <div className="flex flex-col items-center gap-4 ">
                                 <Avatar className="hidden h-14 w-14 sm:flex">
-                                <AvatarImage src="/avatars/01.png" alt="Avatar" />
+                                <AvatarImage src="/avatars/01.png" className="object-cover" alt="Avatar" />
                                 <AvatarFallback>MD</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
-                                <p className="text-base font-medium leading-none">
+                                <p className="text-sm font-bold leading-none">
                                     Miniane Diouf
                                 </p>
                                 </div>
@@ -80,12 +80,12 @@ function TopGC() {
                             </div> 
                             <div className="flex flex-col items-center gap-4 ">
                                 <Avatar className="hidden h-16 w-16 sm:flex">
-                                <AvatarImage src="/avatars/01.png" alt="Avatar" />
-                                <AvatarFallback>MD</AvatarFallback>
+                                <AvatarImage src="/avatars/02.png" className="object-cover" alt="Avatar" />
+                                <AvatarFallback>SF</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
                                 <p className="text-base font-medium leading-none">
-                                    Miniane Diouf
+                                    Safietou Fall
                                 </p>
                                 </div>
                             </div> 

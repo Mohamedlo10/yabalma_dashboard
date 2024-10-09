@@ -23,22 +23,22 @@ function Login() {
               <Input
                 id="email"
                 type="email"
-                className="bg-white"
+                className="bg-white text-black"
                 placeholder="m@example.com"
                 required
               />
             </div>
             <div className="grid gap-2">
-              <div className="flex items-center">
+              <div className="flex items-center ">
                 <Label htmlFor="password">Password</Label>
                 <Link
                   href="/forgot-password"
-                  className="ml-auto inline-block text-sm underline"
+                  className="ml-auto inline-block text-sm underline "
                 >
                   Forgot your password?
                 </Link>
               </div>
-              <Input id="password" className="bg-white" type="password"  placeholder="Password" required />
+              <Input id="password" className="bg-white text-black" type="password"  placeholder="Password" required />
             </div>
             <Button type="submit" className="w-full mt-4 bg-red-800">
             <Link
@@ -48,11 +48,11 @@ function Login() {
                   Login
                 </Link>
             </Button>
-            <Button variant="outline" className="w-full ">
+            <Button variant="outline" className="w-full text-black">
               Login with Google
             </Button>
           </div>
-          <div className="mt-4 text-center text-sm">
+          <div className="my-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="#" className="underline">
               Sign up

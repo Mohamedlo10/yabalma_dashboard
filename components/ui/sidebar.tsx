@@ -1,10 +1,9 @@
 "use client";
 import { Badge } from "@/components/ui/badge";
-import Link from "next/link";
-import { usePathname } from "next/navigation"; // Utiliser usePathname
-
 import {
   Book,
+  ChevronDown,
+  ChevronUp,
   Hand,
   Home,
   LineChart,
@@ -15,12 +14,27 @@ import {
   User,
   Users
 } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 function Sidebar() {
-  const pathname = usePathname(); // Obtenir le chemin actuel
+  const pathname = usePathname();
+  const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+
+  const toggleSubMenu = () => {
+    setIsSubMenuOpen(!isSubMenuOpen);
+  };
+
+  useEffect(() => {
+    // Fermer le sous-menu lorsque le chemin change
+    if (!pathname.startsWith("/dashboard/utilisateurs")) {
+      setIsSubMenuOpen(false);
+    }
+  }, [pathname]);
 
   return (
-    <div>
+    <div className="h-full">
       <div className="flex h-[8vh] items-center border-b px-4 lg:h-22 lg:px-6">
         <Link href="/" className="flex items-center gap-4 font-semibold">
           <Package2 className="h-8 w-8 p-2 bg-white text-red-700 rounded-full" />
@@ -44,22 +58,61 @@ function Sidebar() {
             Dashboard
           </Link>
 
-          <Link
-            href="/dashboard/utilisateurs"
-            className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
-              pathname === "/dashboard/utilisateurs"
-                ? "bg-white text-red-700 shadow-lg"
-                : "text-white hover:bg-white hover:text-red-700"
-            }`}
-          >
-            <Users className="h-8 w-4" />
-            Utilisateurs
-          </Link>
+          {/* Lien principal "Utilisateurs" */}
+          <div>
+            <Link
+              href="#"
+              onClick={toggleSubMenu}
+              className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
+                isSubMenuOpen ? "bg-white text-red-700 shadow-lg" : "text-white hover:bg-white hover:text-red-700"
+              }`}
+            >
+              <Users className="h-8 w-4" />
+              Utilisateurs
+              {isSubMenuOpen ? <ChevronUp className="ml-auto" /> : <ChevronDown className="ml-auto" />}
+            </Link>
+
+            {/* Sous-liens */}
+            {isSubMenuOpen && (
+              <div className="ml-8 mt-2 flex flex-col space-y-2">
+                <Link
+                  href="/dashboard/utilisateurs"
+                  className={`font-bold rounded-lg px-3 py-2 transition-all ${
+                    pathname === "/dashboard/utilisateurs"
+                      ? "bg-white text-red-700"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  Accueil
+                </Link>
+                <Link
+                  href="/dashboard/utilisateurs/Clients"
+                  className={`font-bold rounded-lg px-3 py-2 transition-all ${
+                    pathname === "/dashboard/utilisateurs/Clients"
+                      ? "bg-white text-red-700"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  Clients
+                </Link>
+                <Link
+                  href="/dashboard/utilisateurs/gp"
+                  className={`font-bold rounded-lg px-3 py-2 transition-all ${
+                    pathname === "/dashboard/utilisateurs/gp"
+                      ? "bg-white text-red-700"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  GP
+                </Link>
+              </div>
+            )}
+          </div>
 
           <Link
-            href="/annonces"
+            href="/dashboard/annonces"
             className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
-              pathname === "/annonces"
+              pathname === "/dashboard/annonces"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}
@@ -69,9 +122,9 @@ function Sidebar() {
           </Link>
 
           <Link
-            href="/commandes"
+            href="/dashboard/commandes"
             className={`flex items-center gap-3 rounded-lg px-3 py-2 font-bold transition-all ${
-              pathname === "/commandes"
+              pathname === "/dashboard/commandes"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}
