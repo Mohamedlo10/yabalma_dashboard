@@ -1,4 +1,5 @@
 "use client"
+import { getOldestGp } from "@/app/api/gp/route"
 import {
   Card,
   CardContent,
@@ -28,32 +29,23 @@ export function UserGp() {
   let [color, setColor] = useState("#ffffff");
 
 
-
   useEffect(() => {
-    // Fonction pour récupérer les données des utilisateurs
-    const fetchUsers = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        const response = await fetch("/api/gp/top");
-  
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération du top gp");
+        const data: any = await getOldestGp()
+        if (data!=null) {
+          setGp(data)         
         }
-  
-        const data = await response.json();
-        console.log(data);
-        setGp(data);
-       
-      } catch (err:any) {
-        setError(err.message);
-        console.error("Erreur:", err);
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
       }
-      finally {
-      setIsLoading(false);
-      }
-    };
-  
-    fetchUsers();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
 
   if (isLoading) {
@@ -74,7 +66,7 @@ export function UserGp() {
   }
   const router = useRouter()
   return (
-    <Card className="flex flex-col p-4">
+    <Card className="flex w-full flex-col p-4">
       <CardHeader className="items-start p-2"> 
         <CardTitle className="text-red-600 font-black text-3xl">GP</CardTitle>
       </CardHeader>

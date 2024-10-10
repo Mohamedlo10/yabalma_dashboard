@@ -1,4 +1,5 @@
 "use client"
+import { getOldestclient } from "@/app/api/clients/route"
 import {
   Card,
   CardContent,
@@ -29,30 +30,24 @@ export function UserClient() {
   let [color, setColor] = useState("#ffffff");
 
   useEffect(() => {
-    // Fonction pour récupérer les données des utilisateurs
-    const fetchUsers = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        const response = await fetch("/api/clients/top");
-  
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération du top client");
+        const data: any = await getOldestclient()
+
+        if (data!=null) {
+
+          setClient(data)         
         }
-  
-        const data = await response.json();
-        console.log(data);
-        setClient(data);
-       
-      } catch (err:any) {
-        setError(err.message);
-        console.error("Erreur:", err);
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
       }
-      finally {
-      setIsLoading(false);
-      }
-    };
-  
-    fetchUsers();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
 
   if (isLoading) {

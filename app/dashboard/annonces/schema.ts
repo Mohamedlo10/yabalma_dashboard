@@ -1,33 +1,38 @@
 import { z } from "zod";
-import { userSchema } from "../utilisateurs/gp/data/schema";
+import { clientSchema } from "../utilisateurs/schema";
 
 export const annonceSchema = z.object({
-  id: z.string(), 
-  idGp: z.string(),
-  gp:userSchema.optional(),
-  tarif: z.number().positive(),  
-  lieuCollecte: z.string().min(1),  
-  paysDepart: z.object({
-    pays: z.string(),
-    code: z.string().length(2), 
-  }),
-  paysArrive: z.object({
-    pays: z.string(),
-    code: z.string().length(2), 
-  }),
-  limitDate: z.string().refine(date => !isNaN(Date.parse(date)), {
-    message: "Invalid date format for limitDate.",
-  }),
-  dateDepart: z.string().refine(date => !isNaN(Date.parse(date)), {
-    message: "Invalid date format for dateDepart.",
-  }),
-  dateArrive: z.string().refine(date => !isNaN(Date.parse(date)), {
-    message: "Invalid date format for dateArrive.",
-  }),
+  id: z.number(), 
+  id_annonce:z.string(),
+  type_transport:z.string(),
   created_at: z.string().refine(date => !isNaN(Date.parse(date)), {
     message: "Invalid date format for created_at.",
   }),
-  read: z.boolean(),
-});
+  poids_max:z.number().nullable(),
+  stock_annonce:z.number().nullable(),
+  id_client: z.string(),
+  client:clientSchema.optional(),
+  tarif: z.number().positive(),  
+  statut:z.string(),
+  is_boost:z.boolean(),
+  destination: z.string(),
+  source: z.string(),
+  devise_prix: z.string(),
+  lieu_depot: z.string(),
+  date_depart: z.string().refine(date => !isNaN(Date.parse(date)), {
+    message: "Invalid date format for dateDepart.",
+  }),
+  date_arrive: z.string().refine(date => !isNaN(Date.parse(date)), {
+    message: "Invalid date format for dateArrive.",
+  }),
+  });
 
 export type Annonce = z.infer<typeof annonceSchema>;
+/* 
+create table
+  public.annonce (
+    devise_prix text null default 'FCFA'::text,
+    constraint annonce_pkey primary key (id),
+    constraint annonce_id_annonce_key unique (id_annonce),
+    constraint annonce_id_client_fkey foreign key (id_client) references client (id_client)
+  ) tablespace pg_default; */

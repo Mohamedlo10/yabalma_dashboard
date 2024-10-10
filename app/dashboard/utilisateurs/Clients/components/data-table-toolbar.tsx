@@ -9,18 +9,15 @@ import { DataTableViewOptions } from "./data-table-view-options"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>;
-  fetchUsers: (currentPage: number, pageSize: number, filterValue: string) => void; // Ajoutez fetchUsers en tant que prop
 }
 
 export function DataTableToolbar<TData>({
   table,
-  fetchUsers, // Recevez fetchUsers en tant que prop
 }: DataTableToolbarProps<TData>) {
   const isFiltered = table.getState().columnFilters.length > 0;
 
   const handleFilterChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const filterValue = event.target.value;
-    fetchUsers(1, 10, filterValue); // Utilisez fetchUsers avec des paramètres
   };
 
   return (

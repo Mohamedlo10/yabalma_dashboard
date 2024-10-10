@@ -105,7 +105,7 @@ export function AnnonceData({
                   value="unread"
                   className="text-zinc-600 dark:text-zinc-200"
                 >
-                  Non consultee
+                  Boostee
                 </TabsTrigger>
               </TabsList>
             </div>
@@ -121,8 +121,8 @@ export function AnnonceData({
             <TabsContent value="all" className="m-0">
               <AnnonceList items={annonces} />
             </TabsContent>
-            <TabsContent value="unread" className="m-0">
-              <AnnonceList items={annonces.filter((item) => !item.read)} />
+            <TabsContent value="Boost" className="m-0">
+              <AnnonceList items={annonces.filter((item) => !item.is_boost)} />
             </TabsContent>
           </Tabs>
         </ResizablePanel>

@@ -28,7 +28,6 @@ interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[];
   data: TData[];
   onRowClick?: (row: TData) => void;
-  fetchUsers: (page: number, pageSize: number, search: string) => Promise<void>;
   currentPage: number;
   total: number;
   setCurrentPage: (page: number) => void; // Ajoutez cette prop
@@ -38,7 +37,6 @@ export function DataTable<TData, TValue>({
   columns,
   data,
   onRowClick,
-  fetchUsers,
   currentPage,
   total,
   setCurrentPage,
@@ -70,14 +68,12 @@ export function DataTable<TData, TValue>({
 
   const handlePageChange = (newPage: number) => {
     setCurrentPage(newPage);
-    fetchUsers(newPage, 10, ""); // Remplacez par le filtre de recherche si nécessaire
   };
 
   return (
     <div className="space-y-8">
       <DataTableToolbar 
         table={table} 
-        fetchUsers={fetchUsers} 
       /> 
       <div className="rounded-md border max-h-[60vh] overflow-y-auto">
         <Table>

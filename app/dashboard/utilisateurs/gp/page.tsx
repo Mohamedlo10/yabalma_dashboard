@@ -1,4 +1,5 @@
 'use client'
+import { getallgp } from "@/app/api/gp/route";
 import { Button } from "@/components/ui/button";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
@@ -6,10 +7,9 @@ import { fr } from 'date-fns/locale';
 import { Plus } from "lucide-react";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
-import { getallgp } from "@/app/api/gp/route";
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
@@ -45,13 +45,38 @@ export default function UserPage() {
         const data: any = await getallgp()
         if (data && data.length > 0) {
           setUsers(data)
+          setTotal(data.length);
+         
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+      /* try{
+        const data2: any = await getGpPays()
+        if (data2 && data2.length > 0) {
+          console.log(data2)
          
         }
       } catch (error) {
         console.error("Error fetching room details:", error)
       } finally {
         setIsLoading(false)
-      }
+      } */
+
+     /*  try{
+        const data3: any = await getGpById('aa20e')
+        if (data3 && data3.length > 0) {
+          console.log(data3)
+         
+        }
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      } */
     }
     fetchData()
   }, [])
@@ -165,14 +190,12 @@ const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files && e.target.files[0];
 
   if (file) {
-    // Étape 1: Lire le fichier pour l'afficher
     const reader = new FileReader();
     reader.onloadend = () => {
-      setUploadedImage(reader.result as string); // Stocker l'URL de l'image téléchargée
+      setUploadedImage(reader.result as string); 
     };
     reader.readAsDataURL(file);
 
-    // Mettez à jour l'état avec le fichier d'origine
     setUploadedFile(file);
   }
 };
@@ -236,14 +259,13 @@ const closeDrawer = () => {
         data={users}
         columns={columns}
         onRowClick={handleUserClick}
-        // Passer fetchUsers ici
-        currentPage={currentPage} // Passer la page actuelle
-        total={total} // Passer le total
-        setCurrentPage={setCurrentPage} // Passer la fonction de mise à jour de la page
+        currentPage={currentPage} 
+        total={total} 
+        setCurrentPage={setCurrentPage} 
       />
       </div>
       <Drawer anchor='right' open={isDrawerOpen} onClose={closeDrawer}>
-        <div className="p-4 w-[30vw]">
+        <div className="p-4 w-[32vw]">
           {isAddingGp ? (
             // Formulaire d'ajout de Gp
             <div className="flex w-full max-w-xl flex-col items-center border bg-white p-10 text-left">

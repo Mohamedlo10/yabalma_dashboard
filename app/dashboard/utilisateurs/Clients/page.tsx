@@ -1,14 +1,15 @@
 "use client";
 
+import { getallclient } from "@/app/api/clients/route";
 import { Button } from "@/components/ui/button";
-import { supabase } from '@/lib/supabaseClient';
+
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Plus } from "lucide-react";
-import React, { ChangeEvent, CSSProperties, useEffect, useState } from "react";
+import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
-import { toast, ToastContainer } from 'react-toastify';
+import { ToastContainer } from 'react-toastify';
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 
@@ -38,22 +39,25 @@ export default function UserPage() {
     img_url: "",
   });
 
-  async function fetchUsers(page = 1, pageSize = 10, search = '') {
-    try {
-      const response = await fetch(`/api/clients?page=${page}&pageSize=${pageSize}&search=${search}`);
-      const data = await response.json();
-      setUsers(data.users);
-      setTotal(data.total); // Total des utilisateurs pour la pagination
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  
   useEffect(() => {
-    fetchUsers(currentPage);
-}, [currentPage]);
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        const data: any = await getallclient()
+        if (data && data.length > 0) {
+          setUsers(data)
+          setTotal(data.length);
+         
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
 
 
 
@@ -91,7 +95,7 @@ export default function UserPage() {
 
 
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+/*   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
   
     // Vérifiez si une image a été téléchargée
@@ -161,9 +165,12 @@ export default function UserPage() {
     } catch (error) {
       console.error("Erreur lors de la requête POST:", error);
     }
-  };
+  }; */
   
   
+const handleSubmit=async()=>{
+  console.log("j envoie")
+  }
 
 
   const handleUserClick = (user: any) => {
@@ -225,10 +232,9 @@ export default function UserPage() {
         data={users}
         columns={columns}
         onRowClick={handleUserClick}
-        fetchUsers={fetchUsers} // Passer fetchUsers ici
-        currentPage={currentPage} // Passer la page actuelle
-        total={total} // Passer le total
-        setCurrentPage={setCurrentPage} // Passer la fonction de mise à jour de la page
+        currentPage={currentPage} 
+        total={total} 
+        setCurrentPage={setCurrentPage} 
       />
 
       
@@ -237,7 +243,7 @@ export default function UserPage() {
 
       {/* Drawer pour afficher les informations de l'utilisateur ou le formulaire d'ajout */}
       <Drawer anchor='right' open={isDrawerOpen} onClose={closeDrawer}>
-        <div className="p-4 w-[30vw]">
+        <div className="p-4 w-[32vw]">
           {isAddingClient ? (
             // Formulaire d'ajout de client
             <div className="flex w-full max-w-xl flex-col items-center border bg-white p-10 text-left">

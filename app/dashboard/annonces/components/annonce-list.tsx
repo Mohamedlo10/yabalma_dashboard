@@ -36,14 +36,14 @@ export function AnnonceList({ items }: annonceListProps) {
             <div className="flex w-full items-center gap-6">
                 <div className="flex flex-col w-36 items-center gap-1 ">
                                 <Avatar className="hidden h-14 w-14  sm:flex">
-                                <AvatarImage src={`${item.gp?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
+                                <AvatarImage src={`${item.client?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
                                 <AvatarFallback>GP</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
                                 <p className={cn("text-base font-bold leading-none text-red-700",
                                   annonce.selected === item.id && "text-white "
                                   )}>
-                                {item.gp?.prenom} {item.gp?.nom}
+                                {item.client?.prenom} {item.client?.nom}
                                 </p>
                                 </div>
                         
@@ -51,9 +51,9 @@ export function AnnonceList({ items }: annonceListProps) {
                                 <div className={cn("line-clamp-2 font-bold text-xs text-muted-foreground",
                                     annonce.selected === item.id && "text-white "
                                   )}>
-                                {item.lieuCollecte.length > 21 
-                                ? `${item.lieuCollecte.substring(0, 21)} ..` 
-                                : item.lieuCollecte}
+                                {item.lieu_depot.length > 21 
+                                ? `${item.lieu_depot.substring(0, 21)} ..` 
+                                : item.lieu_depot}
                               </div>
                  
                 </div> 
@@ -73,11 +73,11 @@ export function AnnonceList({ items }: annonceListProps) {
                     <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
                     <div className={cn("font-bold text-sm text-muted-foreground",
                           annonce.selected === item.id && "text-white "
-                        )}> Limite depot</div>
+                        )}> Arriver</div>
                       <div className={cn("text-sm text-red-700",
                           annonce.selected === item.id && "text-white "
                         )}>
-                      {`${format(new Date(item.limitDate), 'dd/MM/yy', { locale: fr })}`}
+                      {`${format(new Date(item.date_arrive), 'dd/MM/yy', { locale: fr })}`}
                       </div>
                     </div> 
                     <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
@@ -87,7 +87,7 @@ export function AnnonceList({ items }: annonceListProps) {
                       <div className={cn("text-sm text-red-700",
                           annonce.selected === item.id && "text-white "
                         )}>
-                      {format(new Date(item.dateDepart), 'dd-MM-yy', { locale: fr })}
+                      {format(new Date(item.date_depart), 'dd-MM-yy', { locale: fr })}
                       </div>
                     </div> 
                    
@@ -109,8 +109,8 @@ export function AnnonceList({ items }: annonceListProps) {
                         addSuffix: true,
                       })}
 
-                      {!item.read && (
-                        <span className="flex h-2 w-2 rounded-full bg-red-600" />
+                      {item.is_boost && (
+                        <span className="flex h-3 w-3 rounded-full bg-red-600" />
                       )}
                   </div>
 
@@ -118,10 +118,10 @@ export function AnnonceList({ items }: annonceListProps) {
                   <div className={cn("flex flex-col items-center w-12 font-bold justify-center",
                           annonce.selected === item.id && "text-white "
                         )}>
-                      {item.paysDepart.pays.length > 4 ?
-                    `${item.paysDepart.pays.substring(0, 4)}..`
-                  :item.paysDepart.pays }
-                    <Flag code={item.paysDepart.code} className="h-4 w-6" /> 
+                      {item.source.length > 4 ?
+                    `${item.source.substring(0, 4)}..`
+                  :item.source }
+                    <Flag code="SN" className="h-4 w-6" /> 
                     </div>
                     <div className='flex items-center justify-center pt-4'>
                     <FaArrowRight/>
@@ -129,18 +129,18 @@ export function AnnonceList({ items }: annonceListProps) {
                     <div className={cn("flex flex-col items-center w-12 font-bold justify-center",
                           annonce.selected === item.id && "text-white "
                         )}>
-                    {item.paysArrive.pays.length > 4 ?
-                    `${item.paysArrive.pays.substring(0, 4)}..`
-                  :item.paysArrive.pays }
+                    {item.destination.length > 4 ?
+                    `${item.destination.substring(0, 4)}..`
+                  :item.destination }
                     
-                    <Flag code={item.paysArrive.code} className="h-4 w-6" /> 
+                    <Flag code="FR" className="h-4 w-6" /> 
                     </div>
                   </div>
                         
             </div>
-            {/*  {item.lieuCollecte.length > 21 
-                                ? `${item.lieuCollecte.substring(0, 21)} ..` 
-                                : item.lieuCollecte} */}
+            {/*  {item.lieu_depot.length > 21 
+                                ? `${item.lieu_depot.substring(0, 21)} ..` 
+                                : item.lieu_depot} */}
 
           </button>
         ))}

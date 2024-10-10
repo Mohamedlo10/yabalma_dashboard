@@ -1,25 +1,19 @@
-import { userSchema } from "@/app/dashboard/utilisateurs/gp/data/schema";
-import { promises as fs } from "fs";
-import { NextResponse } from "next/server";
-import path from "path";
-import { z } from "zod";
+import { createClient } from "@/lib/supabaseClient";
 
-export async function GET() {
+
+const supabase =createClient()
+
+export const getUsersCount = async () => {
   try {
-    const data = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-    const users = JSON.parse(data.toString());
-    const validatedUsers = z.array(userSchema).parse(users);
-    const actifs = validatedUsers.filter(user => user.actif === true);
-    const nonActifs = validatedUsers.filter(user => user.actif === false);
-    return NextResponse.json({
-      total: users.length,
-      actifs:actifs.length,
-      nonActifs:nonActifs.length
-    });
-  } catch (error: any) {
-    console.error("Validation Error:", error.errors);
-    return NextResponse.json({ error: "Invalid length " }, { status: 500 });
-  }
-}
+    const { count, error } = await supabase
+      .from('client')
+      .select('*', { count: 'exact', head: true }); // head:true pour ne pas récupérer de données
 
+    if (error) throw error;
+
+    return count; // Cela renvoie uniquement le nombre
+  } catch (err) {
+    throw err;
+  }
+};
 

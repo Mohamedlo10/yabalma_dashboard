@@ -2,9 +2,9 @@
 
 import { TrendingUp } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
-import Flag from "react-world-flags";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
+import { getclientPays } from "@/app/api/clients/route";
 import {
   Card,
   CardContent,
@@ -46,30 +46,23 @@ export function ClientPays() {
 
 
   useEffect(() => {
-    // Fonction pour récupérer les données des utilisateurs
-    const fetchUsers = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        const response = await fetch("/api/clients/pays");
-  
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des utilisateurs");
+        const data: any = await getclientPays()
+        if (data!=null) {
+
+          setClients(data)         
         }
-  
-        const data = await response.json();
-        console.log(data);
-        setClients(data.data);
-       
-      } catch (err:any) {
-        setError(err.message);
-        console.error("Erreur:", err);
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
       }
-      finally {
-      setIsLoading(false);
-      }
-    };
-  
-    fetchUsers();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
 
   if (isLoading) {
@@ -101,17 +94,17 @@ export function ClientPays() {
           <BarChart accessibilityLayer data={clients}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="code"
+              dataKey="pays"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tick={<CustomTick />}
+              tickFormatter={(value) => value.slice(0, 3)}
             />
              <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
-            <Bar dataKey="Client" fill="var(--color-Client)" radius={8} />
+            <Bar dataKey="count" fill="var(--color-Client)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>
@@ -127,15 +120,5 @@ export function ClientPays() {
   );
 }
 
-function CustomTick(props: any) {
-  const { x, y, payload } = props;
-  return (
-    <g transform={`translate(${x},${y})`}>
-      <foreignObject x={-10} y={0} width={30} height={30}>
-        <Flag code={payload.value} className="h-4 w-6" />
-      </foreignObject>
-    </g>
-  );
-}
 
 export default ClientPays;

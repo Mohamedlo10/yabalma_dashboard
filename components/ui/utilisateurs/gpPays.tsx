@@ -2,9 +2,9 @@
 
 import { TrendingUp } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
-import Flag from "react-world-flags";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
+import { getGpPays } from "@/app/api/gp/route";
 import {
   Card,
   CardContent,
@@ -46,30 +46,23 @@ export function GpPays() {
 
 
   useEffect(() => {
-    // Fonction pour récupérer les données des utilisateurs
-    const fetchUsers = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        const response = await fetch("/api/gp/pays");
-  
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des utilisateurs");
+        const data: any = await getGpPays()
+        if (data !=null) {
+
+          setGp(data)         
         }
-  
-        const data = await response.json();
-        console.log(data);
-        setGp(data.data);
-       
-      } catch (err:any) {
-        setError(err.message);
-        console.error("Erreur:", err);
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
       }
-      finally {
-      setIsLoading(false);
-      }
-    };
-  
-    fetchUsers();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
 
   if (isLoading) {
@@ -100,17 +93,17 @@ export function GpPays() {
           <BarChart accessibilityLayer data={gp}>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey="code"
+              dataKey="pays"
               tickLine={false}
               tickMargin={10}
               axisLine={false}
-              tick={<CustomTick />}
+              tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
-            <Bar dataKey="gp" fill="var(--color-GP)" radius={8} />
+            <Bar dataKey="count" fill="var(--color-GP)" radius={8} />
           </BarChart>
         </ChartContainer>
       </CardContent>
@@ -125,7 +118,7 @@ export function GpPays() {
     </Card>
   )
 }
-function CustomTick(props: any) {
+/* function CustomTick(props: any) {
   const { x, y, payload } = props;
   return (
     <g transform={`translate(${x},${y})`}>
@@ -134,5 +127,5 @@ function CustomTick(props: any) {
       </foreignObject>
     </g>
   );
-}
+} */
 export default GpPays

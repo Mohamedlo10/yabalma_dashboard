@@ -1,4 +1,5 @@
 "use client";
+import { getUsersCount } from "@/app/api/users/route";
 import ClientDiag from "@/components/ui/utilisateurs/clientDiag";
 import ClientPays from "@/components/ui/utilisateurs/clientPays";
 import GPDiag from "@/components/ui/utilisateurs/gpDiag";
@@ -23,31 +24,25 @@ function Page() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    // Fonction pour récupérer les données des utilisateurs
-    const fetchUsers = async () => {
+    async function fetchData() {
+      setIsLoading(true)
       try {
-        const response = await fetch("/api/users");
+        const data: any = await getUsersCount()
 
-        if (!response.ok) {
-          throw new Error("Erreur lors de la récupération des utilisateurs");
+        if (data > 0) {
+          setTotalUsers(data)
+          setTotalActifs(data)
+          setTotalnonActifs(0)
         }
-
-        const data = await response.json();
-
-        setTotalUsers(data.total);
-        setTotalActifs(data.actifs);
-        setTotalnonActifs(data.nonActifs);
-      } catch (err:any) {
-        setError(err.message);
-        console.error("Erreur:", err);
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
       }
-      finally {
-      setIsLoading(false);
-      }
-    };
-
-    fetchUsers();
-  }, []);
+    }
+    fetchData()
+  }, [])
 
  
   if (isLoading) {
@@ -88,13 +83,13 @@ function Page() {
       <div className="grid grid-cols-1 h-full w-full">
         <div className="grid grid-cols-10 h-full w-full">
           <div className="col-span-4 p-2 text-black ">
-            <GPDiag />
+            <GpPays />
           </div>
-          <div className="col-span-6 py-2 flex flex-row items-center justify-center">
-            <div className="p-2 w-2/3">
-              <GpPays />
+          <div className="col-span-6 flex flex-row items-center justify-center">
+            <div className="p-2 w-3/4">
+            <GPDiag />
             </div>
-            <div className="p-2 w-1/3">
+            <div className="p-2 w-2/4">
               <UserGp />
             </div>
           </div>
@@ -102,13 +97,13 @@ function Page() {
 
         <div className="grid grid-cols-10 h-full w-full">
           <div className="col-span-4 p-2">
-            <ClientDiag />
+            <ClientPays />
           </div>
-          <div className="col-span-6 py-2 flex flex-row items-center justify-center">
-            <div className="p-2 w-2/3">
-              <ClientPays />
+          <div className="col-span-6 flex flex-row items-center justify-center">
+            <div className="p-2 w-3/4">
+            <ClientDiag />
             </div>
-            <div className="p-2 w-1/3">
+            <div className="p-2 w-2/4">
               <UserClient />
             </div>
           </div>
