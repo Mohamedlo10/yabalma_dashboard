@@ -1,3 +1,4 @@
+import Log_table from '@/components/logtable_display'
 import Pop from '@/components/pop'
 import { Input } from '@/components/ui/input'
 import React from 'react'
@@ -20,7 +21,9 @@ function page() {
                 <Pop />
             </div>
         </div>
-
+        <div>
+          <Log_table />
+        </div>
     </div>
   )
 }

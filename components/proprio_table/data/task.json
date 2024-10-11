@@ -1,0 +1,26 @@
+[
+
+  
+    {
+      "id": "1",
+      "Room": "Deluxe",
+      "Number": "12",
+      "RoomStatus": "Clean",
+      "Returnstatus": "VO",
+      "FOstatus":"Occuption",
+      "roomclass":"Main",
+      "reservationstatus":"In house"
+    },
+    {
+      "id": "2",
+      "Room_type": "Simple",
+      "Room_number": "14589",
+      "Room_status": "dirty",
+      "Returnstatus": "VO",
+      "Return_status":"Vacant",
+      "Room_classe":"Main",
+      "Reservation_Status":"Not Reserved"
+    }
+
+   
+  ]
