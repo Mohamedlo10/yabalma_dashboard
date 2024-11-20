@@ -51,7 +51,6 @@ export function GpPays() {
       try {
         const data: any = await getGpPays()
         if (data !=null) {
-
           setGp(data)         
         }
         
@@ -109,10 +108,10 @@ export function GpPays() {
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
         <div className="flex gap-2 font-medium leading-none">
-          Trending up by 5.2% this pays <TrendingUp className="h-4 w-4" />
+          Nombre de Gp par pays <TrendingUp className="h-4 w-4" />
         </div>
         <div className="leading-none text-muted-foreground">
-          Showing total visitors for the last 6 payss
+          statistique des gp
         </div>
       </CardFooter>
     </Card>

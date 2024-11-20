@@ -17,6 +17,8 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
+import { useRouter } from 'next/navigation'
+
 
 export const description = "A bar chart with a label"
 
@@ -43,6 +45,9 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function BarChartComponent() {
+
+  const router = useRouter()
+
   return (
     <Card className=" ">
       <CardHeader>
@@ -89,7 +94,7 @@ export function BarChartComponent() {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-end gap-2 text-sm">
-      <Button className="w-28 h-10 font-bold">Voir Details</Button>
+      <Button type="button" onClick={() => router.push('dashboard/finance')}  className="w-28 h-10 font-bold">Voir Details</Button>
       </CardFooter> 
     </Card>
   )

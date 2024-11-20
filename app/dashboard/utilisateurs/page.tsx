@@ -1,8 +1,6 @@
 "use client";
 import { getUsersCount } from "@/app/api/users/route";
-import ClientDiag from "@/components/ui/utilisateurs/clientDiag";
 import ClientPays from "@/components/ui/utilisateurs/clientPays";
-import GPDiag from "@/components/ui/utilisateurs/gpDiag";
 import GpPays from "@/components/ui/utilisateurs/gpPays";
 import UserClient from "@/components/ui/utilisateurs/userClient";
 import UserGp from "@/components/ui/utilisateurs/userGp";
@@ -69,45 +67,25 @@ function Page() {
           <p className="text-5xl text-red-600 font-bold">{totalUsers}</p>
           <p className="text-black font-bold">Utilisateurs</p>
         </div>
-        <div className="flex flex-col justify-center items-center content-center">
-          <p className="text-7xl text-red-600 font-bold">{totalActifs}</p>
-          <p className="text-black font-bold">Actifs</p>
-        </div>
-
-        <div className="flex flex-col justify-center items-center content-center">
-          <p className="text-5xl text-zinc-500 font-bold">{totalnonActifs}</p>
-          <p className="text-black font-bold">Inactifs</p>
-        </div>
+       
       </div>
 
-      <div className="grid grid-cols-1 h-full w-full">
-        <div className="grid grid-cols-10 h-full w-full">
-          <div className="col-span-4 p-2 text-black ">
-            <GpPays />
-          </div>
-          <div className="col-span-6 flex flex-row items-center justify-center">
-            <div className="p-2 w-3/4">
-            <GPDiag />
-            </div>
-            <div className="p-2 w-2/4">
-              <UserGp />
-            </div>
-          </div>
-        </div>
+      <div className="grid grid-cols-1  w-full">
+       
 
-        <div className="grid grid-cols-10 h-full w-full">
-          <div className="col-span-4 p-2">
-            <ClientPays />
-          </div>
-          <div className="col-span-6 flex flex-row items-center justify-center">
-            <div className="p-2 w-3/4">
-            <ClientDiag />
-            </div>
-            <div className="p-2 w-2/4">
+          <div className="grid-cols-2 gap-2 w-full">
+            <div className="flex flex-row gap-3 p-2 w-full items-center justify-center">
+              <UserGp />
               <UserClient />
             </div>
+            <div className="grid grid-cols-2 w-full gap-2">
+              <GpPays />
+              <ClientPays />
+            </div>
+
           </div>
-        </div>
+
+    
       </div>
     </div>
   );

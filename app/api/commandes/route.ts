@@ -1,112 +1,121 @@
-// app/api/users/route.ts
-import { promises as fs } from "fs";
-import { NextResponse } from "next/server";
-import path from "path";
-/* import { v4 as uuidv4 } from "uuid"; */
-import { Annonce } from "@/app/dashboard/annonces/schema";
-import { commandeSchema } from "@/app/dashboard/commandes/schema";
-import { type User } from "@/app/dashboard/utilisateurs/gp/data/schema";
-import { z } from "zod";
+import { createClient } from "@/lib/supabaseClient";
 
 
-export async function GET() {
-  try { // Lire les commandes
-    const commandesData = await fs.readFile(path.join(process.cwd(), "data/commandes.json"));
-    const commandes = JSON.parse(commandesData.toString());
-    const validatedCommandes = z.array(commandeSchema).parse(commandes);
+const supabase =createClient()
 
-    // Lire les annonces
-    const annonceData = await fs.readFile(path.join(process.cwd(), "data/annonces.json"));
-    const annonces: Annonce[] = JSON.parse(annonceData.toString());
+export const getallcommandes =async()=>{
 
-    // Créer un dictionnaire pour un accès rapide aux annonces
-    const annonceMap: Record<string, Annonce> = {};
-    annonces.forEach(annonce => {
-      annonceMap[annonce.id] = annonce;
-    });
+  try {
+    const { data, error } = await supabase
+      .from('commande')
+      .select(`
+        *,
+        annonce(
+          *,
+          client(*) 
+        ),
+        client(*) 
+      `)
+      .order('created_at', { ascending: false });
+  
+    if (error) throw error;
+  
+    return data as any;
+  } catch (err) {
+    throw err;
+  }
+  
+}
 
-    // Lire les GP
-    const gpData = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-    const gps: User[] = JSON.parse(gpData.toString());
+export const getCommandesClient =async(id:any)=>{
 
-    // Créer un dictionnaire pour un accès rapide aux GP
-    const gpMap: Record<string, User> = {};
-    gps.forEach(gp => {
-      gpMap[gp.id_client] = gp;
-    });
+  try {
+    const { data, error } = await supabase
+      .from('commande')
+      .select(`
+        *,
+        annonce(
+          *,
+          client(*) 
+        ),
+        client(*) 
+      `).eq("id_client",id)
+      .order('created_at', { ascending: false });
+  
+    if (error) throw error;
+  
+    return data as any;
+  } catch (err) {
+    throw err;
+  }
+  
+}
+
+export const getCommandesByIdAnnonce =async(id:any)=>{
+
+  try {
+    const { data, error } = await supabase
+      .from('commande')
+      .select(`
+        *,
+        annonce(
+          *,
+          client(*) 
+        ),
+        client(*) 
+      `).eq("id_annonce",id)
+      .order('created_at', { ascending: false });
+  
+    if (error) throw error;
+  
+    return data as any;
+  } catch (err) {
+    throw err;
+  }
+  
+}
+
+export const getCommandesForCurrentMonthCount = async () => {
+  try {
+    const { count, error } = await supabase
+      .from('commande')
+      .select('id', { count: 'exact', head: true }) 
+      .gte("created_at", new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString()) // Début du mois en cours
+      .lte("created_at", new Date().toISOString()); 
+
+    if (error) throw error;
+  
+    return count; // Retourne le nombre de commandes
+  } catch (err) {
+    throw err;
+  }
+};
 
 
 
-    // Ajouter le GP à chaque annonce et ensuite à chaque commande
-    const commandesAvecAnnonceEtGp = validatedCommandes.map(commande => {
-      const annonce = annonceMap[commande.idAnnonce] || null; 
-      const client = gpMap[commande.idClient] || null;
-      const gp = annonce && annonce.idGp ? gpMap[annonce.idGp] : null; // Ajouter le GP à l'annonce
+export const getcommandesCountByMonth = async () => {
+  try {
+    const { data, error } = await supabase
+    .rpc('get_commandes_count_by_month')
 
-      return {
-        ...commande,
-        annonce: {
-          ...annonce,
-          gp,
-        },
-        client, 
-      };
-    });
+    if (error) throw error;
 
-    // Trier les commandes
-    const commandesSort = commandesAvecAnnonceEtGp.sort((a, b) => {
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-    });
-
-    return NextResponse.json(commandesSort);
-  } catch (error) {
-    console.error("Validation Error:", error);
-    return NextResponse.json({ error: "Invalid user data" }, { status: 500 });
+    return data as any;
+  } catch (err) {
+    throw err;
   }
 }
 
+export const getcommandeAnnonceCount = async () => {
+  try {
+    const { data, error } = await supabase
+    .rpc('get_commandes_and_annonces_by_date')
 
+    if (error) throw error;
 
-
-
-
-
-/* 
-  export async function POST(request: Request) {
-    try {
-      const data = await fs.readFile(path.join(process.cwd(), "data/users.json"));
-      const users = JSON.parse(data.toString());
-      const validatedUsers = z.array(annonceSchema).parse(users);
-  
-      // Get the highest ID and increment it by 1
-      // const newId = validatedUsers.length > 0 ? Math.max(...validatedUsers.map(user => user.id)) + 1 : 1;
-  
-      // Generate a unique client ID, for example "C001"
-      const idClient = uuidv4().substring(0, 5);
-      const tokentest=uuidv4();
-  
-      // Get the new client data from the request
-      const json = await request.json();
-      const newUser = annonceSchema.parse({
-        ...json,
-        id: newId,
-        created_at: new Date().toISOString(),
-        id_client: idClient,
-        fcm_token: tokentest,
-        is_gp: false,
-        commande: 0,
-      });
-  
-      // Add the new client to the list
-      validatedUsers.push(newUser);
-  
-      // Write the updated list back to the file
-      await fs.writeFile(path.join(process.cwd(), "data/users.json"), JSON.stringify(validatedUsers, null, 2));
-  
-      return NextResponse.json(newUser, { status: 201 });
-    } catch (error: any) {
-      console.error("Validation Error:", error.errors);
-      return NextResponse.json({ error: "Invalid user data" }, { status: 500 });
-    }
+    return data as any;
+  } catch (err) {
+    throw err;
+  }
 }
- */
+

@@ -1,52 +1,84 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 
+import { getcommandesCountByMonth } from "@/app/api/commandes/route";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
+} from "@/components/ui/chart";
+import { CSSProperties, useEffect, useState } from "react";
+import { number } from "zod";
+
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
 export const description = "A bar chart with a label"
 
-const chartData = [
-  { month: "January", desktop: 14 },
-  { month: "February", desktop: 35 },
-  { month: "March", desktop: 25 },
-  { month: "April", desktop: 11 },
-  { month: "May", desktop: 15 },
-  { month: "June", desktop: 12 },
-  { month: "July", desktop: 22 },
-  { month: "August", desktop: 19 },
-  { month: "September", desktop: 19 },
-  { month: "October", desktop: 10 },
-  { month: "November", desktop: 50 },
-  { month: "December", desktop: 40 },
+let chartData = [
+  { month: "January", count:number },
+  { month: "February", count:number },
+  { month: "March", count:number },
+  { month: "April", count:number },
+  { month: "May", count:number },
+  { month: "June", count:number },
+  { month: "July", count:number },
+  { month: "August", count:number },
+  { month: "September", count:number },
+  { month: "October", count:number },
+  { month: "November", count:number },
+  { month: "December", count:number },
 ]
 
 const chartConfig = {
-  desktop: {
+  count: {
     label: "Commandes",
     color: "#dc2626",
   },
 } satisfies ChartConfig
 
 export function CommandeDiag() {
+  const [isLoading, setIsLoading] = useState(true);
+  let [color, setColor] = useState("#ffffff");
+  const [total, setTotal] = useState(0);
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        const data: any = await getcommandesCountByMonth()
+
+        if (data !=null) {
+          console.log(data)
+          setTotal(data[0].total_count);
+          chartData=data;
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
   return (
     <Card className=" w-full">
       <CardHeader>
       <CardDescription>Commandes </CardDescription>
       <CardTitle className="flex items-baseline gap-1 text-2xl tabular-nums">
-             205
+             {total}
       </CardTitle>
       </CardHeader>
       <CardContent>
@@ -72,7 +104,7 @@ export function CommandeDiag() {
               cursor={false}
               content={<ChartTooltipContent indicator="dashed"  className="bg-white p-2 shadow-md rounded-md" />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8}>
+            <Bar dataKey="count" fill="var(--color-count)" radius={8}>
               <LabelList
                 position="top"
                 offset={12}

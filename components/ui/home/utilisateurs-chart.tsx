@@ -28,9 +28,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import { useRouter } from 'next/navigation'
 import { CSSProperties, useEffect, useState } from "react"
 import BeatLoader from "react-spinners/BeatLoader"
 import { Button } from "../button"
+
 
 
 const override: CSSProperties = {
@@ -67,6 +69,7 @@ export function CirculaireComponent() {
   const [totalActifs, setTotalActifs] = useState(0);
   const [totalnonActifs, setTotalnonActifs] = useState(0);
   const [error, setError] = useState(null);
+  const router = useRouter()
 
   useEffect(() => {
     async function fetchData() {
@@ -75,7 +78,6 @@ export function CirculaireComponent() {
         const data: any = await getUsersCount()
 
         if (data >= 0) {
-          console.log(data)
            setTotalUsers(data)
         }
         
@@ -246,7 +248,7 @@ export function CirculaireComponent() {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-end gap-2 text-sm">
-      <Button className="w-fit h-10 font-bold">Gerer les Utilisateurs</Button>
+      <Button type="button" onClick={()=> router.push('dashboard/utilisateurs')} className="w-fit h-10 font-bold">Gerer les Utilisateurs</Button>
       </CardFooter> 
     </Card>
   )

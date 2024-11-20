@@ -1,52 +1,103 @@
 "use client"
 
-import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 
+import { getAnnoncesCountByMonth } from "@/app/api/annonces/route";
 import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle
-} from "@/components/ui/card"
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle
+} from "@/components/ui/card";
 import {
-    ChartConfig,
-    ChartContainer,
-    ChartTooltip,
-    ChartTooltipContent,
-} from "@/components/ui/chart"
+  ChartConfig,
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+} from "@/components/ui/chart";
+import { CSSProperties, useEffect, useState } from "react";
+import BeatLoader from "react-spinners/BeatLoader";
+import { number } from "zod";
 
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 export const description = "A bar chart with a label"
 
-const chartData = [
-  { month: "January", desktop: 54 },
-  { month: "February", desktop: 35 },
-  { month: "March", desktop: 75 },
-  { month: "April", desktop: 81 },
-  { month: "May", desktop: 55 },
-  { month: "June", desktop: 120 },
-  { month: "July", desktop: 92 },
-  { month: "August", desktop: 89 },
-  { month: "September", desktop: 139 },
-  { month: "October", desktop: 110 },
-  { month: "November", desktop: 150 },
-  { month: "December", desktop: 140 },
+let chartData = [
+  { month: "January", count: number },
+  { month: "February", count: number },
+  { month: "March", count: number },
+  { month: "April", count: number },
+  { month: "May", count: number },
+  { month: "June", count: number },
+  { month: "July", count: number },
+  { month: "August", count: number },
+  { month: "September", count: number },
+  { month: "October", count: number },
+  { month: "November", count: number },
+  { month: "December", count: number },
 ]
 
 const chartConfig = {
-  desktop: {
+  count: {
     label: "Annonces",
     color: "#dc2626",
   },
 } satisfies ChartConfig
 
 export function AnnonceDiag() {
+  const [isLoading, setIsLoading] = useState(true);
+  let [color, setColor] = useState("#ffffff");
+  const [total, setTotal] = useState(0);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        const data: any = await getAnnoncesCountByMonth()
+
+        if (data !=null) {
+          console.log(data)
+          setTotal(data[0].total_count);
+          chartData=data;
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card className=" w-full">
       <CardHeader>
       <CardDescription>Annonces </CardDescription>
       <CardTitle className="flex items-baseline gap-1 text-2xl tabular-nums">
-             745
+             {total}
       </CardTitle>
       </CardHeader>
       <CardContent>
@@ -72,7 +123,7 @@ export function AnnonceDiag() {
               cursor={false}
               content={<ChartTooltipContent indicator="dashed"  className="bg-white p-2 shadow-md rounded-md" />}
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8}>
+            <Bar dataKey="count" fill="var(--color-count)" radius={8}>
               <LabelList
                 position="top"
                 offset={12}

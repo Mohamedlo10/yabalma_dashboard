@@ -1,11 +1,9 @@
-import { format, formatDistanceToNow } from 'date-fns';
+import { formatDistanceToNow } from 'date-fns';
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { fr } from 'date-fns/locale';
 import { FaArrowRight } from 'react-icons/fa';
-import Flag from "react-world-flags";
 import { Commande } from '../schema';
 import { useCommande } from "../use-commande";
 
@@ -33,8 +31,8 @@ export function CommandeList({ items }: commandeListProps) {
                 selected: item.id,
              })}>
 
-            <div className="flex w-full items-center gap-6">
-                <div className="flex flex-col w-36 items-center gap-1 ">
+            <div className="flex w-full items-center ">
+                <div className="flex flex-col xl:w-36 w-32 items-center gap-1 ">
                 <p className={cn("text-base font-bold leading-none text-red-700",
                                   commande.selected === item.id && "text-white "
                                   )}>
@@ -62,57 +60,23 @@ export function CommandeList({ items }: commandeListProps) {
                               </div>
                  
                 </div> 
-                <div className="flex flex-col font-bold h-full text-base w-fit">
-                    
-                    <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
-                      <div className={cn("font-bold text-sm text-muted-foreground",
-                          commande.selected === item.id && "text-white "
-                        )}> Montant</div>
-                      <div className={cn("text-sm text-red-700",
-                          commande.selected === item.id && "text-white font-extrabold"
-                        )}>
-                        {item.charge*item.annonce?.tarif} FCFA
-                      </div>
-                    </div>
-                    <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
-                    <div className={cn("font-bold text-sm text-muted-foreground",
-                          commande.selected === item.id && "text-white "
-                        )}> Effectuée le </div>
-                      <div className={cn("text-sm text-red-700",
-                          commande.selected === item.id && "text-white "
-                        )}>
-                     {format(new Date(item.created_at), 'dd-MM-yy', { locale: fr })}
-                      </div>
-                    </div> 
-                    <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
-                      <div className={cn("font-bold text-sm text-muted-foreground",
-                          commande.selected === item.id && "text-white "
-                        )}> Date max</div>
-                      <div className={cn("text-sm text-red-700",
-                          commande.selected === item.id && "text-white "
-                        )}>
-                      {format(new Date(item.limitLivraison), 'dd-MM-yy', { locale: fr })}
-                      </div>
-                    </div> 
-                   
-                </div>
 
                 
-                <div className="flex flex-col w-36 items-center gap-1 ">
+                <div className="flex flex-col w-28 items-center gap-1 ">
                 <p className={cn("text-base font-bold leading-none text-red-700",
                                   commande.selected === item.id && "text-white "
                                   )}>
                                 GP
                                 </p>
                                 <Avatar className="hidden h-14 w-14  sm:flex">
-                                <AvatarImage src={`${item.annonce?.gp?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
+                                <AvatarImage src={`${item.annonce?.client?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
                                 <AvatarFallback>client</AvatarFallback>
                                 </Avatar>
                                 <div className="grid gap-1">
                                 <p className={cn("text-base font-bold leading-none text-red-700",
                                   commande.selected === item.id && "text-white "
                                   )}>
-                                {item.annonce?.gp?.prenom} {item.annonce?.gp?.nom}
+                                {item.annonce?.client?.prenom} {item.annonce?.client?.nom}
                                 </p>
                                 </div>
                         
@@ -121,7 +85,7 @@ export function CommandeList({ items }: commandeListProps) {
                                     commande.selected === item.id && "text-white "
                                   )}>
                                
-                                {item.annonce?.gp?.Tel}
+                                {item.annonce?.client?.Tel}
                                
                               </div>
                  
@@ -134,7 +98,7 @@ export function CommandeList({ items }: commandeListProps) {
 
             <div
                   className={cn(
-                    "ml-auto w-48 flex flex-col gap-4",
+                    " w-52 flex flex-col gap-4",
                     commande.selected === item.id
                       ? "text-foreground"
                       : "text-muted-foreground")}>
@@ -143,7 +107,7 @@ export function CommandeList({ items }: commandeListProps) {
                         addSuffix: true,
                       })}
 
-                      {!item.read && (
+                      {!item.statut && (
                         <span className="flex h-2 w-2 rounded-full bg-red-600" />
                       )}
                   </div>
@@ -152,24 +116,34 @@ export function CommandeList({ items }: commandeListProps) {
                   <div className={cn("flex flex-col items-center w-12 font-bold justify-center",
                           commande.selected === item.id && "text-white "
                         )}>
-                      {item.annonce?.paysDepart?.pays?.length > 4 ?
-                    `${item.annonce?.paysDepart?.pays.substring(0, 4)}..`
-                  :item.annonce?.paysDepart.pays }
-                    <Flag code={item.annonce?.paysDepart.code} className="h-4 w-6" /> 
+                      {item.annonce?.source?.length > 5 ?
+                    `${item.annonce?.source?.substring(0, 5)}..`
+                  :item.annonce?.source }
+                    {/* <Flag code={item.annonce?.source.code} className="h-4 w-6" />  */}
                     </div>
-                    <div className='flex items-center justify-center pt-4'>
+                    <div className='flex items-center justify-center pt-2'>
                     <FaArrowRight/>
                     </div>
                     <div className={cn("flex flex-col items-center w-12 font-bold justify-center",
                           commande.selected === item.id && "text-white "
                         )}>
-                    {item.annonce?.paysArrive?.pays?.length > 4 ?
-                    `${item.annonce?.paysArrive.pays.substring(0, 4)}..`
-                  :item.annonce?.paysArrive.pays }
+                    {item.annonce?.destination?.length > 5 ?
+                    `${item.annonce?.destination?.substring(0, 5)}..`
+                  :item.annonce?.destination}
                     
-                    <Flag code={item.annonce?.paysArrive.code} className="h-4 w-6" /> 
+                    {/* <Flag code={item.annonce?.code} className="h-4 w-6" />  */}
                     </div>
                   </div>
+
+                    <div className="text-sm flex items-center justify-center  flex-row gap-2 font-bold p-1 w-full ">
+                    
+                      <div className={cn("text-sm text-red-700",
+                          commande.selected === item.id && "text-white "
+                        )}>
+                            {item.statut}
+                      </div>
+                    </div> 
+                   
                         
             </div>
             {/*  {item.lieuCollecte.length > 21 

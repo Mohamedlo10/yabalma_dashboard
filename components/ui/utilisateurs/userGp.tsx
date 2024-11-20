@@ -66,7 +66,7 @@ export function UserGp() {
   }
   const router = useRouter()
   return (
-    <Card className="flex w-full flex-col p-4">
+    <Card className="flex flex-col p-4">
       <CardHeader className="items-start p-2"> 
         <CardTitle className="text-red-600 font-black text-3xl">GP</CardTitle>
       </CardHeader>

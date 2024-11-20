@@ -21,9 +21,9 @@ import {
 } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
+import { useState } from "react"
 import { type Annonce } from '../schema'
 import { useAnnonce } from "../use-annonce"
-import { AddAnnonce } from "./addAnnonce"
 import { AnnonceDisplay } from "./annonce-display"
 import { AnnonceList } from "./annonce-list"
 
@@ -42,7 +42,12 @@ export function AnnonceData({
 }: AnnonceProps) {
   const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed)
   const [mail] = useAnnonce()
+  const [searchQuery, setSearchQuery] = useState("");
 
+  // Fonction de gestion du changement de l'input
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
@@ -85,7 +90,6 @@ export function AnnonceData({
           >
             {/* SidePage component */}
             <AnnonceDiag/>
-            <AddAnnonce/>
           </div>
           
         </ResizablePanel>
@@ -111,10 +115,24 @@ export function AnnonceData({
             </div>
             <Separator />
             <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <form>
+            <form
+                onSubmit={(e) => {
+                  e.preventDefault(); // Empêche le rechargement de la page
+                }}
+              >
                 <div className="relative">
                   <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
-                  <Input placeholder="Search" className="pl-12 h-12" />
+                  <Input
+                    placeholder="Tapez la destination pour trouver l'annonce"
+                    className="pl-12 h-12 mb-4"
+                    value={searchQuery}
+                    onChange={handleInputChange}
+                  />
+                  <AnnonceList
+                    items={annonces.filter((item) =>
+                      item.destination.toLowerCase().includes(searchQuery.toLowerCase())
+                    )}
+                  />
                 </div>
               </form>
             </div>

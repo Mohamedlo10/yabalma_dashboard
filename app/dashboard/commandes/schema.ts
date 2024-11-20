@@ -3,33 +3,30 @@ import { annonceSchema } from "../annonces/schema";
 import { clientSchema } from "../utilisateurs/schema";
 
 
-
-const destinataireSchema = z.object({
-  prenom: z.string().min(1),
-  nom: z.string().min(1),
-  localisation: z.string().min(1),
-  codePostal: z.string(),
-  Tel: z.string().min(1),
+const detailCommandeSchema = z.object({
+  code_postal: z.string().optional(),
+  first_name: z.string().optional(),
+  last_name: z.string().optional(),
+  location: z.string().optional(),
+  phone_number: z.string().optional(),
+  poids: z.string().optional(),
 });
 
 // Schéma principal pour la commande
 export const commandeSchema = z.object({
-  id: z.string(),
-  idAnnonce: z.string(),
-  idClient: z.string(),
-  client:clientSchema.optional(),
-  annonce:annonceSchema.optional(),
-  status: z.enum(["pending", "confirmed", "shipped", "delivered", "canceled"]), 
-  dateDeLivraison: z.string().optional(),
-  limitLivraison: z.string().refine(date => !isNaN(Date.parse(date)), {
-    message: "Invalid date format for limitLivraison.",
-  }),
-  created_at: z.string().refine(date => !isNaN(Date.parse(date)), {
-    message: "Invalid date format for created_at.",
-  }),
-  charge: z.number().nonnegative(),
-  destinataire: destinataireSchema, 
-  read: z.boolean(),
+  id: z.number(),
+  id_annonce: z.string(),
+  id_client: z.string(),
+  id_gp: z.string(),
+  is_given_to_gp: z.boolean(),
+  is_received_by_gp: z.boolean(),
+  statut: z.string(),
+  validation_status: z.boolean(),
+  created_at: z.string().refine((date) => !isNaN(Date.parse(date))), // vérifie que c'est une date valide
+  cancelled_status: z.boolean(),
+  annonce: annonceSchema, 
+  client: clientSchema,   
+  detail_commande: detailCommandeSchema.optional(), 
 });
 
 

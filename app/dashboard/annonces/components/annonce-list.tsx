@@ -5,7 +5,6 @@ import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { fr } from 'date-fns/locale';
 import { FaArrowRight } from 'react-icons/fa';
-import Flag from "react-world-flags";
 import { Annonce } from '../schema';
 import { useAnnonce } from "../use-annonce";
 
@@ -63,11 +62,11 @@ export function AnnonceList({ items }: annonceListProps) {
                     <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
                       <div className={cn("font-bold text-sm text-muted-foreground",
                           annonce.selected === item.id && "text-white "
-                        )}> Tarif</div>
+                        )}> Stock</div>
                       <div className={cn("text-sm text-red-700",
                           annonce.selected === item.id && "text-white font-extrabold"
                         )}>
-                        {item.tarif}
+                        {item.stock_annonce}
                       </div>
                     </div>
                     <div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
@@ -121,7 +120,7 @@ export function AnnonceList({ items }: annonceListProps) {
                       {item.source.length > 4 ?
                     `${item.source.substring(0, 4)}..`
                   :item.source }
-                    <Flag code="SN" className="h-4 w-6" /> 
+                    {/* <Flag code="SN" className="h-4 w-6" />  */}
                     </div>
                     <div className='flex items-center justify-center pt-4'>
                     <FaArrowRight/>
@@ -133,7 +132,7 @@ export function AnnonceList({ items }: annonceListProps) {
                     `${item.destination.substring(0, 4)}..`
                   :item.destination }
                     
-                    <Flag code="FR" className="h-4 w-6" /> 
+                    {/* <Flag code="FR" className="h-4 w-6" />  */}
                     </div>
                   </div>
                         

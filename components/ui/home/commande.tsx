@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
+import { getcommandeAnnonceCount } from "@/app/api/commandes/route"
 import {
   Card,
   CardContent,
@@ -18,49 +19,16 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import { CSSProperties, useEffect, useState } from "react"
+import BeatLoader from "react-spinners/BeatLoader"
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
 export const description = "An interactive area chart"
 
-const chartData = [
-  { date: "2024-08-21", annonces: 150, commande: 200 },
-  { date: "2024-08-22", annonces: 180, commande: 420 },
-  { date: "2024-08-23", annonces: 470, commande: 610 },
-  { date: "2024-08-24", annonces: 190, commande: 430 },
-  { date: "2024-08-25", annonces: 200, commande: 640 },
-  { date: "2024-08-26", annonces: 310, commande: 350 },
-  { date: "2024-08-27", annonces: 220, commande: 260 },
-  { date: "2024-08-28", annonces: 430, commande: 270 },
-  { date: "2024-08-29", annonces: 640, commande: 780 },
-  { date: "2024-08-30", annonces: 750, commande: 890 },
-  { date: "2024-08-31", annonces: 260, commande: 350 },
-  { date: "2024-09-01", annonces: 270, commande: 310 },
-  { date: "2024-09-02", annonces: 280, commande: 320 },
-  { date: "2024-09-03", annonces: 290, commande: 330 },
-  { date: "2024-09-04", annonces: 300, commande: 340 },
-  { date: "2024-09-05", annonces: 310, commande: 350 },
-  { date: "2024-09-06", annonces: 320, commande: 360 },
-  { date: "2024-09-07", annonces: 330, commande: 370 },
-  { date: "2024-09-08", annonces: 340, commande: 380 },
-  { date: "2024-09-09", annonces: 350, commande: 390 },
-  { date: "2024-09-10", annonces: 360, commande: 400 },
-  { date: "2024-09-11", annonces: 370, commande: 410 },
-  { date: "2024-09-12", annonces: 380, commande: 420 },
-  { date: "2024-09-13", annonces: 390, commande: 430 },
-  { date: "2024-09-14", annonces: 600, commande: 440 },
-  { date: "2024-09-15", annonces: 810, commande: 450 },
-  { date: "2024-09-16", annonces: 720, commande: 860 },
-  { date: "2024-09-17", annonces: 630, commande: 770 },
-  { date: "2024-09-18", annonces: 540, commande: 480 },
-  { date: "2024-09-19", annonces: 450, commande: 490 },
-  { date: "2024-09-20", annonces: 360, commande: 400 },
-]
 
 const chartConfig = {
   visitors: {
@@ -77,21 +45,55 @@ const chartConfig = {
 } satisfies ChartConfig
 
 export function Commande() {
+
+  const [isLoading, setIsLoading] = useState(true);
+  let [color, setColor] = useState("#ffffff");
+  const [chartData, setchartData] = useState([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        const data: any = await getcommandeAnnonceCount()
+
+        if (data != null) {
+          setchartData(data)         
+
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+  
   const [timeRange, setTimeRange] = React.useState("30d") // Définir par défaut sur 30 jours
 
-  const filteredData = chartData.filter((item) => {
-    const date = new Date(item.date)
-    const now = new Date("2024-09-20") // Utiliser la date actuelle fixe pour cet exemple
-    let daysToSubtract = 90
-    if (timeRange === "30d") {
-      daysToSubtract = 30
-    } else if (timeRange === "7d") {
-      daysToSubtract = 7
-    }
-    const cutoffDate = new Date(now)
-    cutoffDate.setDate(now.getDate() - daysToSubtract)
-    return date >= cutoffDate
-  })
+
+
+ 
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
+
 
   return (
     <Card>
@@ -102,7 +104,7 @@ export function Commande() {
             Annonces et commandes des {timeRange === "90d" ? "3 derniers mois" : timeRange === "30d" ? "30 derniers jours" : "7 derniers jours"}
           </CardDescription>
         </div>
-        <Select value={timeRange} onValueChange={setTimeRange}>
+        {/* <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
             className="w-[160px] rounded-lg sm:ml-auto"
             aria-label="Select a value"
@@ -120,14 +122,14 @@ export function Commande() {
               Last 7 days
             </SelectItem>
           </SelectContent>
-        </Select>
+        </Select> */}
       </CardHeader>
       <CardContent className="px-2 pt-4 sm:px-6 sm:pt-24">
         <ChartContainer
           config={chartConfig}
           className="aspect-auto h-[250px] w-full"
         >
-          <AreaChart data={filteredData}>
+          <AreaChart data={chartData}>
             <defs>
               <linearGradient id="fillannonces" x1="0" y1="0" x2="0" y2="1">
                 <stop

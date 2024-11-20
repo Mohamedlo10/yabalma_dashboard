@@ -4,6 +4,7 @@
 
 
 // import { cookies } from "next/headers";
+import { getallcommandes } from "@/app/api/commandes/route";
 import Image from "next/image";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
@@ -27,28 +28,30 @@ export default function CommandePage() {
   let [color, setColor] = useState("#ffffff");
   const [isLoading, setIsLoading] = useState(true);
 
-  async function fetchCommandes() {
-    console.log("Fetching commandes...");
-    try {
-      const response = await fetch("/api/commandes");
-      const data = await response.json();
-  
-      // Les commandes sont déjà enrichies avec les GP
-      console.log(data);
-  
-      setConfig(prev => ({ ...prev, commandes: data }));
-      setCommandes(data);
-    } catch (error) {
-      console.error("Failed to fetch commandes:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
 
   useEffect(() => {
-    fetchCommandes();
-  }, []);
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+
+        const data: any = await getallcommandes()
+        console.log(data)
+
+        if (data && data.length > 0) {
+          console.log(data)
+          setCommandes(data)
+          // setTotal(data.length); 
+         
+        }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
   
   if (isLoading) {
     return (

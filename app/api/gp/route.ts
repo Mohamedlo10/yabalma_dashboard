@@ -46,14 +46,14 @@ export const getGpPays =async()=>{
  
  }
 
- export const getGpById =async(id:string)=>{
+ export const getGpById =async(id:any)=>{
 
   try {
-    const { data, error } = await supabase.from('client').select('*').eq("id_client",id).eq("id_gp",true)
+    const { data, error } = await supabase.from('client').select('*').eq("id_client",id).eq("is_gp",true)
   
 
    if (error) throw error 
-   return data as any
+   return data[0] as any
   } catch (err) {
    throw err
   }

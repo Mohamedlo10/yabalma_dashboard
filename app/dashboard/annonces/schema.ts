@@ -12,7 +12,7 @@ export const annonceSchema = z.object({
   stock_annonce:z.number().nullable(),
   id_client: z.string(),
   client:clientSchema.optional(),
-  tarif: z.number().positive(),  
+  tarif: z.number().positive().optional(),  
   statut:z.string(),
   is_boost:z.boolean(),
   destination: z.string(),

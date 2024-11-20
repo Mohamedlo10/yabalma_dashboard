@@ -4,9 +4,9 @@
 import { BarChartComponent } from "@/components/ui/home/bar-chart"
 import Commande from "@/components/ui/home/commande"
 import Commentaire from "@/components/ui/home/commentaire"
-import { RadialChartComponent } from "@/components/ui/home/radial-chart"
-import TopGC from "@/components/ui/home/topGC"
 import CirculaireComponent from "@/components/ui/home/utilisateurs-chart"
+import ClientPays from "@/components/ui/utilisateurs/clientPays"
+import GpPays from "@/components/ui/utilisateurs/gpPays"
 
 
 export const description = "A collection of health charts."
@@ -19,8 +19,9 @@ export function Accueil() {
           <div className=" grid grid-cols-1 gap-2">
           <BarChartComponent/>
           <div className=" grid grid-cols-2 gap-2">
-            <TopGC/>
-            <RadialChartComponent/>
+            <ClientPays />
+
+            <GpPays/>
           </div>
           </div>
           <div className=" grid grid-cols-1 gap-2">

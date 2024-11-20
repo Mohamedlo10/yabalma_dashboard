@@ -15,8 +15,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import { fr } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 import { FaArrowRight } from 'react-icons/fa';
-import Flag from "react-world-flags";
 import { type Annonce } from '../schema';
 
 
@@ -26,7 +26,14 @@ interface AnnonceDisplayProps {
 
 export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
   const today = new Date()
+  const router = useRouter();
 
+    const handleNavigation = (idAnnonce:string) => {
+      router.push(`/dashboard/annonces/profile?id=${idAnnonce}`);
+    };
+
+
+    
   return (
     <div className="flex h-full flex-col">
       <div className="flex items-center py-2 px-4">
@@ -85,7 +92,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
                 <div className='flex flex-row gap-2 mt-2'>
                   <div className="flex flex-col items-center w-28 font-bold justify-center">
                      {annonce.source}
-                    <Flag code="SN" className="h-8 w-10" /> 
+                    {/* <Flag code="SN" className="h-8 w-10" />  */}
                     </div>
                     <div className='flex items-center justify-center pt-4'>
                     <FaArrowRight/>
@@ -93,7 +100,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
                     <div className="flex flex-col items-center w-28 font-bold justify-center">
                     {annonce.destination }
                     
-                    <Flag code="FR" className="h-8 w-10" /> 
+                    {/* <Flag code="FR" className="h-8 w-10" />  */}
                     </div>
                   </div>
                 {/* <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
@@ -104,9 +111,15 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
                 </div> */}
                 <div className="pt-4 px-0 xl:px-2 w-full flex items-center justify-center flex-col">
                     <div className="text-sm grid grid-cols-2 whitespace-nowrap gap-aut items-center justify-start font-bold  w-full mt-4">
-                      <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Tarif: </div>
+                      <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Poids max: </div>
                       <div className="text-sm text-red-700 flex items-end w-full justify-end">
-                      {annonce.tarif}/KG
+                      {annonce.poids_max}
+                      </div>
+                    </div>
+                    <div className="text-sm grid grid-cols-2 whitespace-nowrap gap-aut items-center justify-start font-bold  w-full mt-4">
+                      <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Stock: </div>
+                      <div className="text-sm text-red-700 flex items-end w-full justify-end">
+                      {annonce.stock_annonce}
                       </div>
                     </div>
 
@@ -145,10 +158,8 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
                     </div>
                     
                     </div>
-                    <div className="ml-auto pt-10 w-full items-center justify-center gap-4 flex font-medium">
-                    <Button type="submit"  className="w-fit h-10 bg-red-600 font-bold">Supprimer</Button>
-                      <Button type="submit"  className="w-fit h-10 font-bold">Modifier</Button>
-                    </div>
+                    <div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
+                <Button onClick={() => handleNavigation(annonce.id_annonce)} className="w-fit h-10 font-bold">Voir Détails</Button>   </div>
               </div>
         </div>
       ) : (

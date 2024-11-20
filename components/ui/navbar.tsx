@@ -7,10 +7,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import {
-  ChevronDown,
-  Search
+  ChevronDown
 } from "lucide-react"
 import Image from "next/image"
 
@@ -22,12 +20,12 @@ function Navbar() {
       <div className="w-full">
         <form>
           <div className="relative ">
-            <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
+          {/*   <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
             <Input
               type="search"
               placeholder="Search products..."
               className="w-full appearance-none h-12 bg-background bg-white shadow-sm pl-12  md:w-2/3 lg:w-1/2"
-            />
+            /> */}
           </div>
         </form>
       </div>
@@ -36,8 +34,8 @@ function Navbar() {
         <Image
               src="/logoYabalma.svg"
               alt="Image"
-              width={50} 
-              height={50}
+              width={70} 
+              height={70}
               className="h-full w-full object-cover rounded-2xl dark:brightness-[0.2] dark:grayscale"
             />
             <div className="items-center justify-center h-full text-black flex">YABALMA</div>

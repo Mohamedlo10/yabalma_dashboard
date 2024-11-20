@@ -1,15 +1,18 @@
 "use client";
 
-import { getallclient } from "@/app/api/clients/route";
+import { creerClient, getallclient, uploadFile } from "@/app/api/clients/route";
 import { Button } from "@/components/ui/button";
 
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Plus } from "lucide-react";
+import { useRouter } from 'next/navigation';
+
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { ToastContainer } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 
@@ -37,9 +40,16 @@ export default function UserPage() {
     Pays: "",
     ville: "",
     img_url: "",
+    id_client:"",
   });
+  const router = useRouter();
 
-  useEffect(() => {
+    const handleNavigation = (idUser:string) => {
+      // Par exemple, naviguer vers la page de profil en passant l'ID de l'utilisateur en paramètre
+      router.push(`/dashboard/utilisateurs/Clients/profile?id=${idUser}`);
+    };
+  
+
     async function fetchData() {
       setIsLoading(true)
       try {
@@ -56,10 +66,10 @@ export default function UserPage() {
         setIsLoading(false)
       }
     }
+
+  useEffect(() => {
     fetchData()
   }, [])
-
-
 
 
   const handleInputChange = (e : ChangeEvent<HTMLInputElement>) => {
@@ -95,51 +105,31 @@ export default function UserPage() {
 
 
 
-/*   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-  
-    // Vérifiez si une image a été téléchargée
+    setIsLoading(true)
     if (uploadedImage && uploadedFile) {
-      // Étape 2: Télécharger l'image dans Supabase
       const fileName = `${Date.now()}_${uploadedFile.name}`;
-      const { error: uploadError } = await supabase.storage
-        .from('yabalma/images') // Assurez-vous que ce chemin est correct
-        .upload(fileName, uploadedFile);
-  
-      if (uploadError) {
-        console.error("Erreur lors du téléchargement de l'image :", uploadError.message);
-        toast.error("Erreur lors du téléchargement de l'image");
-        return;
+      let publicUrl;
+      try{
+        const data:any= await uploadFile(fileName,uploadedFile)
+        if(data != null){
+            publicUrl=data.publicUrl
+          }
+      }catch{
+        console.error("Erreur lors de l'obtention de l'url");
+        
       }
   
-      // Étape 3: Obtenir l'URL publique de l'image
-      const { data } = supabase.storage.from('yabalma/images').getPublicUrl(fileName); // Corrigez le chemin ici
-      const publicUrl = data?.publicUrl;
-  
-      // Vérifiez si l'URL publique a été obtenue
-      if (!publicUrl) {
-        console.error("Erreur lors de l'obtention de l'URL publique");
-        return;
-      }
-  
-      // Étape 4: Mettre à jour l'état du client avec l'URL de l'image
+
       client.img_url=publicUrl;
+      client.id_client=uuidv4();
     }
   
     // Après avoir géré le téléchargement de l'image et mis à jour l'URL
     try {
-      const response = await fetch("/api/clients", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(client),
-      });
-  
-      if (response.ok) {
-        const newClient = await response.json();
-        console.log("Client ajouté avec succès:", newClient);
-  
+    const response = await creerClient(client)
+
         // Réinitialiser le formulaire si nécessaire
         setClient({
           prenom: "",
@@ -148,30 +138,27 @@ export default function UserPage() {
           Pays: "",
           ville: "",
           img_url: "",
+          id_client:""
         });
         setUploadedImage(null);
         setUploadedFile(null);
         setIsDrawerOpen(false);
         setSelectedUser(null);
         setIsAddingClient(false);
-        fetchUsers(1, 10, '');
-        toast.success(`Client ajouté avec succès: ${newClient.prenom}`);
+        fetchData();
+      setIsLoading(false)
+      /*   toast.success(`Client ajouté avec succès: ${newClient.prenom}`);
         console.log(`Client ajouté avec succès: ${newClient.prenom}`);
   
       } else {
         console.error("Erreur lors de l'ajout du client");
         toast.error("Erreur lors de l'ajout du client");
-      }
+      } */
     } catch (error) {
-      console.error("Erreur lors de la requête POST:", error);
+      console.error("Erreur lors de l'ajout du client:", error);
     }
-  }; */
+  }; 
   
-  
-const handleSubmit=async()=>{
-  console.log("j envoie")
-  }
-
 
   const handleUserClick = (user: any) => {
     setSelectedUser(user);
@@ -249,14 +236,14 @@ const handleSubmit=async()=>{
             <div className="flex w-full max-w-xl flex-col items-center border bg-white p-10 text-left">
               <h2 className="mb-8 text-2xl font-bold">Ajouter un Nouveau Client</h2>
               <form className="w-full" onSubmit={handleSubmit}>
-              <div className="flex flex-col items-center">
-                  <label htmlFor="image" className="cursor-pointer relative">
+              <div className="flex flex-col justify-center mb-4 items-center">
+                  <label htmlFor="image" className="cursor-pointer flex flex-col items-center justify-center gap-1 relative">
                     <img
-                      src={uploadedImage || 'https://cdn-icons-png.flaticon.com/512/3616/3616929.png'}
+                      src={uploadedImage || 'https://i.pinimg.com/564x/11/d1/cf/11d1cf8094d0bf58d6bba80a0b2f5355.jpg'}
                       alt="Cliquez pour télécharger une image"
                       width={120}
                       height={120}
-                      className="mb-4 h-44 w-44 rounded-full object-cover"
+                      className=" h-44 w-44 opacity-60 hover:opacity-100 rounded-full object-cover"
                     />
                     <input
                       type="file"
@@ -265,6 +252,9 @@ const handleSubmit=async()=>{
                       accept="image/*"
                       onChange={handleImageChange}
                     />
+                    <span className="text-sm flex items-center justify-center font-bold text-gray-700">
+                    cliquez pour ajouter une photo
+                    </span>
                   </label>
                   {uploadedImage && (
                     <Button
@@ -388,8 +378,8 @@ const handleSubmit=async()=>{
                           {selectedUser.actif ? (<div className="bg-green-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Oui</div>) : (<div className="bg-red-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Non</div>)}
                 </div> */}
                 <div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
-                  <Button className="w-fit h-10 font-bold">Voir Détails</Button>
-                </div>
+                <Button onClick={() => handleNavigation(selectedUser.id_client)} className="w-fit h-10 font-bold">Voir Détails</Button>   </div>
+
               </div>
             )
           )}

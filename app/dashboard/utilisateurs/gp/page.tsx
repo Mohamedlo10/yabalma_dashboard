@@ -1,13 +1,16 @@
 'use client'
+import { creerClient, uploadFile } from "@/app/api/clients/route";
 import { getallgp } from "@/app/api/gp/route";
 import { Button } from "@/components/ui/button";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 import { Plus } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { ToastContainer } from 'react-toastify';
+import { v4 as uuidv4 } from 'uuid';
 import { columns } from "./components/columns";
 import { DataTable } from "./components/data-table";
 const override: CSSProperties = {
@@ -36,69 +39,37 @@ export default function UserPage() {
     Pays: "",
     ville: "",
     img_url: "",
+    id_client:"",
+    is_gp:true
   });
+  const router = useRouter();
+
+  const handleNavigation = (idUser:string) => {
+    // Par exemple, naviguer vers la page de profil en passant l'ID de l'utilisateur en paramètre
+    router.push(`/dashboard/utilisateurs/gp/profile?id=${idUser}`);
+  };
+
+  async function fetchData() {
+    setIsLoading(true)
+    try {
+      const data: any = await getallgp()
+      if (data && data.length > 0) {
+        setUsers(data)
+        setTotal(data.length);
+       
+      }
+      
+    } catch (error) {
+      console.error("Error fetching Gp :", error)
+    } finally {
+      setIsLoading(false)
+    }
+  }
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true)
-      try {
-        const data: any = await getallgp()
-        if (data && data.length > 0) {
-          setUsers(data)
-          setTotal(data.length);
-         
-        }
-        
-      } catch (error) {
-        console.error("Error fetching room details:", error)
-      } finally {
-        setIsLoading(false)
-      }
-      /* try{
-        const data2: any = await getGpPays()
-        if (data2 && data2.length > 0) {
-          console.log(data2)
-         
-        }
-      } catch (error) {
-        console.error("Error fetching room details:", error)
-      } finally {
-        setIsLoading(false)
-      } */
-
-     /*  try{
-        const data3: any = await getGpById('aa20e')
-        if (data3 && data3.length > 0) {
-          console.log(data3)
-         
-        }
-      } catch (error) {
-        console.error("Error fetching room details:", error)
-      } finally {
-        setIsLoading(false)
-      } */
-    }
     fetchData()
   }, [])
   
-
- /* async function fetchUsers(page = 1, pageSize = 10, search = '') {
-    try {
-      const response = await fetch(`/api/gp?page=${page}&pageSize=${pageSize}&search=${search}`);
-      const data = await response.json();
-      setUsers(data.users);
-      setTotal(data.total); // Total des utilisateurs pour la pagination
-    } catch (error) {
-      console.error("Failed to fetch users:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  }
-  
-  useEffect(() => {
-    fetchUsers(currentPage);
-}, [currentPage]);
-*/
 
 const handleInputChange = (e : ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
@@ -111,50 +82,31 @@ const handleImageDelete = () => {
 };
 
 
-/*const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   e.preventDefault();
-
-  // Vérifiez si une image a été téléchargée
+  setIsLoading(true)
   if (uploadedImage && uploadedFile) {
-    // Étape 2: Télécharger l'image dans Supabase
     const fileName = `${Date.now()}_${uploadedFile.name}`;
-    const { error: uploadError } = await supabase.storage
-      .from('yabalma/images') // Assurez-vous que ce chemin est correct
-      .upload(fileName, uploadedFile);
-
-    if (uploadError) {
-      console.error("Erreur lors du téléchargement de l'image :", uploadError.message);
-      toast.error("Erreur lors du téléchargement de l'image");
-      return;
+    let publicUrl;
+    try{
+      const data:any= await uploadFile(fileName,uploadedFile)
+      if(data != null){
+          publicUrl=data.publicUrl
+        }
+    }catch{
+      console.error("Erreur lors de l'obtention de l'url");
+      
     }
 
-    // Étape 3: Obtenir l'URL publique de l'image
-    const { data } = supabase.storage.from('yabalma/images').getPublicUrl(fileName); // Corrigez le chemin ici
-    const publicUrl = data?.publicUrl;
 
-    // Vérifiez si l'URL publique a été obtenue
-    if (!publicUrl) {
-      console.error("Erreur lors de l'obtention de l'URL publique");
-      return;
-    }
-
-    // Étape 4: Mettre à jour l'état du client avec l'URL de l'image
     Gp.img_url=publicUrl;
+    Gp.id_client=uuidv4();
   }
 
   // Après avoir géré le téléchargement de l'image et mis à jour l'URL
   try {
-    const response = await fetch("/api/clients", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(Gp),
-    });
-
-    if (response.ok) {
-      const newClient = await response.json();
-      console.log("Client ajouté avec succès:", newClient);
+  const response = await creerClient(Gp)
 
       // Réinitialiser le formulaire si nécessaire
       setGp({
@@ -164,28 +116,31 @@ const handleImageDelete = () => {
         Pays: "",
         ville: "",
         img_url: "",
+        id_client:"",
+        is_gp:true
       });
       setUploadedImage(null);
       setUploadedFile(null);
       setIsDrawerOpen(false);
       setSelectedUser(null);
       setIsAddingGp(false);
-      fetchUsers(1, 10, '');
-      toast.success(`Client ajouté avec succès: ${newClient.prenom}`);
-      console.log(`Client ajouté avec succès: ${newClient.prenom}`);
+      fetchData();
+    setIsLoading(false)
+    /*   toast.success(`Gp ajouté avec succès: ${newGp.prenom}`);
+      console.log(`Gp ajouté avec succès: ${newGp.prenom}`);
 
     } else {
       console.error("Erreur lors de l'ajout du client");
       toast.error("Erreur lors de l'ajout du client");
-    }
+    } */
   } catch (error) {
-    console.error("Erreur lors de la requête POST:", error);
+    console.error("Erreur lors de l'ajout du Gp:", error);
   }
-};*/
+}; 
 
-const handleSubmit=async()=>{
-console.log("j envoie")
-}
+
+
+
 const handleImageChange = async (e: ChangeEvent<HTMLInputElement>) => {
   const file = e.target.files && e.target.files[0];
 
@@ -406,7 +361,7 @@ const closeDrawer = () => {
                           {selectedUser.actif ? (<div className="bg-green-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Oui</div>) : (<div className="bg-red-600 p-1 w-12 items-center justify-center flex text-white rounded-sm">Non</div>)}
                       </div> */}
                       <div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
-                      <Button className="w-fit h-10 font-bold">Voir Details</Button>
+                      <Button onClick={() => handleNavigation(selectedUser.id_client)} className="w-fit h-10 font-bold">Voir Détails</Button>   
                     </div>
               </div>
             )

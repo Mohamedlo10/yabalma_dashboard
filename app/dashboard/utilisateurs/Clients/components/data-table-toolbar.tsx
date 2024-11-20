@@ -3,11 +3,10 @@
 import { Cross2Icon } from "@radix-ui/react-icons"
 import { Table } from "@tanstack/react-table"
 
+import { DataTableViewOptions } from "@/components/proprio_table/data-table-view-options"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/components/proprio_table/data-table-view-options"
 
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -22,12 +21,12 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 space-x-4 items-center ">
         <Input
-          placeholder="Filter client..."
+          placeholder="Rechercher client par Tel ..."
           value={(table.getColumn("Tel")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("Tel")?.setFilterValue(event.target.value)
           }
-          className="h-8 w-[150px] lg:w-[250px]"
+          className="h-8 w-[190px] lg:w-[320px]"
         />
        
         
