@@ -4,7 +4,7 @@
 
 
 // import { cookies } from "next/headers";
-import { getallannonces } from "@/app/api/annonces/route";
+import { getallannonces } from "@/app/api/annonces/query";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { AnnonceData } from "./components/annonce";

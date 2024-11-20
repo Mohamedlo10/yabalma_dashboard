@@ -1,5 +1,5 @@
 "use client";
-import { modifierClient, supprimerClient } from '@/app/api/clients/route';
+import { modifierClient, supprimerClient } from '@/app/api/clients/query';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/dialogConfirm';
 import { format } from 'date-fns';

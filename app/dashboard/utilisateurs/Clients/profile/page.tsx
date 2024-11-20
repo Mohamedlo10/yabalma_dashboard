@@ -1,5 +1,5 @@
 "use client";
-import { getclientById } from "@/app/api/clients/route";
+import { getclientById } from "@/app/api/clients/query";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';

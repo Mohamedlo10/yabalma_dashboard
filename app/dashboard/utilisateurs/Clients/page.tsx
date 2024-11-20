@@ -1,6 +1,6 @@
 "use client";
 
-import { creerClient, getallclient, uploadFile } from "@/app/api/clients/route";
+import { creerClient, getallclient, uploadFile } from "@/app/api/clients/query";
 import { Button } from "@/components/ui/button";
 
 import Drawer from '@mui/material/Drawer';

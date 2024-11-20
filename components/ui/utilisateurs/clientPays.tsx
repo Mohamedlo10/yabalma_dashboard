@@ -4,7 +4,7 @@ import { TrendingUp } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-import { getclientPays } from "@/app/api/clients/route";
+import { getclientPays } from "@/app/api/clients/query";
 import {
   Card,
   CardContent,

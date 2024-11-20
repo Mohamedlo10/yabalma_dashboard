@@ -6,7 +6,7 @@ import {
 } from "lucide-react";
 import React from 'react';
 
-import { getAnnoncesClient } from "@/app/api/annonces/route";
+import { getAnnoncesClient } from "@/app/api/annonces/query";
 import { Annonce } from "@/app/dashboard/annonces/schema";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';

@@ -8,7 +8,7 @@ import {
 } from "lucide-react";
 import React from 'react';
 
-import { getCommandesByIdAnnonce } from "@/app/api/commandes/route";
+import { getCommandesByIdAnnonce } from "@/app/api/commandes/query";
 import { Commande } from "@/app/dashboard/commandes/schema";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';

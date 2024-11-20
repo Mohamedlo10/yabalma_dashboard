@@ -1,5 +1,5 @@
 "use client";
-import { userInfo } from "@/app/api/auth/route";
+import { userInfo } from "@/app/api/auth/query";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CSSProperties, useEffect, useRef, useState } from "react";

@@ -1,7 +1,7 @@
 "use client";
 import React from 'react';
 
-import { getCommentaireByIdAnnonce } from "@/app/api/commentaire/route";
+import { getCommentaireByIdAnnonce } from "@/app/api/commentaire/query";
 import { Commande } from "@/app/dashboard/commandes/schema";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';

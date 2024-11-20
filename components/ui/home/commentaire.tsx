@@ -1,4 +1,4 @@
-import { get5lastCommentaires, getCommentairesLength } from "@/app/api/commentaire/route";
+import { get5lastCommentaires, getCommentairesLength } from "@/app/api/commentaire/query";
 import { Commente } from "@/app/dashboard/commentaires/schema";
 import {
   Avatar,

@@ -1,5 +1,5 @@
 "use client";
-import { getGpById } from "@/app/api/gp/route";
+import { getGpById } from "@/app/api/gp/query";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';

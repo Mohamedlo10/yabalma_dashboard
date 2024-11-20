@@ -4,7 +4,7 @@ import { TrendingUp } from "lucide-react";
 import { CSSProperties, useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
 
-import { getGpPays } from "@/app/api/gp/route";
+import { getGpPays } from "@/app/api/gp/query";
 import {
   Card,
   CardContent,

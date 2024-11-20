@@ -3,7 +3,7 @@
 import * as React from "react"
 import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
 
-import { getcommandeAnnonceCount } from "@/app/api/commandes/route"
+import { getcommandeAnnonceCount } from "@/app/api/commandes/query"
 import {
   Card,
   CardContent,

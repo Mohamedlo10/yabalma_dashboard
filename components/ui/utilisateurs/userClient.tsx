@@ -1,5 +1,5 @@
 "use client"
-import { getOldestclient } from "@/app/api/clients/route"
+import { getOldestclient } from "@/app/api/clients/query"
 import {
   Card,
   CardContent,

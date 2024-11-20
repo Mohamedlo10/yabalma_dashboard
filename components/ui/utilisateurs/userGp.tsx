@@ -1,5 +1,5 @@
 "use client"
-import { getOldestGp } from "@/app/api/gp/route"
+import { getOldestGp } from "@/app/api/gp/query"
 import {
   Card,
   CardContent,

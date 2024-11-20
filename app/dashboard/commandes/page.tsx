@@ -4,7 +4,7 @@
 
 
 // import { cookies } from "next/headers";
-import { getallcommandes } from "@/app/api/commandes/route";
+import { getallcommandes } from "@/app/api/commandes/query";
 import Image from "next/image";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";

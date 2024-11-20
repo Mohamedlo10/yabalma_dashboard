@@ -1,5 +1,5 @@
 "use client";
-import { getAnnonceById } from "@/app/api/annonces/route";
+import { getAnnonceById } from "@/app/api/annonces/query";
 import { Button } from "@/components/ui/button";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CSSProperties, useEffect, useRef, useState } from "react";

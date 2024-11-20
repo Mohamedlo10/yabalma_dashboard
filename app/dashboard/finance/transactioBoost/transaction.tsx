@@ -7,7 +7,7 @@ import {
   UserRoundSearch
 } from "lucide-react";
 
-import { getallcommandes, getCommandesForCurrentMonthCount } from "@/app/api/commandes/route";
+import { getallcommandes, getCommandesForCurrentMonthCount } from "@/app/api/commandes/query";
 import { Commande } from "@/app/dashboard/commandes/schema";
 import {
   Card,

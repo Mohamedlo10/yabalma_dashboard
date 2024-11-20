@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 
-import { getAnnoncesCountByMonth } from "@/app/api/annonces/route";
+import { getAnnoncesCountByMonth } from "@/app/api/annonces/query";
 import {
   Card,
   CardContent,

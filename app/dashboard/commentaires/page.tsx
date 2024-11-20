@@ -2,7 +2,7 @@
 
 import { Button } from "@/components/ui/button";
 
-import { getCommentaires } from "@/app/api/commentaire/route";
+import { getCommentaires } from "@/app/api/commentaire/query";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';

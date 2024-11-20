@@ -1,5 +1,5 @@
 "use client";
-import { userConnection } from "@/app/api/auth/route";
+import { userConnection } from "@/app/api/auth/query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

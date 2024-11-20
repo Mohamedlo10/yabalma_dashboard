@@ -1,6 +1,6 @@
 'use client'
-import { creerClient, uploadFile } from "@/app/api/clients/route";
-import { getallgp } from "@/app/api/gp/route";
+import { creerClient, uploadFile } from "@/app/api/clients/query";
+import { getallgp } from "@/app/api/gp/query";
 import { Button } from "@/components/ui/button";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';

@@ -4,8 +4,8 @@ import * as React from "react"
 import { Label, Pie, PieChart, Sector } from "recharts"
 import { PieSectorDataItem } from "recharts/types/polar/Pie"
 
-import { getClientCount } from "@/app/api/clients/route"
-import { getGpCount } from "@/app/api/gp/route"
+import { getClientCount } from "@/app/api/clients/query"
+import { getGpCount } from "@/app/api/gp/query"
 import { getUsersCount } from "@/app/api/users/route"
 import {
   Card,

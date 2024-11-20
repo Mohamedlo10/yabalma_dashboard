@@ -1,5 +1,5 @@
 "use client";
-import { modifierAnnonce, supprimerAnnonce } from '@/app/api/annonces/route';
+import { modifierAnnonce, supprimerAnnonce } from '@/app/api/annonces/query';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/dialogConfirm';
 import { format } from 'date-fns';

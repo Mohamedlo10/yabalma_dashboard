@@ -2,7 +2,7 @@
 
 import { Bar, BarChart, CartesianGrid, LabelList, XAxis } from "recharts";
 
-import { getcommandesCountByMonth } from "@/app/api/commandes/route";
+import { getcommandesCountByMonth } from "@/app/api/commandes/query";
 import {
   Card,
   CardContent,
