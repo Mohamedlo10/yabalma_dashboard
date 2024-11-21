@@ -9,9 +9,7 @@ import ClientPays from "@/components/ui/utilisateurs/clientPays"
 import GpPays from "@/components/ui/utilisateurs/gpPays"
 
 
-export const description = "A collection of health charts."
-
-export function Accueil() {
+export default function DashboardPage() {
   return (
     <div className="chart-wrapper max-h-[90vh]  overflow-y-auto mx-auto flex max-w-8xl flex-col flex-wrap items-start justify-center gap-2 p-6 sm:flex-row sm:p-8">
       <div className="grid w-full mx-auto gap-2 sm:grid-cols-1 lg:grid-cols-1 ">
@@ -43,4 +41,3 @@ export function Accueil() {
     </div>
   )
 }
-export default Accueil

@@ -12,8 +12,6 @@ import { useRouter } from "next/navigation"
 import { CSSProperties, useEffect, useState } from "react"
 import BeatLoader from "react-spinners/BeatLoader"
 import { Button } from "../button"
-export const description = "A stacked bar chart with a legend"
-
 
 const override: CSSProperties = {
   display: "block",

@@ -118,9 +118,6 @@ export function DataTable<TData, TValue>({
       </div>
       <DataTablePagination 
         table={table}
-        onPageChange={handlePageChange} 
-        total={total} 
-        currentPage={currentPage}
       />
     </div>
   );

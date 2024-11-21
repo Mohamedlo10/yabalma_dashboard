@@ -22,9 +22,6 @@ import {
 import BeatLoader from "react-spinners/BeatLoader";
 
 
-export const description = "A bar chart"
-
-
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",

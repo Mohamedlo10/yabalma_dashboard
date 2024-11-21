@@ -18,7 +18,7 @@ const override: CSSProperties = {
   borderColor: "red",
 };
 // Composant principal de la page des utilisateurs
-export default function CommentPage() {
+export default function Page() {
   const [comments, setcomments] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedComment, setSelectedComment] = useState<any | null>(null);

@@ -18,7 +18,7 @@ const override: CSSProperties = {
   borderColor: "red",
 };
 
-export default function CommandePage() {
+export default function Page() {
   const [config, setConfig] = useCommande();
   const defaultLayout = [ 300,200 ];
   const defaultCollapsed = false;

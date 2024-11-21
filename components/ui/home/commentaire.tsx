@@ -90,7 +90,7 @@ function Commentaire() {
                 {commentaires?.map((commentaire) => (
                   <div key={commentaire.id} className="flex items-center gap-2">
                     <Avatar className="hidden lg:h-12 lg:w-12 h-8 w-8 sm:flex">
-                      <AvatarImage src={commentaire.client?.img_url} alt={`Avatar of ${commentaire.client?.nom}`} />
+                      <AvatarImage src={commentaire.client?.img_url ?? '/avatars/01.png'}  alt={`Avatar of ${commentaire.client?.nom}`} />
                       <AvatarFallback>{commentaire.client?.prenom[0]}{commentaire.client?.nom[0]}</AvatarFallback>
                     </Avatar>
                     <div className="grid gap-1">

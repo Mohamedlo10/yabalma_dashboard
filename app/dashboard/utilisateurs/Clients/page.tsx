@@ -22,7 +22,7 @@ const override: CSSProperties = {
   borderColor: "red", 
 };
 // Composant principal de la page des utilisateurs
-export default function UserPage() {
+export default function Page() {
   const [users, setUsers] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedUser, setSelectedUser] = useState<any | null>(null);

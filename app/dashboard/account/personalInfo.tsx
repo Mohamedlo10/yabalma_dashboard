@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/dialogConfirm';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
-import { Save, Trash2, UserRound, UserRoundPen, X } from 'lucide-react';
+import { Save, UserRound, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { ChangeEvent, useState } from 'react';
 import { Admin } from './schema';
@@ -138,7 +138,7 @@ const deleteUser = async () => {
           <div className="grid grid-cols-2 gap-12">
 
 
-  <Button onClick={() => setDialogOpen(true)} className='font-bold gap-2 bg-red-700 hover:bg-red-800'>
+ {/*  <Button onClick={() => setDialogOpen(true)} className='font-bold gap-2 bg-red-700 hover:bg-red-800'>
     <Trash2 />
       Supprimer
   </Button>
@@ -146,7 +146,7 @@ const deleteUser = async () => {
 
   <UserRoundPen />
     Modifier
-  </Button>
+  </Button> */}
   <ConfirmDialog
       isOpen={isDialogOpen}
       message={`Etes-vous sûr de vouloir supprimer ${client.email} ?`}

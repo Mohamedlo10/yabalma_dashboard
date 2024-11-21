@@ -46,7 +46,7 @@ export const columns: ColumnDef<Commande>[] = [
     ),
     cell: ({ row }) => (
       <span className="max-w-[20px] truncate text-green-600 font-bold">
-        {Number(row.original.detail_commande.poids) *10050 || 15640 } 
+        {Number(row.original.detail_commande?.poids) *10050 || 15640 } 
       </span>
     ),
   },
@@ -58,7 +58,7 @@ export const columns: ColumnDef<Commande>[] = [
     ),
     cell: ({ row }) => (
       <span className="max-w-[20px] text-red-600 font-bold truncate ">
-        {Number(row.original.detail_commande.poids) *10050 - 1350 || 11255 } 
+        {Number(row.original.detail_commande?.poids) *10050 - 1350 || 11255 } 
       </span>
     ),
   },

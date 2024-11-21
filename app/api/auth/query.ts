@@ -19,9 +19,15 @@ export const userConnection = async (email: string, password: string) => {
 export const userInfo = async () => {
   try {
     const { data, error } = await supabase.auth.getUser();
-    if (error) throw error 
-    return data.user.identities[0] as any
-  } catch (err) {
-    throw err;
-  }
+    if (error) throw error;
+
+    if (!data.user || !data.user.identities || data.user.identities.length === 0) {
+        throw new Error('User or identities not found');
+    }
+
+    return data.user.identities[0] as any;
+    } catch (err) {
+        throw err;
+    }
+
 };

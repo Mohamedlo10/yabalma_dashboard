@@ -26,7 +26,7 @@ export const metadata: Metadata = {
   description: "Example dashboard app built using the components.",
 }
 
-export default function DashboardPage() {
+export default function Page() {
   return (
     <>
       <div className="md:hidden">

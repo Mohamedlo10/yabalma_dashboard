@@ -272,7 +272,7 @@ const deleteUser = async () => {
                {annonce? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(annonce?.created_at), 'dd MMMM yyyy', { locale: fr })}
                 {` à ${format(new Date(annonce?.created_at), 'HH:mm')}`}</div>):
                 (
-                  <div className='text-8xl'>Erreur lors du chargement des donnees</div>
+                  <div className='text-2xl'>Erreur lors du chargement des donnees</div>
                 )}
               </div>
            
@@ -308,7 +308,7 @@ const deleteUser = async () => {
                {annonce? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(annonce?.date_depart), 'dd MMMM yyyy', { locale: fr })}
                 {` à ${format(new Date(annonce?.date_depart), 'HH:mm')}`}</div>):
                 (
-                  <div className='text-8xl'>Erreur lors du chargement des donnees</div>
+                  <div className='text-3xl'>Erreur lors du chargement des donnees</div>
                 )}
               </div>
               <div className="mb-4">
@@ -316,7 +316,7 @@ const deleteUser = async () => {
                {annonce? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(annonce?.date_arrive), 'dd MMMM yyyy', { locale: fr })}
                 {` à ${format(new Date(annonce?.date_arrive), 'HH:mm')}`}</div>):
                 (
-                  <div className='text-8xl'>Erreur lors du chargement des donnees</div>
+                  <div className='text-3xl'>Erreur lors du chargement des donnees</div>
                 )}
               </div>
               <div className="mb-4">

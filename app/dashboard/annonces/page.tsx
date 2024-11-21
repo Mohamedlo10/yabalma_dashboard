@@ -17,7 +17,7 @@ const override: CSSProperties = {
   borderColor: "red",
 };
 
-export default function AnnoncePage() {
+export default function Page() {
   const [config, setConfig] = useAnnonce();
   const defaultLayout = [ 300,200 ];
   const defaultCollapsed = false;

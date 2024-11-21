@@ -64,7 +64,7 @@ export const columns: ColumnDef<Commande>[] = [
     ),
     cell: ({ row }) => (
       <span className="max-w-[200px] truncate font-medium">
-        {row.original.detail_commande.first_name} {row.original.detail_commande.last_name}
+        {row.original.detail_commande?.first_name} {row.original.detail_commande?.last_name}
       </span>
     ),
   },
