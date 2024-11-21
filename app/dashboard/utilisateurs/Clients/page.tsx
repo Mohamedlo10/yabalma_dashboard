@@ -19,7 +19,7 @@ import { DataTable } from "./components/data-table";
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
-  borderColor: "red",
+  borderColor: "red", 
 };
 // Composant principal de la page des utilisateurs
 export default function UserPage() {
