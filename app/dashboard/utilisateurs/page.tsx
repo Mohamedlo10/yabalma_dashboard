@@ -1,5 +1,5 @@
 "use client";
-import { getUsersCount } from "@/app/api/users/route";
+import { getUsersCount } from "@/app/api/users/query";
 import ClientPays from "@/components/ui/utilisateurs/clientPays";
 import GpPays from "@/components/ui/utilisateurs/gpPays";
 import UserClient from "@/components/ui/utilisateurs/userClient";

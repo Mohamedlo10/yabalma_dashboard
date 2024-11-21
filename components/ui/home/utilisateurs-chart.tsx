@@ -6,7 +6,7 @@ import { PieSectorDataItem } from "recharts/types/polar/Pie"
 
 import { getClientCount } from "@/app/api/clients/query"
 import { getGpCount } from "@/app/api/gp/query"
-import { getUsersCount } from "@/app/api/users/route"
+import { getUsersCount } from "@/app/api/users/query"
 import {
   Card,
   CardContent,
