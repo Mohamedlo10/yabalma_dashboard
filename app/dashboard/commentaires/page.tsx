@@ -3,6 +3,7 @@
 import { Button } from "@/components/ui/button";
 
 import { getCommentaires } from "@/app/api/commentaire/query";
+import { getSupabaseSession } from "@/lib/authMnager";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -28,6 +29,7 @@ export default function Page() {
   const [total, setTotal] = useState(0);
   const router = useRouter();
 
+
   const handleNavigation = (idAnnonce:string) => {
     router.push(`/dashboard/annonces/profile?id=${idAnnonce}`);
   };
@@ -42,6 +44,21 @@ export default function Page() {
           setTotal(data.length);
          
         }
+       
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.commentaires)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
+        
+      }
+
         
       } catch (error) {
         console.error("Error fetching room details:", error)

@@ -1,4 +1,5 @@
 "use client";
+import { userInfo } from "@/app/api/auth/query";
 import { getclientById } from "@/app/api/clients/query";
 import { Button } from "@/components/ui/button";
 import { Camera } from "lucide-react";
@@ -73,6 +74,18 @@ const RecupInfo = () => {
           console.log(data)
           setUser(data)         
         }
+        const data2: any = await userInfo()
+        if (data2 != null) {
+          console.log(data2?.user_metadata.poste?.access_groups.utilisateurs)
+          if(data2?.user_metadata.poste?.access_groups.utilisateurs)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+          }
         
       } catch (error) {
         console.error("Error fetching user details:", error)

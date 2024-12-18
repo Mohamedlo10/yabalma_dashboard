@@ -5,6 +5,8 @@
 
 // import { cookies } from "next/headers";
 import { getallannonces } from "@/app/api/annonces/query";
+import { getSupabaseSession } from "@/lib/authMnager";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { AnnonceData } from "./components/annonce";
@@ -24,6 +26,7 @@ export default function Page() {
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   let [color, setColor] = useState("#ffffff");
   const [isLoading, setIsLoading] = useState(true);
+  const router = useRouter();
 
     useEffect(() => {
       async function fetchData() {
@@ -36,6 +39,21 @@ export default function Page() {
             // setTotal(data.length); 
            
           }
+
+
+          const data3= getSupabaseSession()
+          if (data3 != null) {
+            if(data3.access_groups?.annonces)
+              {
+                console.log("autoriser...")
+              }
+              else
+              {
+                router.push(`/dashboard`);
+              }
+              
+          
+        }
           
         } catch (error) {
           console.error("Error fetching room details:", error)

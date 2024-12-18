@@ -1,6 +1,7 @@
 "use client";
 import { getAnnonceById } from "@/app/api/annonces/query";
 import { Button } from "@/components/ui/button";
+import { getSupabaseSession } from "@/lib/authMnager";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
@@ -73,7 +74,21 @@ const RecupInfo = () => {
           console.log(data)
           setAnnonce(data)         
         }
+
+       
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.annonces)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
         
+      }
       } catch (error) {
         console.error("Error fetching user details:", error)
       } finally {

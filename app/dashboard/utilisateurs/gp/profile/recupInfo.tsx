@@ -1,6 +1,7 @@
 "use client";
 import { getGpById } from "@/app/api/gp/query";
 import { Button } from "@/components/ui/button";
+import { getSupabaseSession } from "@/lib/authMnager";
 import { Camera } from "lucide-react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { CSSProperties, Suspense, useEffect, useRef, useState } from "react";
@@ -77,6 +78,19 @@ const RecupInfo = () =>  {
           console.log(data)
           setUser(data)         
         }
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.utilisateurs)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
+        
+      }
         
       } catch (error) {
         console.error("Error fetching user details:", error)

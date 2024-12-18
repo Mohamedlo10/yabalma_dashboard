@@ -1,5 +1,4 @@
 "use client";
-import { modifierClient, supprimerClient } from '@/app/api/clients/query';
 import { Button } from '@/components/ui/button';
 import ConfirmDialog from '@/components/ui/dialogConfirm';
 import { format } from 'date-fns';
@@ -7,10 +6,10 @@ import { fr } from 'date-fns/locale';
 import { Save, UserRound, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import React, { ChangeEvent, useState } from 'react';
-import { Admin } from './schema';
+import { User } from '../accounts/schema';
 
 type PersonalInfoProps = {
-  user: Admin | null | undefined;
+  user: User | null | undefined;
 };
 
 const PersonalInfo: React.FC<PersonalInfoProps> = ({ user }) => {
@@ -20,7 +19,7 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ user }) => {
 }  
 const router = useRouter();
 const [isDialogOpen, setDialogOpen] = useState(false);
-const [client, setClient] = useState({
+const [compte, setCompte] = useState({
   ...user,
   email: user?.email || "",
 });
@@ -28,33 +27,33 @@ const [client, setClient] = useState({
 
 const handleInputChange = (e : ChangeEvent<HTMLInputElement>) => {
   const { name, value } = e.target;
-  setClient({ ...client, [name]: value });
+  setCompte({ ...compte, [name]: value });
 };
 
 
 const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  console.log(client)
+ /*  e.preventDefault();
+  console.log(compte)
   try {
-  const response = await modifierClient(client.identity_id,client)
+  const response = await modifierClient(compte.id,compte)
   console.log("Reussi")
   seteditMode(false)
 
   } catch (error) {
     console.error("Erreur lors de la modification du client:", error);
-  } 
+  }  */
 };
 
 const deleteUser = async () => {
-  try{
-    const response = await supprimerClient(client.identity_id)
+/*   try{
+    const response = await supprimerClient(compte.id)
     console.log("Suppression reussi")
     router.back();
 
   }catch(error)
   {
     console.error("Erreur lors de la Suppression du client:", error); 
-  }
+  } */
 }
 
 
@@ -82,7 +81,7 @@ const deleteUser = async () => {
                   <input
                       type="text"
                       name="prenom"
-                      value={client.email}
+                      value={compte.email}
                       onChange={handleInputChange}
                       placeholder="Prénom"
                       className="border p-2 rounded w-full"
@@ -116,20 +115,36 @@ const deleteUser = async () => {
             <div className="p-4">
               <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Mail</div>
-                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{client?.email}</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{compte?.email}</div>
+              </div>
+              <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Role</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{compte?.user_metadata?.poste?.nom}</div>
               </div>
               
             </div>
             {/* <!-- Second Bloc --> */}
             <div className="p-4">
-              <div className="mb-4">
-                <div className="text-gray-500 text-sm sm:text-base">Heure de Connexion</div>
+              
+              {user?.created_at?( <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Date d'inscription</div>
                 {user? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(user?.created_at), 'dd MMMM yyyy', { locale: fr })}
+                {` à ${format(new Date(user?.created_at), 'HH:mm')}`}</div>):
+                (
+                  <div className='text-xl'>Erreur lors du chargement des donnees</div>
+                )}
+              </div>):( <div></div> )}
+
+              {user?.last_sign_in_at?( <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Derniere connexion</div>
+                {user? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(user?.last_sign_in_at), 'dd MMMM yyyy', { locale: fr })}
                 {` à ${format(new Date(user?.last_sign_in_at), 'HH:mm')}`}</div>):
                 (
                   <div className='text-xl'>Erreur lors du chargement des donnees</div>
                 )}
-              </div>
+              </div>):( <div></div> )}
+             
+              
              
               
             </div>
@@ -149,7 +164,7 @@ const deleteUser = async () => {
   </Button> */}
   <ConfirmDialog
       isOpen={isDialogOpen}
-      message={`Etes-vous sûr de vouloir supprimer ${client.email} ?`}
+      message={`Etes-vous sûr de vouloir supprimer ${compte.email} ?`}
       onConfirm={() => {
         deleteUser();
         setDialogOpen(false);

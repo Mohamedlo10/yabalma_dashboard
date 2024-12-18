@@ -1,15 +1,3 @@
-import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import {
-  ChevronDown
-} from "lucide-react"
 import Image from "next/image"
 
 
@@ -41,7 +29,7 @@ function Navbar() {
             <div className="items-center justify-center h-full text-black flex">YABALMA</div>
         </div>
         <div className="col-span-2">
-        <DropdownMenu>
+        {/* <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="secondary" size="icon" className="rounded-full bg-white shadow-sm">
                 <ChevronDown className="h-5 w-5" />
@@ -56,7 +44,7 @@ function Navbar() {
               <DropdownMenuSeparator />
               <DropdownMenuItem>Logout</DropdownMenuItem>
             </DropdownMenuContent>
-          </DropdownMenu>
+          </DropdownMenu> */}
         </div>
       </div>
     

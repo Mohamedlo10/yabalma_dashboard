@@ -1,4 +1,7 @@
 "use client";
+import { userDeConnection } from "@/app/api/auth/query";
+import { Role } from "@/app/dashboard/settings/schema";
+import { getSupabaseSession } from "@/lib/authMnager";
 import {
   Book,
   ChevronDown,
@@ -7,6 +10,7 @@ import {
   LineChart,
   LogOut,
   Package2,
+  Settings,
   ShoppingCart,
   Text,
   User,
@@ -14,16 +18,27 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
+import BeatLoader from "react-spinners/BeatLoader";
 import ConfirmDialog from "./dialogConfirm";
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
 
+export const paths = ['utilisateurs','annonces','commandes','commentaires','finance','settings','accounts']
+  
 
 function Sidebar() {
 const router = useRouter();
   const pathname = usePathname();
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
   const [isDialogOpen, setDialogOpen] = useState(false);
-
+  const [isLoading, setIsLoading] = useState(false);
+  const [role, setRole] = useState<Role>();
+  let [color, setColor] = useState("#ffffff");
+  const [error, setError] = useState('');
   const toggleSubMenu = () => {
     setIsSubMenuOpen(!isSubMenuOpen);
   };
@@ -33,13 +48,66 @@ const router = useRouter();
   };
 
   useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+        setRole(getSupabaseSession())
+      } catch (error) {
+        console.error("Error fetching user details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, []) 
+
+  useEffect(() => {
     if (!pathname.startsWith("/dashboard/utilisateurs")) {
       setIsSubMenuOpen(false);
     }
   }, [pathname]);
 
+  const handleLogOut = async () => {
+    setIsLoading(true);
+    setError('');
+  
+    try {
+      const { error }: any = await userDeConnection();
+      if (error) {
+        setError(error.message);
+      } else {
+        handleNavigation();
+      }
+    } catch (err: any) {
+      setError(err.message || 'An unexpected error occurred.');
+    }
+    finally{
+      setIsLoading(false)
+
+    }
+  };
+  
+
+
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="h-full">
+    role?.access_groups?( <div className="h-[100vh]">
       <div className="flex h-[8vh] items-center border-b px-4 lg:h-22 lg:px-6">
         <div className="flex items-center gap-4 font-semibold">
           <Package2 className="h-8 w-8 p-2 bg-white text-red-700 rounded-full" />
@@ -63,8 +131,7 @@ const router = useRouter();
             Dashboard
           </Link>
 
-          {/* Lien principal "Utilisateurs" */}
-          <div>
+        { role?.access_groups.utilisateurs?( <div>
             <Link
               href="#"
               onClick={toggleSubMenu}
@@ -112,9 +179,11 @@ const router = useRouter();
                 </Link>
               </div>
             )}
-          </div>
+          </div>) :
+         (<div></div>)}
 
-          <Link
+        
+        {role?.access_groups.annonces?(<Link
             href="/dashboard/annonces"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
               pathname === "/dashboard/annonces" ||  pathname === "/dashboard/annonces/profile"
@@ -124,9 +193,9 @@ const router = useRouter();
           >
             <Book className="h-8 w-4" />
             Annonces
-          </Link>
-
-          <Link
+          </Link>):((<div></div>))}
+          
+          {role?.access_groups.commandes?(<Link
             href="/dashboard/commandes"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
               pathname === "/dashboard/commandes"
@@ -136,12 +205,10 @@ const router = useRouter();
           >
             <ShoppingCart className="h-8 w-4" />
             Commandes
-        {/*     <Badge className="ml-auto flex h-6 w-6 shrink-0 items-center justify-center rounded-full">
-              6
-            </Badge> */}
-          </Link>
+          </Link>):((<div></div>))}
 
-          <Link
+          
+          {role?.access_groups.finance?(<Link
             href="/dashboard/finance"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
               pathname === "/dashboard/finance"
@@ -151,9 +218,11 @@ const router = useRouter();
           >
             <LineChart className="h-8 w-4" />
             Finances
-          </Link>
+          </Link>):((<div></div>))}
 
-          <Link
+          
+
+          {role?.access_groups.commentaires?(<Link
             href="/dashboard/commentaires"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
               pathname === "/dashboard/commentaires"
@@ -163,7 +232,8 @@ const router = useRouter();
           >
             <Text className="h-8 w-4" />
             Commentaires
-          </Link>
+          </Link>):((<div></div>))}
+          
         </nav>
       </div>
 
@@ -171,29 +241,45 @@ const router = useRouter();
         <nav className="grid gap-1 items-start px-1 text-sm font-medium lg:px-6">
           <div className="px-1 font-bold text-gray-100 pb-3">OTHERS</div>
 
-         {/*  <Link
-            href="/settings"
-            className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
-              pathname === "/settings"
-                ? "bg-white text-red-700 shadow-lg"
-                : "text-white hover:bg-white hover:text-red-700"
-            }`}
-          >
-            <Settings className="h-8 w-4" />
-            Settings
-          </Link> */}
-
+         
           <Link
-            href="/dashboard/account"
+            href="/dashboard/profile"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
-              pathname === "/dashboard/account"
+              pathname === "/dashboard/profile"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}
           >
             <User className="h-8 w-4" />
-            Account
+            Profile
           </Link>
+
+          {role?.access_groups.accounts?( <Link
+            href="/dashboard/accounts"
+            className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
+              pathname === "/dashboard/accounts" || pathname === "/dashboard/accounts/profile"
+                ? "bg-white text-red-700 shadow-lg"
+                : "text-white hover:bg-white hover:text-red-700"
+            }`}
+          >
+            <Users  className="h-8 w-4" />
+            Comptes
+          </Link>):((<div></div>))}
+         
+
+          {role?.access_groups.settings  ?( <Link
+            href="/dashboard/settings"
+            className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
+              pathname === "/dashboard/settings"
+                ? "bg-white text-red-700 shadow-lg"
+                : "text-white hover:bg-white hover:text-red-700"
+            }`}
+          >
+            <Settings className="h-8 w-4" />
+            Paramètres
+          </Link>):((<div></div>))}
+          
+
 
           <button
             onClick={() => setDialogOpen(true)}
@@ -210,14 +296,16 @@ const router = useRouter();
             isOpen={isDialogOpen}
             message={`Etes-vous sûr de vouloir-vous deconnecter ?`}
             onConfirm={() => {
-              handleNavigation();
+              handleLogOut();
               setDialogOpen(false);
             }}
       onCancel={() => setDialogOpen(false)}
     />
         </nav>
       </div>
-    </div>
+    </div>):((<div></div>)) 
+
+   
   );
 }
 

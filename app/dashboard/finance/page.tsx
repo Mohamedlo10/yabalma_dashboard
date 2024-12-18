@@ -1,32 +1,88 @@
-import { Metadata } from "next"
-import Image from "next/image"
+'use client';
+import Image from "next/image";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
-import { CalendarDateRangePicker } from "./components/date-range-picker"
-import { Overview } from "./components/overview"
-import { RecentSales } from "./components/recent-sales"
-import TransactionBoost from "./transactioBoost/transaction"
-import Transaction from "./transaction/transaction"
+} from "@/components/ui/tabs";
+import { getSupabaseSession } from "@/lib/authMnager";
+import { useRouter } from "next/navigation";
+import { CSSProperties, useEffect, useState } from "react";
+import BeatLoader from "react-spinners/BeatLoader";
+import { CalendarDateRangePicker } from "./components/date-range-picker";
+import { Overview } from "./components/overview";
+import { RecentSales } from "./components/recent-sales";
+import TransactionBoost from "./transactioBoost/transaction";
+import Transaction from "./transaction/transaction";
 
-export const metadata: Metadata = {
-  title: "Dashboard",
-  description: "Example dashboard app built using the components.",
-}
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
+
 
 export default function Page() {
+  const [isLoading, setIsLoading] = useState(true);
+  let [color, setColor] = useState("#ffffff");
+  const router = useRouter();
+
+  useEffect(() => {
+    async function fetchData() {
+      setIsLoading(true)
+      try {
+      
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.finance)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
+        
+      }
+        
+      } catch (error) {
+        console.error("Error fetching room details:", error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    fetchData()
+  }, [])
+
+
+   
+  if (isLoading) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+        <div className="sweet-loading">
+          <BeatLoader
+            color={color}
+            loading={isLoading}
+            cssOverride={override}
+            size={15}
+            aria-label="Loading Spinner"
+            data-testid="loader"
+          />
+        </div>
+      </div>
+    );
+  }
   return (
     <>
       <div className="md:hidden">
@@ -45,7 +101,7 @@ export default function Page() {
           className="hidden dark:block"
         />
       </div>
-      <div className="hidden flex-col  md:flex">
+      <div className="hidden flex-col max-h-[90vh] overflow-y-auto  md:flex">
         <div className="border-b">
          {/*  <div className="flex h-16 items-center px-4">
             <TeamSwitcher />

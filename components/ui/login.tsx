@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from 'next/navigation';
-import { ChangeEvent, CSSProperties, useState } from "react";
+import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import { Icon } from 'react-icons-kit';
 import { eye } from 'react-icons-kit/feather/eye';
 import { eyeOff } from 'react-icons-kit/feather/eyeOff';
@@ -38,6 +38,19 @@ function Login() {
        setType('password')
     }
  }
+
+
+
+ useEffect(() => {
+  // Synchronisez les champs avec l'état local lors du montage
+  const storedEmail = (document.getElementById('email') as HTMLInputElement)?.value;
+  const storedPassword = (document.getElementById('password') as HTMLInputElement)?.value;
+
+  if (storedEmail) setEmail(storedEmail);
+  if (storedPassword) setPassword(storedPassword);
+}, []);
+
+
     const handleNavigation = () => {
       router.push(`/dashboard`);
     };
@@ -54,6 +67,8 @@ function Login() {
           setError(error.message);
         } else if (data) {
           // Redirige vers le tableau de bord
+          localStorage.setItem('supabase_session', JSON.stringify(data.user.user_metadata.poste));
+          localStorage.setItem('user_session', JSON.stringify(data.user));
           router.push('/dashboard');
         }
       } catch (err: any) {
@@ -138,12 +153,12 @@ function Login() {
               Login with Google
             </Button>
           </form>
-          <div className="mb-4 text-center text-sm">
+          {/* <div className="mb-4 text-center text-sm">
             Don&apos;t have an account?{" "}
             <Link href="#" className="underline">
               Sign up
             </Link>
-          </div>
+          </div> */}
         </div>
   )
 }

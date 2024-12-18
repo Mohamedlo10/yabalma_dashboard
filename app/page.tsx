@@ -4,8 +4,8 @@ import Image from "next/image"
 
   export default function home() {
   return (
-    <div className="w-full lg:grid lg:min-h-[800px]  bg-zinc-800 lg:grid-cols-2 xl:h-[100vh]">
-      <div className="flex items-center justify-center py-12">
+    <div className="w-full lg:grid h-[100vh]  bg-zinc-800 lg:grid-cols-2 ">
+      <div className="flex items-center h-full justify-center py-12">
         <Login/>
       </div>
       <div className="hidden px-8 bg-gray-50 lg:block">

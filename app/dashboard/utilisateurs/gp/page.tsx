@@ -2,6 +2,7 @@
 import { creerClient, uploadFile } from "@/app/api/clients/query";
 import { getallgp } from "@/app/api/gp/query";
 import { Button } from "@/components/ui/button";
+import { getSupabaseSession } from "@/lib/authMnager";
 import Drawer from '@mui/material/Drawer';
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
@@ -58,6 +59,17 @@ export default function Page() {
         setTotal(data.length);
        
       }
+      const data3= getSupabaseSession()
+      if (data3 != null) {
+        if(data3.access_groups?.utilisateurs)
+          {
+            console.log("autoriser...")
+          }
+          else
+          {
+            router.push(`/dashboard`);
+          }
+        }
       
     } catch (error) {
       console.error("Error fetching Gp :", error)

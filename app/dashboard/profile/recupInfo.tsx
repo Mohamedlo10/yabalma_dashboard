@@ -1,10 +1,11 @@
 "use client";
-import { userInfo } from "@/app/api/auth/query";
 import { Button } from "@/components/ui/button";
+import { getSupabaseUser } from "@/lib/authMnager";
 import { useRouter } from 'next/navigation';
 import { CSSProperties, useEffect, useRef, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
-import PersonalInfo from './personalInfo';
+import { User } from "../accounts/schema";
+import PersonalInfo from "./personalInfo";
 
 const override: CSSProperties = {
   display: "block",
@@ -15,7 +16,7 @@ const override: CSSProperties = {
 const RecupInfo = () => {
 
   const [activeTab, setActiveTab] = useState(0);
-  const [user, setUser] = useState<any>();
+  const [user, setUser] = useState<User>();
   const [isLoading, setIsLoading] = useState(true);
   let [color, setColor] = useState("#ffffff");
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -57,12 +58,8 @@ const RecupInfo = () => {
     async function fetchData() {
       setIsLoading(true)
       try {
-        const data: any = await userInfo()
-        if (data != null) {
-          console.log(data)
+        const data = getSupabaseUser()
           setUser(data)         
-        }
-        
       } catch (error) {
         console.error("Error fetching user details:", error)
       } finally {
@@ -99,24 +96,29 @@ const RecupInfo = () => {
             <div className="flex flex-auto items-center min-w-32 gap-12">
             <div className="relative w-28 h-28 sm:w-52 sm:h-52 rounded-full border-4 bg-slate-100 flex items-center justify-center">
                 {!imageLoaded && (
-                  <span className="text-8xl font-bold text-red-700">
-                    {user.identity_data.email[0]}{user.identity_data.email[3]}
+                  user?.email?(
+                    <span className="text-8xl font-bold text-red-700">
+                    {user?.email[0]}{user?.email[1]}
                   </span>
+                  ):(
+                    user?.phone?(
+                      <span className="text-8xl font-bold text-red-700">
+                      {user?.phone[0]}{user?.phone[3]}
+                    </span>
+                    ):(
+                      <span className="text-8xl font-bold text-red-700">
+                      </span>
+                    )
+                  )
+                  
+                 
                 )}
-                <img
-                  src={user?.img_url ? user?.img_url : ''}
-                  className={`object-cover rounded-full w-full h-full ${imageLoaded ? '' : 'hidden'}`}
-                  alt="Profile Image"
-                  width={240}
-                  height={240}
-                  onLoad={() => setImageLoaded(true)}
-                  onError={() => setImageLoaded(false)}
-                />
+               
               </div>
               <div className="flex flex-col sm:max-w-full max-w-44 ml-4">
-              <div className="text-lg md:text-5xl font-semibold sm:w-full w-36 tracking-tight leading-7 md:leading-snug truncate">
+              {/* <div className="text-lg md:text-5xl font-semibold sm:w-full w-36 tracking-tight leading-7 md:leading-snug truncate">
                 {user?.prenom} {user?.nom}
-                </div>
+                </div> */}
                 <div className="flex justify-center flex-col gap-2 items-center">
                   <div className="leading-7 truncate text-2xl font-bold text-red-700">
                   {user?.email}

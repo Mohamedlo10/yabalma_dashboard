@@ -72,7 +72,7 @@ export const columns: ColumnDef<Commande>[] = [
        + {1350}
       </span>
     ),
-  },
+  }, 
   {
     accessorKey: "created_at",
     header: ({ column }) => (

@@ -4,8 +4,11 @@ import ClientPays from "@/components/ui/utilisateurs/clientPays";
 import GpPays from "@/components/ui/utilisateurs/gpPays";
 import UserClient from "@/components/ui/utilisateurs/userClient";
 import UserGp from "@/components/ui/utilisateurs/userGp";
+import { getSupabaseSession } from "@/lib/authMnager";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
+import { Admin } from "../profile/schema";
 
 const override: CSSProperties = {
   display: "block",
@@ -18,8 +21,10 @@ function Page() {
   let [color, setColor] = useState("#ffffff");
   const [totalUsers, setTotalUsers] = useState(0);
   const [totalActifs, setTotalActifs] = useState(0);
+  const [user, setUser] = useState<Admin>();
   const [totalnonActifs, setTotalnonActifs] = useState(0);
   const [error, setError] = useState(null);
+  const router = useRouter();
 
   useEffect(() => {
     async function fetchData() {
@@ -32,7 +37,21 @@ function Page() {
           setTotalActifs(data)
           setTotalnonActifs(0)
         }
+
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.utilisateurs)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
         
+      }
+    
       } catch (error) {
         console.error("Error fetching room details:", error)
       } finally {

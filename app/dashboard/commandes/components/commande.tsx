@@ -123,7 +123,7 @@ export function CommandeData({
                 <div className="relative">
                   <Search className="absolute left-4 top-4 h-4 w-4 text-muted-foreground" />
                   <Input
-                    placeholder="Tapez la destination pour trouver l'annonce"
+                    placeholder="Tapez la destination pour trouver la commande"
                     className="pl-12 h-12 mb-4"
                     value={searchQuery}
                     onChange={handleInputChange}

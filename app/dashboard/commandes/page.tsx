@@ -5,7 +5,9 @@
 
 // import { cookies } from "next/headers";
 import { getallcommandes } from "@/app/api/commandes/query";
+import { getSupabaseSession } from "@/lib/authMnager";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { CommandeData } from "./components/commande";
@@ -22,8 +24,7 @@ export default function Page() {
   const [config, setConfig] = useCommande();
   const defaultLayout = [ 300,200 ];
   const defaultCollapsed = false;
-
-
+  const router = useRouter();
   const [commandes, setCommandes] = useState<Commande[]>([]);
   let [color, setColor] = useState("#ffffff");
   const [isLoading, setIsLoading] = useState(true);
@@ -40,10 +41,21 @@ export default function Page() {
         if (data && data.length > 0) {
           console.log(data)
           setCommandes(data)
-          // setTotal(data.length); 
-         
         }
+       
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.commandes)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
         
+      }
       } catch (error) {
         console.error("Error fetching room details:", error)
       } finally {

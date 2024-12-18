@@ -9,6 +9,7 @@ import { fr } from 'date-fns/locale';
 import { Plus } from "lucide-react";
 import { useRouter } from 'next/navigation';
 
+import { getSupabaseSession } from "@/lib/authMnager";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { ToastContainer } from 'react-toastify';
@@ -59,6 +60,19 @@ export default function Page() {
           setTotal(data.length);
          
         }
+        const data3= getSupabaseSession()
+        if (data3 != null) {
+          if(data3.access_groups?.utilisateurs)
+            {
+              console.log("autoriser...")
+            }
+            else
+            {
+              router.push(`/dashboard`);
+            }
+            
+        
+      }
         
       } catch (error) {
         console.error("Error fetching room details:", error)
