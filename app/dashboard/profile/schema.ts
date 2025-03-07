@@ -15,6 +15,8 @@ export const adminSchema = z.object({
     email_confirmed_at: z.string().datetime().nullable(), 
     user_metadata: z.object({
       email: z.string().email(), 
+      prenom:z.string().optional(),
+      nom:z.string().optional(),
       email_verified: z.boolean(), 
       phone_verified: z.boolean(), 
       poste:roleSchema.optional(),

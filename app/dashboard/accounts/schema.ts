@@ -16,6 +16,8 @@ export const UserSchema = z.object({
   confirmed_at: z.string().refine((date) => !isNaN(Date.parse(date))).optional(),
   user_metadata: z.object({
     email:z.string().optional(),
+    prenom:z.string().optional(),
+    nom:z.string().optional(),
     email_verified:z.boolean().optional(),
     phone_verified:z.boolean().optional(),
     poste:roleSchema.optional(),

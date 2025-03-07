@@ -9,7 +9,7 @@ export const columns: ColumnDef<User>[] = [
     header: "TOP",
     cell: ({ row }) => <div className="font-bold bg-red-600 items-center flex justify-center rounded-full text-white">{row.index + 1}</div>, // Affiche l'indice + 1 pour commencer à 1
   },
-  {
+  /* {
     accessorKey: "id",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="ID" />
@@ -17,14 +17,14 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div className="w-[80px] font-bold">{row.getValue("id") as string}</div>,
     enableSorting: false,
     enableHiding: false,
-  },
+  }, */
   {
     accessorKey: "prenom",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Prénom" />
     ),
     cell: ({ row }) => (
-      <span className="max-w-[200px] truncate font-medium">
+      <span className="max-w-[200px] px-2 truncate font-medium">
         {row.getValue("prenom") as string}
       </span>
     ),
@@ -76,18 +76,27 @@ export const columns: ColumnDef<User>[] = [
       <span>{new Date(row.getValue("created_at") as string).toLocaleString()}</span>
     ),
   },
- /*  {
-    accessorKey: "delivery",
+   {
+    accessorKey: "total_annonces",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="Nombre de livraison" />
+      <DataTableColumnHeader column={column} title="Annonce" />
     ),
     cell: ({ row }) => (
-      <span>{row.getValue("delivery") as bigint}</span>
+      <span className="px-5">{row.getValue("total_annonces") as bigint}</span>
     ),
     enableSorting: true, // Activer le tri pour cette colonne
-    // defaultCanSort: true, // Activer le tri par défaut
-  }, */
+  },
   {
+    accessorKey: "total_commandes",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Commande" />
+    ),
+    cell: ({ row }) => (
+      <span className="px-5" >{row.getValue("total_commandes") as bigint}</span>
+    ),
+    enableSorting: true, // Activer le tri pour cette colonne
+  }, 
+ /*  {
     accessorKey: "is_gp",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="GP" />
@@ -95,7 +104,7 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => (
       <span>{row.getValue("is_gp") ? "Oui" : "Non"}</span>
     ),
-  },/* {
+  }, *//* {
     accessorKey: "actif",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Actif" />

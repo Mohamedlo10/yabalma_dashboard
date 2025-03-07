@@ -12,6 +12,9 @@ import { getAllRole } from "@/app/api/settings/query";
 import { getAllUsersAdmin, signUpCompte } from '@/app/api/superAdmin/query';
 import { getSupabaseSession } from "@/lib/authMnager";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
+import Icon from "react-icons-kit";
+import { eye } from 'react-icons-kit/feather/eye';
+import { eyeOff } from 'react-icons-kit/feather/eyeOff';
 import BeatLoader from "react-spinners/BeatLoader";
 import { ToastContainer } from 'react-toastify';
 import { Admin } from "../profile/schema";
@@ -41,15 +44,29 @@ export default function Page() {
   const [Compte, setCompte] = useState({
     email: "",
     password: "",
-    poste:""
+    poste:"",
+    prenom:"",
+    nom:"",
   });
+  const [showPassword, setShowPassword] = useState(false);
+  const [icon, setIcon] = useState(eyeOff);
+  const [type, setType] = useState('password');
   const router = useRouter();
 
     const handleNavigation = (idCompte:string) => {
       router.push(`/dashboard/accounts/profile?id=${idCompte}`);
     };
   
-
+    const handleToggle = () => {
+      if (type==='password'){
+         setIcon(eye);
+         setType('text')
+      } else {
+         setIcon(eyeOff)
+         setType('password')
+      }
+   }
+  
     async function fetchData() {
       setIsLoading(true)
      try{
@@ -109,7 +126,9 @@ export default function Page() {
         setCompte({
           email: "",
           password: "",
-          poste:""
+          poste:"",
+          prenom:"",
+          nom:""
         });
         setUploadedImage(null);
         setUploadedFile(null);
@@ -214,6 +233,30 @@ export default function Page() {
               <h2 className="mb-8 text-2xl font-bold">Ajouter un Nouveau Compte</h2>
               <form className="w-full" onSubmit={handleSubmit}>
               
+              <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Prenom</label>
+                  <input
+                    type="text"
+                    name="prenom"
+                    value={Compte.prenom}
+                    onChange={handleInputChange}
+                    placeholder="Prenom"
+                    className="border p-2 rounded w-full"
+                    required
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Nom</label>
+                  <input
+                    type="text"
+                    name="nom"
+                    value={Compte.nom}
+                    onChange={handleInputChange}
+                    placeholder="Nom"
+                    className="border p-2 rounded w-full"
+                    required
+                  />
+                </div>
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">Mail</label>
                   <input
@@ -229,7 +272,7 @@ export default function Page() {
                 <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">Mot de passe</label>
                   <input
-                    type="password"
+                    type={type}
                     name="password"
                     value={Compte.password}
                     onChange={handleInputChange}
@@ -237,7 +280,11 @@ export default function Page() {
                     className="border p-2 rounded w-full"
                     required
                   />
+                  <span className="flex justify-end items-end" onClick={handleToggle}>
+                      <Icon className="absolute mr-4 text-zinc-500 hover:bg-slate-200 p-2 rounded-full " icon={icon} size={24}/>
+                  </span>
                 </div>
+                
                 <div className="h-full">
                 <div className="space-y-2">
                     <h3 className="font-bold">Role</h3>
@@ -273,17 +320,17 @@ export default function Page() {
                 <h2 className="mb-8 text-2xl font-bold">
                   Compte : {selectedUser.phone || selectedUser.email }
                 </h2>
-                <div className="text-sm grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
-                  <div className="font-normal text-base">ID</div>
-                  {selectedUser.id}
+                <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
+                  <div className="font-normal text-sm">Prenom et Nom</div>
+                  {selectedUser.user_metadata?.prenom} {selectedUser.user_metadata?.nom}
                 </div>
                 <div className="text-sm grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
-                  <div className="font-normal text-base">Role</div>
+                  <div className="font-normal text-sm">Role</div>
                   {selectedUser.user_metadata?.poste?.nom}
                 </div>
               
                 {selectedUser.last_sign_in_at?(  <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
-                  <div className="font-normal text-base">Derniere connexion</div>
+                  <div className="font-normal text-sm">Derniere connexion</div>
                   <div>
                     {format(new Date(selectedUser.last_sign_in_at), 'dd MMMM yyyy', { locale: fr })}
                     {` à ${format(new Date(selectedUser.last_sign_in_at), 'HH:mm')}`}
@@ -292,7 +339,7 @@ export default function Page() {
            ):(<div></div>)}
               
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
-                  <div className="font-normal text-base">Date d'inscription</div>
+                  <div className="font-normal text-sm">Date d'inscription</div>
                   <div>
                     {format(new Date(selectedUser.created_at), 'dd MMMM yyyy', { locale: fr })}
                     {` à ${format(new Date(selectedUser.created_at), 'HH:mm')}`}

@@ -1,5 +1,5 @@
 "use client"
-import { getOldestclient } from "@/app/api/clients/query"
+import { geTopClient } from "@/app/api/clients/query"
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ export function UserClient() {
     async function fetchData() {
       setIsLoading(true)
       try {
-        const data: any = await getOldestclient()
+        const data: any = await geTopClient()
 
         if (data!=null) {
 

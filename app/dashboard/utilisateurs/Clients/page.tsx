@@ -58,7 +58,7 @@ export default function Page() {
         if (data && data.length > 0) {
           setUsers(data)
           setTotal(data.length);
-         
+         console.log(data)
         }
         const data3= getSupabaseSession()
         if (data3 != null) {
@@ -360,26 +360,26 @@ export default function Page() {
                   height={120}
                   className="mb-10 h-52 w-52 rounded-full object-cover"
                 />
-                <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
+                {/* <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">ID</div>
                   {selectedUser.id}
-                </div>
+                </div> */}
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Téléphone</div>
                   {selectedUser.Tel}
                 </div>
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Pays</div>
-                  {selectedUser.Pays}
+                  {selectedUser.Pays || '-'}
                 </div>
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Ville</div>
                   {selectedUser.ville}
                 </div>
-                {/* <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
+                <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Commandes effectuées</div>
-                  {selectedUser.commande}
-                </div> */}
+                  {selectedUser.total_commandes}
+                </div>
                 <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
                   <div className="font-normal text-base">Date d'inscription</div>
                   <div>

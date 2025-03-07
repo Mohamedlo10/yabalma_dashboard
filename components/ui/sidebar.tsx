@@ -198,7 +198,7 @@ const router = useRouter();
           {role?.access_groups.commandes?(<Link
             href="/dashboard/commandes"
             className={`flex items-center gap-3 rounded-lg lg:px-3 px-2 py-2 font-bold transition-all ${
-              pathname === "/dashboard/commandes"
+              pathname === "/dashboard/commandes" || pathname === "/dashboard/commandes/profile"
                 ? "bg-white text-red-700 shadow-lg"
                 : "text-white hover:bg-white hover:text-red-700"
             }`}

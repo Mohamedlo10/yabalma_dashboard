@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabaseClient"
+import { createClient } from "@/lib/supabaseClient";
 
 
 const supabase =createClient()
@@ -6,10 +6,10 @@ const supabase =createClient()
 export const getallgp =async()=>{
 
  try {
-  const { data, error } = await supabase.from('client').select('*').eq("is_gp",true).order('created_at', { ascending: false }) 
+  const { data, error } = await supabase
+      .rpc('get_clients_with_stats')
 
-  if (error) throw error 
-  return data as any
+    return data as any;
  } catch (err) {
   throw err
  }
@@ -61,20 +61,16 @@ export const getGpPays =async()=>{
  }
 
 
- export const getOldestGp = async () => {
+ export const getTopGp = async () => {
   try {
     const { data, error } = await supabase
-      .from('client')
-      .select('*')
-      .eq('is_gp', true)
-      .order('created_at', { ascending: false }) //false pour plus recent et true pour plus ancien
-      .limit(1); 
+    .rpc('get_top_gp')
+
     if (error) throw new Error('Erreur lors de la récupération du GP le plus ancien.');
 
     if (!data || data.length === 0) {
       throw new Error('Aucun GP trouvé.');
     }
-
     return data[0];
   } catch (err) {
     throw new Error(err instanceof Error ? err.message : 'Une erreur inconnue est survenue.');

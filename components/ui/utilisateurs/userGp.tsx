@@ -1,5 +1,5 @@
 "use client"
-import { getOldestGp } from "@/app/api/gp/query"
+import { getTopGp } from "@/app/api/gp/query"
 import {
   Card,
   CardContent,
@@ -31,7 +31,7 @@ export function UserGp() {
     async function fetchData() {
       setIsLoading(true)
       try {
-        const data: any = await getOldestGp()
+        const data: any = await getTopGp()
         if (data!=null) {
           setGp(data)         
         }

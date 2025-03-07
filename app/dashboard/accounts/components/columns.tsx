@@ -10,13 +10,28 @@ export const columns: ColumnDef<User>[] = [
     cell: ({ row }) => <div className="font-bold bg-red-600 items-center flex justify-center rounded-full text-white">{row.index + 1}</div>, // Affiche l'indice + 1 pour commencer à 1
   },
   {
-    accessorKey: "id",
+    id: "prenom",
+    accessorKey: "user_metadata",
     header: ({ column }) => (
-      <DataTableColumnHeader column={column} title="ID" />
+      <DataTableColumnHeader column={column} title="Prenom" />
     ),
-    cell: ({ row }) => <div className="w-full font-bold">{row.getValue("id") as string}</div>,
-    enableSorting: false,
-    enableHiding: false,
+    cell: ({ row }) => (
+      <span className="max-w-[100px] truncate font-medium">
+        {row.original.user_metadata?.prenom}
+      </span>
+    ),
+  },
+  {
+    id: "nom",
+    accessorKey: "user_metadata",
+    header: ({ column }) => (
+      <DataTableColumnHeader column={column} title="Nom" />
+    ),
+    cell: ({ row }) => (
+      <span className="max-w-[100px] truncate font-medium">
+        {row.original.user_metadata?.nom}
+      </span>
+    ),
   },
   {
     accessorKey: "email",
@@ -29,7 +44,7 @@ export const columns: ColumnDef<User>[] = [
       </span>
     ),
   },
-  {
+ /*  {
     accessorKey: "phone",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Téléphone" />
@@ -39,7 +54,7 @@ export const columns: ColumnDef<User>[] = [
         {row.getValue("phone") as string}
       </span>
     ),
-  },
+  }, */
   {
     id: "poste",
     accessorKey: "user_metadata",

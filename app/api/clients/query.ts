@@ -6,7 +6,7 @@ const supabase =createClient()
 export const getallclient =async()=>{
 
  try {
-  const { data, error } = await supabase.from('client').select('*').eq("is_gp",false).order('created_at', { ascending: false }) 
+  const { data, error } = await supabase.rpc('get_clients_with_annonces')
 
   if (error) throw error 
   return data as any
@@ -152,20 +152,16 @@ export const getclientPays =async()=>{
 };
 
 
- export const getOldestclient = async () => {
+ export const geTopClient = async () => {
   try {
     const { data, error } = await supabase
-      .from('client')
-      .select('*')
-      .eq('is_gp', false)
-      .order('created_at', { ascending: false }) //plus recent false
-      .limit(1); 
-    if (error) throw new Error('Erreur lors de la récupération du client le plus ancien.');
+    .rpc('get_top_client')
+
+    if (error) throw new Error('Erreur lors de la récupération du GP le plus ancien.');
 
     if (!data || data.length === 0) {
-      throw new Error('Aucun client trouvé.');
+      throw new Error('Aucun GP trouvé.');
     }
-
     return data[0];
   } catch (err) {
     throw new Error(err instanceof Error ? err.message : 'Une erreur inconnue est survenue.');

@@ -8,6 +8,7 @@ import { CSSProperties, Suspense, useEffect, useRef, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { type User } from "../../schema";
 import AnnonceInfo from "./annoncenfo/annonceInfo";
+import CommandeInfo from "./commandeInfo/commandeInfo";
 import PersonalInfo from './personalInfo';
 
 const override: CSSProperties = {
@@ -211,11 +212,17 @@ const RecupInfo = () =>  {
               className={` hover:text-white hover:bg-red-700 hover:opacity-100 transition-shadow font-bold tab ${activeTab === 2 ? "active bg-red-700 text-white" : " opacity-70 bg-white text-red-800"}`}
               onClick={() => setActiveTab(2)}
             >
-              Transactions
+              Commandes
             </Button>
             <Button
               className={` hover:text-white hover:bg-red-700 hover:opacity-100 transition-shadow font-bold tab ${activeTab === 3 ? "active bg-red-700 text-white" : " opacity-70 bg-white text-red-800"}`}
               onClick={() => setActiveTab(3)}
+            >
+              Transactions
+            </Button>
+            <Button
+              className={` hover:text-white hover:bg-red-700 hover:opacity-100 transition-shadow font-bold tab ${activeTab === 4 ? "active bg-red-700 text-white" : " opacity-70 bg-white text-red-800"}`}
+              onClick={() => setActiveTab(4)}
             >
               Commentaires
             </Button>
@@ -233,8 +240,13 @@ const RecupInfo = () =>  {
                 <AnnonceInfo userId={user?.id_client} />
               </div>
             )}
-            {activeTab === 2 && <Transaction />}
-            {activeTab === 3 && <Commentaire />}
+            {activeTab === 2 && (
+              <div>
+                <CommandeInfo userId={user?.id_client} />
+              </div>
+            )}
+            {activeTab === 3 && <Transaction />}
+            {activeTab === 4 && <Commentaire />}
           </div>
         </div>
       </div>

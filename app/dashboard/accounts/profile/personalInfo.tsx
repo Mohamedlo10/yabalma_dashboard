@@ -35,7 +35,9 @@ const [client, setClient] = useState({
   ...user,
   phone: user?.phone || "",
   email: user?.email || "",
-  poste:user?.user_metadata?.poste?.nom || ""
+  poste:user?.user_metadata?.poste?.nom || "",
+  prenom: user?.user_metadata?.prenom || "",
+  nom: user?.user_metadata?.nom || "",
 });
 const [roles, setRoles] = useState<Role[]>([]);
 
@@ -60,7 +62,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   const myposte=roles.find((role)=>(role.nom===client.poste))
   console.log(client)
   try {
-  const response = await modifierCompte(client.id,client.email,myposte)
+  const response = await modifierCompte(client.id,client.email,myposte,client.nom,client.prenom)
 
   seteditMode(false)
 
@@ -125,7 +127,7 @@ if (isLoading) {
 
   return <div>
             <div className='p-3 bg-zinc-50 rounded-md w-full items-center justify-start flex flex-col gap-1'>  
-            <div className="flex flex-col  max-h-[40vh]">
+            <div className="flex flex-col  max-h-[44vh]">
 
      
 
@@ -139,19 +141,21 @@ if (isLoading) {
             <form className="w-full mb-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-2 gap-36 rounded-lg">
             {/* <!-- First Bloc --> */}
-            <div className="p-2 h-64">
-            <div className="mb-4">
-                  <label className="block text-sm font-medium mb-2">Mail</label>
+            <div className="p-2 h-72">
+           
+                <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Prenom</label>
                   <input
-                      type="text"
-                      name="email"
-                      value={client.email}
-                      onChange={handleInputChange}
-                      placeholder="Email"
-                      className="border p-2 rounded w-full"
-                      required
-                    />
+                    type="text"
+                    name="prenom"
+                    value={client.prenom}
+                    onChange={handleInputChange}
+                    placeholder="Prenom"
+                    className="border p-2 rounded w-full"
+                    required
+                  />
                 </div>
+             
                {/*  <div className="mb-4">
                   <label className="block text-sm font-medium mb-2">Mot de passe</label>
                   <input
@@ -164,7 +168,7 @@ if (isLoading) {
                     required
                   />
                 </div> */}
-                <div className="h-full">
+                <div className="max-h-[21vh] overflow-y-auto">
                 <div className="space-y-2">
                     <h3 className="font-bold">Role</h3>
                     {roles.map((role, index) => (
@@ -186,8 +190,38 @@ if (isLoading) {
                 </div>
               </div>
             </div>
+            <div>
+            <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Nom</label>
+                  <input
+                    type="text"
+                    name="nom"
+                    value={client.nom}
+                    onChange={handleInputChange}
+                    placeholder="Nom"
+                    className="border p-2 rounded w-full"
+                    required
+                  />
+                </div>
+            <div className="mb-4">
+                  <label className="block text-sm font-medium mb-2">Mail</label>
+                  <input
+                      type="text"
+                      name="email"
+                      value={client.email}
+                      onChange={handleInputChange}
+                      placeholder="Email"
+                      className="border p-2 rounded w-full"
+                      required
+                    />
+                </div>
+
+
+                
+            </div>
+           
           </div>
-          <div className="grid grid-cols-2 gap-12">
+          <div className="grid grid-cols-2 gap-12 mt-6">
 
                 <Button onClick={activeEdit} className='font-bold bg-white hover:text-slate-900 hover:bg-slate-100 text-slate-600  gap-2'>
                   <X />
@@ -208,6 +242,10 @@ if (isLoading) {
             <div className="grid grid-cols-2 gap-36 h-64 rounded-lg">
             {/* <!-- First Bloc --> */}
             <div className="p-4">
+            <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Prenom</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{client?.prenom}</div>
+              </div>
               <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Role</div>
                 <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{client?.poste}</div>
@@ -224,6 +262,10 @@ if (isLoading) {
             </div>
             {/* <!-- Second Bloc --> */}
             <div className="p-4">
+            <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Nom</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{client?.nom}</div>
+              </div>
             {user?.last_sign_in_at?( <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Derniere connexion</div>
                 {user? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(user?.last_sign_in_at), 'dd MMMM yyyy', { locale: fr })}
@@ -241,6 +283,8 @@ if (isLoading) {
                   <div className='text-xl'>Erreur lors du chargement des donnees</div>
                 )}
               </div>):( <div></div> )}
+
+              
               
             </div>
 

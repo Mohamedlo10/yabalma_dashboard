@@ -143,12 +143,12 @@ export function CirculaireComponent() {
       <ChartStyle id={id} config={chartConfig} />
       <CardHeader className="flex-row items-start space-y-0 pb-0">
         <div className="grid gap-1">
-          <CardTitle>Utilisateurs</CardTitle>
-          <CardTitle className="text-red-600 font-bold text-5xl">{totalUsers}</CardTitle>
+          <CardTitle className="xl:text-lg  text-sm">Utilisateurs</CardTitle>
+          <CardTitle className="text-red-600 font-bold text-4xl xl:text-5xl">{totalUsers}</CardTitle>
         </div>
         <Select value={activeMonth} onValueChange={setActiveMonth}>
           <SelectTrigger
-            className="ml-auto h-10 w-[100px] rounded-lg pl-2.5"
+            className="ml-auto h-10 xl:w-[100px] w-[70px] rounded-lg xl:pl-2.5"
             aria-label="Select a value"
           >
             <SelectValue placeholder="Select month" />
@@ -247,8 +247,8 @@ export function CirculaireComponent() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-end gap-2 text-sm">
-      <Button type="button" onClick={()=> router.push('dashboard/utilisateurs')} className="w-fit h-10 font-bold">Gerer les Utilisateurs</Button>
+      <CardFooter className="flex-col items-end gap-2 ">
+      <Button type="button" onClick={()=> router.push('dashboard/utilisateurs')} className="w-fit h-10  text-[9px] xl:text-sm font-bold">Gerer les Utilisateurs</Button>
       </CardFooter> 
     </Card>
   )

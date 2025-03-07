@@ -24,8 +24,10 @@ export const userDeConnection = async () => {
       document.cookie = "sb-pgrubovujiulezselost-auth-token=; Max-Age=0; path=/;";
       window.location.href = '/'; 
       localStorage.removeItem('supabase_session');
+      localStorage.removeItem('user_session');
 
 
+      
     } else {
       console.error('Erreur lors de la déconnexion', error);
     }

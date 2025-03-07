@@ -113,6 +113,10 @@ const deleteUser = async () => {
             <div className="grid grid-cols-2 gap-36 rounded-lg">
             {/* <!-- First Bloc --> */}
             <div className="p-4">
+            <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">Prenom</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{compte?.user_metadata?.prenom}</div>
+              </div>
               <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Mail</div>
                 <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{compte?.email}</div>
@@ -125,7 +129,10 @@ const deleteUser = async () => {
             </div>
             {/* <!-- Second Bloc --> */}
             <div className="p-4">
-              
+            <div className="mb-4">
+                <div className="text-gray-500 text-sm sm:text-base">nom</div>
+                <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{compte?.user_metadata?.nom}</div>
+              </div>
               {user?.created_at?( <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Date d'inscription</div>
                 {user? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(user?.created_at), 'dd MMMM yyyy', { locale: fr })}

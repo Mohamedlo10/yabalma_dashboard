@@ -12,6 +12,8 @@ export const clientSchema = z.object({
   fcm_token: z.string().nullable(),
   ville: z.string().nullable(),
   img_url: z.string().nullable(),
+  total_annonces: z.number().optional(),
+  total_commandes: z.number().optional()
 });
 
 export type User = z.infer<typeof clientSchema>;

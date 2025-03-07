@@ -21,11 +21,11 @@ export function DataTableToolbar<TData>({
     <div className="flex items-center justify-between">
       <div className="flex flex-1 space-x-4 items-center ">
         <Input
-          id="phone"
-          placeholder="Rechercher compte par Telephone..."
-          value={(table.getColumn("phone")?.getFilterValue() as string) ?? ""}
+          id="email"
+          placeholder="Rechercher compte par Mail..."
+          value={(table.getColumn("email")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("phone")?.setFilterValue(event.target.value)
+            table.getColumn("email")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[190px] lg:w-[320px]"
         />

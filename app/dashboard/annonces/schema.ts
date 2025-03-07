@@ -19,6 +19,8 @@ export const annonceSchema = z.object({
   source: z.string(),
   devise_prix: z.string(),
   lieu_depot: z.string(),
+  sourceAddress:z.string().optional().nullable(),
+  destinationAddress:z.string().optional().nullable(),
   date_depart: z.string().refine(date => !isNaN(Date.parse(date)), {
     message: "Invalid date format for dateDepart.",
   }),

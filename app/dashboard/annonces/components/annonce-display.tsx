@@ -85,7 +85,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
 
                                 <div className="line-clamp-2 flex flex-row gap-2 font-bold text-base text-muted-foreground">
                                     
-                                <MapPin /> {annonce.lieu_depot}
+                                <MapPin /> {annonce.lieu_depot} {annonce.sourceAddress}
                               </div>
                  
                 </div> 
@@ -98,7 +98,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
                     <FaArrowRight/>
                     </div>
                     <div className="flex flex-col items-center w-28 font-bold justify-center">
-                    {annonce.destination }
+                    {annonce.destination } {annonce.destinationAddress}
                     
                     {/* <Flag code="FR" className="h-8 w-10" />  */}
                     </div>

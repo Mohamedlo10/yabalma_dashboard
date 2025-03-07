@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabaseAdmin";
 
-export const getAllUsersAdmin = async () => {
+/* export const getAllUsersAdmin = async () => {
     try {
       const { data: { users }, error } = await supabase.auth.admin.listUsers()
 
@@ -14,7 +14,28 @@ export const getAllUsersAdmin = async () => {
     } catch (err) {
       throw err;
     }
-  }
+  } */
+
+  export const getAllUsersAdmin = async () => {
+    try {
+      const { data: { users }, error } = await supabase.auth.admin.listUsers();
+  
+      if (error) {
+        console.error('Erreur lors de la récupération des utilisateurs :', error.message);
+        return [];
+      }
+  
+      const emailUsers = users.filter(user => user.app_metadata?.provider === 'email');
+  
+      console.log('Utilisateurs avec provider email :', emailUsers);
+  
+      return emailUsers as any;
+    } catch (err) {
+      console.error('Erreur lors de l\'exécution de la fonction :', err);
+      throw err;
+    }
+  };
+  
 
   export const creerCompte = async (compte: Record<string, any>,myposte:any) => {
     try{
@@ -45,7 +66,7 @@ export const getAllUsersAdmin = async () => {
             email: compte.email,
             password: compte.password,
             options: {
-              data: { poste: myposte },
+              data: { poste: myposte,prenom:compte.prenom,nom:compte.nom },
             },
         });
           
@@ -97,10 +118,10 @@ export const getAllUsersAdmin = async () => {
 /* 
  */
 
-export const modifierCompte = async (idCompte:any,emailUP?:any,posteUP?:any) => {
+export const modifierCompte = async (idCompte:any,emailUP?:any,posteUP?:any,nom?:any,prenom?:any) => {
   try {
     const { data: user, error } = await supabase.auth.admin.updateUserById(idCompte,
-      { email: emailUP ,user_metadata: { poste: posteUP }},  
+      { email: emailUP ,user_metadata: { poste: posteUP,nom: nom ,prenom:prenom}},  
     )
     
  

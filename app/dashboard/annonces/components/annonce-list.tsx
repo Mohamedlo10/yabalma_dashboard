@@ -108,9 +108,9 @@ export function AnnonceList({ items }: annonceListProps) {
                         addSuffix: true,
                       })}
 
-                      {item.is_boost && (
-                        <span className="flex h-3 w-3 rounded-full bg-red-600" />
-                      )}
+                      {item.is_boost ? (
+                        <div className="flex h-3 w-3 rounded-full bg-green-600"> </div>
+                      ):( <div></div> )}
                   </div>
 
                   <div className='flex flex-row gap-2'>

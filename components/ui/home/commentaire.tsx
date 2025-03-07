@@ -112,7 +112,7 @@ function Commentaire() {
                   +{totalCommentaire}
                 </div>
                 <div className="ml-auto font-medium">
-                  <Button type="button" onClick={() => router.push('dashboard/commentaires')} className="w-fit h-10 font-bold xl:text-sm">Voir Commentaires</Button>
+                  <Button type="button" onClick={() => router.push('dashboard/commentaires')} className="w-fit h-10 font-bold text-[9px] xl:text-sm">Voir Commentaires</Button>
                 </div>
               </div>
               
