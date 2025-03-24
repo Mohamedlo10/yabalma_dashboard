@@ -97,7 +97,7 @@ function Login() {
 	}
 
 	return (
-		<div className="mx-auto flex flex-col text-white bg-slate-700  text-bold shadow-2xl h-3/5 p-4 px-20 w-2/3 rounded-sm gap-4">
+		<div className="mx-auto flex flex-col text-white xl:justify-center text-bold shadow-2xl h-3/5 p-4 px-20 xl:w-3/4 w-2/3 rounded-sm gap-4">
 			<div className="grid gap-2 text-center">
 				<h1 className="text-2xl  text- font-bold">Login</h1>
 				<p className="text-balance font-medium ">
