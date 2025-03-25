@@ -24,7 +24,7 @@ export function UserClient() {
 
   const [error, setError] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [client, setClient] = useState<any| null>(null);
+  const [client, setClient] = useState<any>(null);
   let [color, setColor] = useState("#ffffff");
 
   useEffect(() => {
@@ -71,7 +71,7 @@ export function UserClient() {
         <CardTitle className="text-red-600 font-black text-3xl">Clients</CardTitle>
       </CardHeader>
 
-      <CardContent className=" xl:pl-6 flex-1 grid grid-cols-2 gap-6 w-full p-1"> 
+      {client&&(<CardContent className=" xl:pl-6 flex-1 grid grid-cols-2 gap-6 w-full p-1"> 
       
         <div>
     
@@ -112,7 +112,7 @@ export function UserClient() {
                     
                 </div>
 
-      </CardContent>
+      </CardContent>)}
     </Card>
   )
 }

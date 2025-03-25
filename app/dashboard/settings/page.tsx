@@ -356,7 +356,7 @@ export default function Page() {
 						<TabsContent value="overview" className="space-y-8">
 							<div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-4">
 								{roles.map((role) => (
-									<Card className="">
+									<Card key={role.id} className="">
 										<ConfirmDialog
 											isOpen={isDialogOpen}
 											message={`Etes-vous sûr de vouloir supprimer : ${selectedRoleNom} ?`}

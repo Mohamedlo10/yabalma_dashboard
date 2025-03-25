@@ -20,7 +20,7 @@ export const getallcommandes =async()=>{
   
     if (error) throw error;
   
-    return data as any;
+    return data as any || [];
   } catch (err) {
     throw err;
   }
