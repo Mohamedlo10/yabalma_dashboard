@@ -103,7 +103,7 @@ const CommandeInfo: React.FC<CommandeInfoProps> = ({ userId }) => {
 
 	return (
 		<>
-			<div className="hidden  h-full flex-1 flex-col p-2 md:flex">
+			<div className="hidden max-h-[48vh] overflow-y-auto flex-1 flex-col p-2 md:flex">
 				{/* Tableau des données */}
 				<DataTable
 					data={commandes}
@@ -282,7 +282,7 @@ const CommandeInfo: React.FC<CommandeInfoProps> = ({ userId }) => {
 										)}
 									</div>
 								</div>
-								<div className="ml-auto py-10 w-full items-center justify-center flex font-medium">
+								<div className="ml-auto pt-10 w-full items-center justify-center flex font-medium">
 									<Button
 										onClick={() => handleNavigation(selectedCommande.id_client)}
 										className="w-fit h-10 font-bold">

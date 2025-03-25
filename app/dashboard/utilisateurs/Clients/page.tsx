@@ -222,7 +222,7 @@ export default function Page() {
 
 			{/* Drawer pour afficher les informations de l'utilisateur ou le formulaire d'ajout */}
 			<Drawer anchor="right" open={isDrawerOpen} onClose={closeDrawer}>
-				<div className="p-4 w-[32vw]">
+				<div className="p-4 w-[35vw]">
 					{isAddingClient ? (
 						// Formulaire d'ajout de client
 						<div className="flex w-full max-w-xl flex-col items-center border bg-white p-10 text-left">
