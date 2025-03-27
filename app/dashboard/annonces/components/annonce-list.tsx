@@ -22,7 +22,7 @@ export function AnnonceList({ items }: annonceListProps) {
 					<button
 						key={item.id}
 						className={cn(
-							"flex flex-row items-start gap-1 w-full rounded-lg border p-3 text-left text-sm transition-all  hover:bg-accent ",
+							"grid grid-cols-1 items-start gap-1 w-full rounded-lg border p-3 text-left text-sm transition-all  hover:bg-accent ",
 							annonce.selected === item.id && "bg-red-600 hover:bg-red-600 "
 						)}
 						onClick={() =>
@@ -143,14 +143,14 @@ export function AnnonceList({ items }: annonceListProps) {
 								)}
 							</div>
 
-							<div className="flex flex-row gap-2">
+							<div className="grid grid-cols-3 gap-2">
 								<div
 									className={cn(
 										"flex flex-col items-center w-12 font-bold justify-center",
 										annonce.selected === item.id && "text-white "
 									)}>
-									{item.source.length > 4
-										? `${item.source.substring(0, 4)}..`
+									{item.source.length > 12
+										? `${item.source.substring(0, 12)}..`
 										: item.source}
 									{/* <Flag code="SN" className="h-4 w-6" />  */}
 								</div>
@@ -162,8 +162,8 @@ export function AnnonceList({ items }: annonceListProps) {
 										"flex flex-col items-center w-12 font-bold justify-center",
 										annonce.selected === item.id && "text-white "
 									)}>
-									{item.destination.length > 4
-										? `${item.destination.substring(0, 4)}..`
+									{item.destination.length > 12
+										? `${item.destination.substring(0, 12)}..`
 										: item.destination}
 
 									{/* <Flag code="FR" className="h-4 w-6" />  */}

@@ -29,9 +29,9 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 		<div className="flex h-full flex-col">
 			<div className="flex items-center py-2 px-2">
 				<div className="flex items-center gap-2">
-					<div className="flex flex-row text-base  items-center justify-center gap-3">
-						<div className="font-bold  text-muted-foreground">Commande de </div>
-						<div className="font-bold text-red-700 ">
+					<div className="flex flex-row text-sm  items-center justify-center gap-3">
+						<div className="  text-muted-foreground">Commande de </div>
+						<div className=" text-red-700 ">
 							{commande?.client?.prenom} {commande?.client?.nom}
 						</div>
 					</div>
@@ -57,12 +57,10 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 			{commande ? (
 				<div className="flex flex-1 flex-col max-h-[84vh] overflow-y-auto items-center ">
 					<div className="flex w-full max-w-xl flex-col items-center  bg-white p-2 text-left">
-						<div className="flex flex-row gap-2 w-full mb-4">
+						<div className="flex flex-row gap-2 w-full ">
 							<div className="flex flex-col w-full items-center gap-2 ">
-								<div className="mb-2 text-base font-bold leading-none">
-									Client
-								</div>
-								<Avatar className="hidden h-24 w-24  sm:flex">
+								<div className="mb-2 text-sm  leading-none">Client</div>
+								<Avatar className="hidden h-12 w-12  sm:flex">
 									<AvatarImage
 										src={`${commande.client?.img_url}`}
 										className="rounded-full object-cover w-full h-full"
@@ -74,18 +72,18 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									</AvatarFallback>
 								</Avatar>
 								<div className="grid gap-1">
-									<p className="text-base font-bold leading-none text-red-700">
+									<p className="text-sm  leading-none text-red-700">
 										{commande.client?.prenom} {commande.client?.nom}
 									</p>
 								</div>
 
-								<div className="line-clamp-2 flex flex-row gap-2 font-bold text-sm text-muted-foreground">
+								<div className="line-clamp-2 flex flex-row gap-2  text-sm text-muted-foreground">
 									<Phone /> {commande.client?.Tel}
 								</div>
 							</div>
 							<div className="flex flex-col w-full items-center gap-2 ">
-								<div className="mb-2 text-base font-bold leading-none">GP</div>
-								<Avatar className="hidden h-24 w-24  sm:flex">
+								<div className="mb-2 text-sm  leading-none">GP</div>
+								<Avatar className="hidden h-12 w-12  sm:flex">
 									<AvatarImage
 										src={`${commande.annonce?.client?.img_url}`}
 										className="rounded-full object-cover w-full h-full"
@@ -96,69 +94,50 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									</AvatarFallback>
 								</Avatar>
 								<div className="grid gap-1">
-									<p className="text-base font-bold leading-none text-red-700">
+									<p className="text-sm  leading-none text-red-700">
 										{commande.annonce?.client?.prenom}{" "}
 										{commande.annonce?.client?.nom}
 									</p>
 								</div>
 
-								<div className="line-clamp-2 flex flex-row gap-2 font-bold text-sm text-muted-foreground">
+								<div className="line-clamp-2 flex flex-row gap-2  text-sm text-muted-foreground">
 									<Phone /> {commande.annonce?.client?.Tel}
 								</div>
 							</div>
 						</div>
 
-						<div className="flex flex-row gap-2 mt-4">
-							<div className="flex flex-col items-center w-28 font-bold justify-center">
+						<div className="grid grid-cols-3 gap-2 mt-4">
+							<div className="flex flex-col items-center  justify-center">
 								{commande.annonce?.source}
 								{/* <Flag code={commande.annonce?.source.code} className="h-8 w-10" />  */}
 							</div>
 							<div className="flex items-center justify-center pt-4">
 								<FaArrowRight />
 							</div>
-							<div className="flex flex-col items-center w-28 font-bold justify-center">
+							<div className="flex flex-col items-center  justify-center">
 								{commande.annonce?.destination}
 
 								{/* <Flag code={commande.annonce?.destination.code} className="h-8 w-10" />  */}
 							</div>
 						</div>
-						{/* <div className="text-base grid grid-cols-2 font-bold p-4 rounded-md shadow-sm w-full gap-full">
-                  <div className="font-normal text-base">ID</div>
+						{/* <div className="text-sm grid grid-cols-2  p-4 rounded-md shadow-sm w-full gap-full">
+                  <div className="font-normal text-sm">ID</div>
                   <div className="text-sm">
                   {commande.id}
                   </div>
                 </div> */}
-						<div className="pt-8 px-2 lg:px-2 xl:px-2 w-full grid items-center gap-0 justify-center grid-cols-1">
+						<div className=" px-2 lg:px-2 xl:px-2 w-full grid items-center gap-0 justify-center grid-cols-1">
 							<div className="grid grid-cols-2 w-full col-span-2 gap-14 ">
-								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold w-full mt-4">
-									<div className="line-clamp-2 flex flex-row  p-1 font-bold text-sm text-muted-foreground">
-										Poids max:{" "}
-									</div>
-									<div className="text-sm text-black flex items-end w-full justify-end">
-										{commande.annonce?.poids_max}
-									</div>
-								</div>
-								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold w-full mt-4">
-									<div className="line-clamp-2 flex flex-row gap-6 p-1 font-bold text-sm text-muted-foreground">
+								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center  w-full mt-4">
+									<div className="line-clamp-2 flex flex-row gap-6 p-1  text-sm text-muted-foreground">
 										Type:{" "}
 									</div>
 									<div className="text-sm text-black flex items-end w-full justify-end">
 										{commande.detail_commande?.type}
 									</div>
 								</div>
-							</div>
-
-							<div className="flex flex-row w-full col-span-2 gap-14 ">
-								<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-									<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
-										Avec le GP:
-									</div>
-									<div className="flex items-end w-full justify-end">
-										{commande.is_received_by_gp ? `OUI` : "NON"}
-									</div>
-								</div>
-								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-									<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
+								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center   w-full mt-4">
+									<div className="line-clamp-2 flex flex-row gap-6 p-1  text-sm text-muted-foreground">
 										Transport:{" "}
 									</div>
 									<div className=" flex items-end w-full justify-end">
@@ -167,22 +146,25 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 								</div>
 							</div>
 
-							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-								<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
-									Commande passée le:{" "}
+							{/* 	<div className="flex flex-row w-full col-span-2 gap-14 ">
+								
+							</div> */}
+
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
+									Date :{" "}
 								</div>
 								<div className="flex items-end w-full justify-end">
 									{format(new Date(commande.created_at), "dd MMMM yyyy", {
 										locale: fr,
 									})}
-									{` à ${format(new Date(commande.created_at), "HH:mm")}`}
 								</div>
 							</div>
-							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-								<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
-									Date de depart le:{" "}
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
+									Depart :{" "}
 								</div>
-								<div className="flex items-end w-full justify-end">
+								<div className="flex items-end w-full justify-end ">
 									{format(
 										new Date(commande.annonce.date_depart),
 										"dd MMMM yyyy",
@@ -190,11 +172,11 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									)}
 								</div>
 							</div>
-							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-								<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
 									Date d'arriver le:{" "}
 								</div>
-								<div className="flex items-end w-full justify-end">
+								<div className="flex items-end w-full justify-start p-1">
 									{format(
 										new Date(commande.annonce.date_arrive),
 										"dd MMMM yyyy",
@@ -202,20 +184,20 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									)}
 								</div>
 							</div>
-							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-								<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
 									Etat du colis:
 								</div>
-								<div className="flex items-end w-full justify-end">
+								<div className="flex items-end w-full justify-start p-1">
 									{commande.annonce?.statut}
 								</div>
 							</div>
-							<div className="text-sm grid grid-cols-3 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-								<div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
 									Etat de paiement:
 								</div>
 								<div
-									className={`leading-6 text-sm  sm:text-base px-2 w-fit  flex items-end  justify-end  py-1 rounded-md text-white ${
+									className={`leading-6 text-sm  sm:text-sm px-2 w-fit  flex items-end  justify-start p-1  py-1 rounded-md text-white ${
 										commande?.payment_status === "unpaid"
 											? "bg-red-500"
 											: "bg-green-500"
@@ -227,14 +209,14 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 							</div>
 
 							<div className="flex flex-col w-full col-span-2 gap-4 ">
-								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+								<div className="text-sm grid grid-cols-2 gap-auto items-center justify-center   w-full mt-4">
 									{commande.detail_commande?.first_name ? (
 										<>
 											{" "}
-											<div className="line-clamp-2 flex flex-row  p-1 font-bold text-sm text-muted-foreground">
+											<div className="line-clamp-2 flex flex-row  p-1  text-sm text-muted-foreground">
 												Destinataire:{" "}
 											</div>
-											<div className="flex items-end w-full justify-end">
+											<div className="flex items-end w-full justify-start p-1">
 												{commande.detail_commande?.first_name}
 											</div>{" "}
 										</>
@@ -244,10 +226,10 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									{commande.detail_commande?.destinataire_number ? (
 										<>
 											{" "}
-											<div className="line-clamp-2 flex flex-row  mt-4 p-1 font-bold text-sm text-muted-foreground">
+											<div className="line-clamp-2 flex flex-row  mt-4 p-1  text-sm text-muted-foreground">
 												Telephone Destinataire:{" "}
 											</div>
-											<div className="flex mt-4 items-end w-full justify-end">
+											<div className="flex mt-4 items-end w-full justify-start p-1">
 												{commande.detail_commande?.destinataire_number}
 											</div>{" "}
 										</>
@@ -257,15 +239,15 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 								</div>
 							</div>
 							{/*  {commande.detail_commande?.location && (
-                    <div className=" col-span-2 flex flex-row gap-auto items-center justify-center font-bold text-lg gap-2 w-full mt-8">
+                    <div className=" col-span-2 flex flex-row gap-auto items-center justify-center  text-lg gap-2 w-full mt-8">
                       <MapPin /> {commande.detail_commande?.location} {commande.detail_commande?.code_postal}
                     </div>
                     )} */}
 						</div>
-						<div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
+						<div className="ml-auto pt-4 xl:pt-12 w-full items-center justify-center flex font-medium">
 							<Button
 								onClick={() => handleNavigation(commande.id)}
-								className="w-fit h-10 font-bold">
+								className="w-fit h-10 ">
 								Voir Détails
 							</Button>{" "}
 						</div>

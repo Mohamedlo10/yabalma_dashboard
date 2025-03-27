@@ -133,7 +133,7 @@ export function AnnonceData({
 					maxSize={40}>
 					<Tabs defaultValue="all">
 						<div className="flex items-center px-4 py-2">
-							<h3 className="text-sm font-bold">Annonces</h3>
+							<h3 className="text-sm hidden xl:block font-bold">Annonces</h3>
 							<TabsList className="ml-auto">
 								<TabsTrigger
 									value="all"
@@ -164,7 +164,7 @@ export function AnnonceData({
 									e.preventDefault(); // Empêche le rechargement de la page
 								}}>
 								{/* Champ de recherche Client */}
-								<div className="w-full  grid grid-cols-6 gap-4">
+								<div className="w-full  grid grid-cols-6 xl:gap-4 gap-1">
 									<div className="mt-2 col-span-2 ">
 										<Search className="absolute left-4 top-7 h-4 w-4 text-muted-foreground" />
 										<Input
@@ -175,7 +175,7 @@ export function AnnonceData({
 										/>
 									</div>
 
-									<div className="flex gap-4 col-span-3">
+									<div className="flex xl:gap-4 gap-1 col-span-3">
 										{/* Sélection de la Date de Départ */}
 										<div>
 											<label className="block text-sm font-medium">

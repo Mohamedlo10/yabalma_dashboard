@@ -79,7 +79,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
 								<MapPin /> {annonce.lieu_depot} {annonce.sourceAddress}
 							</div>
 						</div>
-						<div className="flex flex-row gap-2 mt-2">
+						<div className="grid text-sm grid-cols-3 gap-0 mt-2">
 							<div className="flex flex-col items-center w-28 font-bold justify-center">
 								{annonce.source}
 								{/* <Flag code="SN" className="h-8 w-10" />  */}

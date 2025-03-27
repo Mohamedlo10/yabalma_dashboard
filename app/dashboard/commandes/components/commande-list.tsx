@@ -4,7 +4,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { fr } from "date-fns/locale";
-import { FaArrowDown, FaArrowRight } from "react-icons/fa";
+import { FaArrowRight } from "react-icons/fa";
 import { Commande } from "../schema";
 import { useCommande } from "../use-commande";
 
@@ -30,7 +30,7 @@ export function CommandeList({ items }: commandeListProps) {
 					<button
 						key={item.id}
 						className={cn(
-							"flex flex-row items-start gap-1 w-full rounded-lg border p-3 text-left text-sm transition-all  hover:bg-accent ",
+							"grid items-start gap-1 w-full rounded-lg border p-3 text-left text-sm transition-all  hover:bg-accent ",
 							commande.selected === item.id && "bg-red-600 hover:bg-red-600 "
 						)}
 						onClick={() =>
@@ -39,8 +39,8 @@ export function CommandeList({ items }: commandeListProps) {
 								selected: item.id,
 							})
 						}>
-						<div className="grid grid-cols-4 gap-3 w-full items-center ">
-							<div className="flex flex-col xl:w-36 w-32 items-center gap-1 ">
+						<div className="grid grid-cols-3 gap-2 w-full items-center ">
+							<div className="flex flex-col items-center gap-1 ">
 								<p
 									className={cn(
 										"text-sm font-bold leading-none text-red-700",
@@ -77,7 +77,7 @@ export function CommandeList({ items }: commandeListProps) {
 								</div>
 							</div>
 
-							<div className="flex flex-col w-28 items-center gap-1 ">
+							<div className="flex flex-col items-center gap-1 ">
 								<p
 									className={cn(
 										"text-sm font-bold leading-none text-red-700",
@@ -110,26 +110,6 @@ export function CommandeList({ items }: commandeListProps) {
 									)}>
 									{item.annonce?.client?.Tel}
 								</div>
-							</div>
-							<div
-								className={cn(
-									"flex flex-col items-center text-muted-foreground w-16 font-bold text-sm justify-center",
-									commande.selected === item.id && "text-white "
-								)}>
-								{item.detail_commande?.type}
-								<p className="inline-block">
-									{format(new Date(item.annonce.date_depart), "dd/MM/yyyy", {
-										locale: fr,
-									})}
-								</p>
-								<p className="w-full flex items-center justify-center">
-									<FaArrowDown />
-								</p>
-								<p className="inline-block">
-									{format(new Date(item.annonce.date_arrive), "dd/MM/yyyy", {
-										locale: fr,
-									})}
-								</p>
 							</div>
 
 							<div
@@ -184,6 +164,28 @@ export function CommandeList({ items }: commandeListProps) {
 										)}>
 										{item.statut}
 									</div>
+								</div>
+							</div>
+							<div
+								className={cn(
+									"grid grid-cols-4 col-span-4 w-full items-center text-muted-foreground  font-bold text-sm justify-center",
+									commande.selected === item.id && "text-white "
+								)}>
+								<p className="font-extrabold">{item.detail_commande?.type}</p>
+								<div className="flex flex-raw gap-7 col-span-2">
+									<p className="inline-block">
+										{format(new Date(item.annonce.date_depart), "dd/MM/yyyy", {
+											locale: fr,
+										})}
+									</p>
+									<p className=" ">
+										<FaArrowRight />
+									</p>
+									<p className="inline-block">
+										{format(new Date(item.annonce.date_arrive), "dd/MM/yyyy", {
+											locale: fr,
+										})}
+									</p>
 								</div>
 							</div>
 						</div>
