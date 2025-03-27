@@ -1,9 +1,8 @@
-import { format, formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow } from "date-fns";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
-import { fr } from "date-fns/locale";
 import { FaArrowRight } from "react-icons/fa";
 import { Commande } from "../schema";
 import { useCommande } from "../use-commande";
@@ -43,7 +42,7 @@ export function CommandeList({ items }: commandeListProps) {
 							<div className="flex flex-col items-center gap-1 ">
 								<p
 									className={cn(
-										"text-sm font-bold leading-none text-red-700",
+										"text-sm  leading-none text-red-700",
 										commande.selected === item.id && "text-white "
 									)}>
 									Client
@@ -61,7 +60,7 @@ export function CommandeList({ items }: commandeListProps) {
 								<div className="grid gap-1">
 									<p
 										className={cn(
-											"text-sm font-bold leading-none text-red-700",
+											"text-sm  leading-none text-red-700",
 											commande.selected === item.id && "text-white "
 										)}>
 										{item.client?.prenom} {item.client?.nom}
@@ -70,7 +69,7 @@ export function CommandeList({ items }: commandeListProps) {
 
 								<div
 									className={cn(
-										"line-clamp-2 font-bold text-xs text-muted-foreground",
+										"line-clamp-2  text-xs text-muted-foreground",
 										commande.selected === item.id && "text-white "
 									)}>
 									{item.client?.Tel}
@@ -80,7 +79,7 @@ export function CommandeList({ items }: commandeListProps) {
 							<div className="flex flex-col items-center gap-1 ">
 								<p
 									className={cn(
-										"text-sm font-bold leading-none text-red-700",
+										"text-sm  leading-none text-red-700",
 										commande.selected === item.id && "text-white "
 									)}>
 									GP
@@ -96,7 +95,7 @@ export function CommandeList({ items }: commandeListProps) {
 								<div className="grid gap-1">
 									<p
 										className={cn(
-											"text-sm font-bold leading-none text-red-700",
+											"text-sm  leading-none text-red-700",
 											commande.selected === item.id && "text-white "
 										)}>
 										{item.annonce?.client?.prenom} {item.annonce?.client?.nom}
@@ -105,7 +104,7 @@ export function CommandeList({ items }: commandeListProps) {
 
 								<div
 									className={cn(
-										"line-clamp-2 font-bold text-xs text-muted-foreground",
+										"line-clamp-2  text-xs text-muted-foreground",
 										commande.selected === item.id && "text-white "
 									)}>
 									{item.annonce?.client?.Tel}
@@ -132,7 +131,7 @@ export function CommandeList({ items }: commandeListProps) {
 								<div className="grid grid-cols-3 gap-2">
 									<div
 										className={cn(
-											"flex flex-col items-center  font-bold justify-center",
+											"flex flex-col items-center   justify-center",
 											commande.selected === item.id && "text-white "
 										)}>
 										{item.annonce?.source?.length > 7
@@ -145,7 +144,7 @@ export function CommandeList({ items }: commandeListProps) {
 									</div>
 									<div
 										className={cn(
-											"flex flex-col items-center  font-bold justify-center",
+											"flex flex-col items-center   justify-center",
 											commande.selected === item.id && "text-white "
 										)}>
 										{item.annonce?.destination?.length > 7
@@ -156,7 +155,7 @@ export function CommandeList({ items }: commandeListProps) {
 									</div>
 								</div>
 
-								<div className="text-sm flex items-center justify-center  flex-row gap-2 font-bold p-1 w-full ">
+								<div className="text-sm flex items-center justify-center  flex-row gap-2  p-1 w-full ">
 									<div
 										className={cn(
 											"text-sm text-red-700",
@@ -166,28 +165,36 @@ export function CommandeList({ items }: commandeListProps) {
 									</div>
 								</div>
 							</div>
-							<div
+							{/* <div
 								className={cn(
-									"grid grid-cols-4 col-span-4 w-full items-center text-muted-foreground  font-bold text-sm justify-center",
+									"grid grid-cols-4 col-span-4 w-full items-center text-muted-foreground   text-sm justify-center",
 									commande.selected === item.id && "text-white "
 								)}>
 								<p className="font-extrabold">{item.detail_commande?.type}</p>
 								<div className="flex flex-raw gap-7 col-span-2">
 									<p className="inline-block">
-										{format(new Date(item.annonce.date_depart), "dd/MM/yyyy", {
-											locale: fr,
-										})}
+										{format(
+											new Date(item.annonce.date_depart),
+											"dd MMMM yyyy",
+											{
+												locale: fr,
+											}
+										)}
 									</p>
 									<p className=" ">
 										<FaArrowRight />
 									</p>
 									<p className="inline-block">
-										{format(new Date(item.annonce.date_arrive), "dd/MM/yyyy", {
-											locale: fr,
-										})}
+										{format(
+											new Date(item.annonce.date_arrive),
+											"dd MMMM yyyy",
+											{
+												locale: fr,
+											}
+										)}
 									</p>
 								</div>
-							</div>
+							</div> */}
 						</div>
 
 						{/*  {item.lieuCollecte.length > 21 

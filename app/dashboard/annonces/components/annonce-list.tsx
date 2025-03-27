@@ -44,7 +44,7 @@ export function AnnonceList({ items }: annonceListProps) {
 								<div className="grid gap-1">
 									<p
 										className={cn(
-											"text-sm font-bold leading-none text-red-700",
+											"text-sm  leading-none text-red-700",
 											annonce.selected === item.id && "text-white "
 										)}>
 										{item.client?.prenom} {item.client?.nom}
@@ -53,7 +53,7 @@ export function AnnonceList({ items }: annonceListProps) {
 
 								<div
 									className={cn(
-										"line-clamp-2 font-bold text-xs text-muted-foreground",
+										"line-clamp-2  text-xs text-muted-foreground",
 										annonce.selected === item.id && "text-white "
 									)}>
 									{item.lieu_depot.length > 21
@@ -62,11 +62,11 @@ export function AnnonceList({ items }: annonceListProps) {
 								</div>
 							</div>
 
-							<div className="flex flex-col font-bold h-full text-sm w-1/2">
-								<div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
+							<div className="flex flex-col  h-full text-sm w-1/2">
+								<div className="text-sm flex items-center  flex-row gap-2  p-1 w-full ">
 									<div
 										className={cn(
-											"font-bold text-sm text-muted-foreground",
+											" text-sm text-muted-foreground",
 											annonce.selected === item.id && "text-white "
 										)}>
 										{" "}
@@ -81,10 +81,10 @@ export function AnnonceList({ items }: annonceListProps) {
 										{item.stock_annonce}
 									</div>
 								</div>
-								<div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
+								<div className="text-sm flex items-center  flex-row gap-2  p-1 w-full ">
 									<div
 										className={cn(
-											"font-bold text-sm text-muted-foreground",
+											" text-sm text-muted-foreground",
 											annonce.selected === item.id && "text-white "
 										)}>
 										{" "}
@@ -95,15 +95,15 @@ export function AnnonceList({ items }: annonceListProps) {
 											"text-sm text-red-700",
 											annonce.selected === item.id && "text-white "
 										)}>
-										{`${format(new Date(item.date_arrive), "dd/MM/yy", {
+										{`${format(new Date(item.date_arrive), "dd MMMM yyyy", {
 											locale: fr,
 										})}`}
 									</div>
 								</div>
-								<div className="text-sm flex items-center  flex-row gap-2 font-bold p-1 w-full ">
+								<div className="text-sm flex items-center  flex-row gap-2  p-1 w-full ">
 									<div
 										className={cn(
-											"font-bold text-sm text-muted-foreground",
+											" text-sm text-muted-foreground",
 											annonce.selected === item.id && "text-white "
 										)}>
 										{" "}
@@ -114,7 +114,7 @@ export function AnnonceList({ items }: annonceListProps) {
 											"text-sm text-red-700",
 											annonce.selected === item.id && "text-white "
 										)}>
-										{format(new Date(item.date_depart), "dd-MM-yy", {
+										{format(new Date(item.date_depart), "dd MMMM yyyy", {
 											locale: fr,
 										})}
 									</div>
@@ -146,7 +146,7 @@ export function AnnonceList({ items }: annonceListProps) {
 							<div className="grid grid-cols-3 gap-2">
 								<div
 									className={cn(
-										"flex flex-col items-center w-12 font-bold justify-center",
+										"flex flex-col items-center w-12  justify-center",
 										annonce.selected === item.id && "text-white "
 									)}>
 									{item.source.length > 12
@@ -159,7 +159,7 @@ export function AnnonceList({ items }: annonceListProps) {
 								</div>
 								<div
 									className={cn(
-										"flex flex-col items-center w-12 font-bold justify-center",
+										"flex flex-col items-center w-12  justify-center",
 										annonce.selected === item.id && "text-white "
 									)}>
 									{item.destination.length > 12

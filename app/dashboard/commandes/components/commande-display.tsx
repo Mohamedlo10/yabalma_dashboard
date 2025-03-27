@@ -57,7 +57,7 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 			{commande ? (
 				<div className="flex flex-1 flex-col max-h-[84vh] overflow-y-auto items-center ">
 					<div className="flex w-full max-w-xl flex-col items-center  bg-white p-2 text-left">
-						<div className="flex flex-row gap-2 w-full ">
+						<div className="flex flex-col gap-2 w-full ">
 							<div className="flex flex-col w-full items-center gap-2 ">
 								<div className="mb-2 text-sm  leading-none">Client</div>
 								<Avatar className="hidden h-12 w-12  sm:flex">
