@@ -155,10 +155,24 @@ export function CommandeList({ items }: commandeListProps) {
 									</div>
 								</div>
 
-								<div className="text-sm flex items-center justify-center  flex-row gap-2  p-1 w-full ">
+								<div className="text-sm grid items-center justify-center  grid-cols-2  w-full ">
 									<div
 										className={cn(
-											"text-sm text-red-700",
+											"text-sm text-red-700 col-span-2 items-center justify-center flex",
+											commande.selected === item.id && "text-white "
+										)}>
+										{item.validation_status ? "Validé " : "Non Validé "}
+									</div>
+									<div
+										className={cn(
+											"text-sm text-red-700 items-center justify-center flex ",
+											commande.selected === item.id && "text-white "
+										)}>
+										{item.payment_status == "unpaid" ? "Non Payer " : "Payer "}
+									</div>
+									<div
+										className={cn(
+											"text-sm text-red-700 items-center justify-center flex",
 											commande.selected === item.id && "text-white "
 										)}>
 										{item.statut}

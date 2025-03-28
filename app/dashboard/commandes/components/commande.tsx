@@ -162,9 +162,14 @@ export function CommandeData({
 									All
 								</TabsTrigger>
 								<TabsTrigger
-									value="Valide"
+									value="Validé"
 									className="text-zinc-600 dark:text-zinc-200">
-									Valide
+									Validé
+								</TabsTrigger>
+								<TabsTrigger
+									value="NonValidé"
+									className="text-zinc-600 dark:text-zinc-200">
+									Non validé
 								</TabsTrigger>
 
 								<TabsTrigger
@@ -229,9 +234,14 @@ export function CommandeData({
 						<TabsContent value="all" className="m-0">
 							<CommandeList items={filteredByDate} />
 						</TabsContent>
-						<TabsContent value="Valide" className="m-0">
+						<TabsContent value="Validé" className="m-0">
 							<CommandeList
 								items={filteredByDate.filter((item) => item.validation_status)}
+							/>
+						</TabsContent>
+						<TabsContent value="NonValidé" className="m-0">
+							<CommandeList
+								items={filteredByDate.filter((item) => !item.validation_status)}
 							/>
 						</TabsContent>
 						<TabsContent value="Enattente" className="m-0">

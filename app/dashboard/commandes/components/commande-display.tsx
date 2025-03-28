@@ -57,7 +57,7 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 			{commande ? (
 				<div className="flex flex-1 flex-col max-h-[84vh] overflow-y-auto items-center ">
 					<div className="flex w-full max-w-xl flex-col items-center  bg-white p-2 text-left">
-						<div className="flex flex-col gap-2 w-full ">
+						<div className="flex xl:flex-row flex-col gap-2 w-full ">
 							<div className="flex flex-col w-full items-center gap-2 ">
 								<div className="mb-2 text-sm  leading-none">Client</div>
 								<Avatar className="hidden h-12 w-12  sm:flex">
@@ -194,6 +194,15 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 							</div>
 							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
 								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
+									Prix:
+								</div>
+								<div className="flex items-end w-full justify-start p-1">
+									{commande.total_price}{" "}
+									{commande.detail_commande?.articles[0].currency}
+								</div>
+							</div>
+							<div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center   w-full mt-4">
+								<div className="line-clamp-2 flex flex-row gap-12 p-1  text-sm text-muted-foreground">
 									Etat de paiement:
 								</div>
 								<div
@@ -238,13 +247,24 @@ export function CommandeDisplay({ commande }: CommandeDisplayProps) {
 									)}
 								</div>
 							</div>
-							{/*  {commande.detail_commande?.location && (
-                    <div className=" col-span-2 flex flex-row gap-auto items-center justify-center  text-lg gap-2 w-full mt-8">
-                      <MapPin /> {commande.detail_commande?.location} {commande.detail_commande?.code_postal}
-                    </div>
-                    )} */}
+							{/*  <select
+											name="cancelled_status"
+											value={item.validation_status ? "Validé " : "En attente"}
+											onChange={(e) =>
+												setCommande((prevState) => ({
+													...prevState,
+													validation_status: e.target.value === "Validé",
+												}))
+											}
+											className="border p-1 rounded-lg text-black w-full"
+											required>
+											<option value="En attente">En attente</option>
+											<option value="Validé">Validé</option>
+										</select>
+										Si je veux changer le statut directement
+										*/}
 						</div>
-						<div className="ml-auto pt-4 xl:pt-12 w-full items-center justify-center flex font-medium">
+						<div className="ml-auto pt-4 w-full items-center justify-center flex font-medium">
 							<Button
 								onClick={() => handleNavigation(commande.id)}
 								className="w-fit h-10 ">

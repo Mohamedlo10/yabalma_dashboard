@@ -9,6 +9,8 @@ const articleSchema = z.object({
   name: z.string(),
   image: z.string(),
   price: z.number(),
+  currency: z.string().optional(),
+
   quantity: z.number(),
   totalPrice: z.number()
 });
@@ -38,6 +40,7 @@ export const commandeSchema = z.object({
   created_at: z.string().refine((date) => !isNaN(Date.parse(date))), // vérifie que c'est une date valide
   cancelled_status: z.boolean(),
   annonce: annonceSchema, 
+  total_price:z.string().optional().nullable(),
   client: clientSchema.nullable(),   
   detail_commande: detailsCommandeSchema.optional(), 
 });

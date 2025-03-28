@@ -16,6 +16,7 @@ export const getallcommandes =async()=>{
         ),
         client(*) 
       `)
+      .order('validation_status', { ascending: true }) 
       .order('created_at', { ascending: false });
   
     if (error) throw error;
