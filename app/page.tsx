@@ -10,7 +10,7 @@ export default function home() {
 			<div className="hidden px-8 bg-gray-50 lg:block">
 				<Image
 					src="/logoYabalma.svg"
-					alt="Image"
+					alt="Image" 
 					width={890}
 					height={890}
 					className="h-full w-full object-cover dark:brightness-[0.2] dark:grayscale"
