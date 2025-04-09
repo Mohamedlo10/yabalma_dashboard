@@ -102,7 +102,7 @@ export function UserGp() {
               <button
                 type="button"
                 onClick={() => router.push("utilisateurs/gp")}
-                className="w-fit min-w-14 bg-black rounded-sm text-white text-[9px] md:text-base h-10 font-bold"
+                className="w-fit min-w-14 bg-black rounded-sm text-white text-[9px] md:text-sm md:p-2 lg:text-base h-10 font-bold"
               >
                 Voir les GP
               </button>

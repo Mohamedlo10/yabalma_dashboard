@@ -63,7 +63,7 @@ export default function DashboardPage() {
   return (
     <div className="chart-wrapper h-full  overflow-y-auto mx-auto flex max-w-8xl flex-col flex-wrap items-start justify-center gap-2 p-6 sm:flex-row sm:p-8">
       <div className="grid w-full mx-auto gap-2 sm:grid-cols-1 lg:grid-cols-1 ">
-        <div className="w-full grid-cols-1 grid md:grid-cols-2 gap-2">
+        <div className="w-full grid-cols-1 grid lg:grid-cols-2 gap-2">
           <div className=" grid grid-cols-1 gap-2">
             {role?.access_groups.finance ? (
               <BarChartComponent />

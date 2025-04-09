@@ -21,7 +21,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         <div
           className={`${
             sidebarOpen ? "fixed inset-0 z-40 block" : "hidden"
-          } md:hidden`}
+          } lg:hidden`}
         >
           <div
             className="absolute inset-0 bg-black opacity-50"
@@ -33,18 +33,18 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
 
         {/* Sidebar for desktop */}
-        <div className="hidden md:block md:col-span-2 h-full bg-red-700">
+        <div className="hidden lg:block lg:col-span-2 h-full bg-red-700">
           <Sidebar isOpen={true} toggleSidebar={toggleSidebar} />
         </div>
 
         {/* Main content */}
         <div
-          className={`col-span-12 md:col-span-10 h-full flex flex-col bg-white`}
+          className={`col-span-12 lg:col-span-10 h-full flex flex-col bg-white`}
         >
-          <div className="h-[8vh]">
+          <div className="h-[14vh] md:h-[8vh]">
             <Navbar toggleSidebar={toggleSidebar} />
           </div>
-          <div className="max-h-[92vh] overflow-y-auto">
+          <div className="max-h-[86vh] md:max-h-[92vh] pb-28 overflow-y-auto">
             <section className="p-4">{children}</section>
           </div>
         </div>

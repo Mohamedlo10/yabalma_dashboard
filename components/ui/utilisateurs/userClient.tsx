@@ -104,7 +104,7 @@ export function UserClient() {
               <button
                 type="button"
                 onClick={() => router.push("utilisateurs/Clients")}
-                className="w-fit min-w-16 bg-black rounded-sm text-white text-[9px] md:text-base h-10 font-bold"
+                className="w-fit min-w-16 bg-black rounded-sm text-white text-[9px] md:text-sm md:p-2 lg:text-base h-10 font-bold"
               >
                 Voir les Clients
               </button>

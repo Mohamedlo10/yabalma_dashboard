@@ -5,11 +5,11 @@ interface NavbarProps {
 
 function Navbar({ toggleSidebar }: NavbarProps) {
   return (
-    <div className="flex flex-col h-[8vh]">
-      <header className="flex items-center gap-4 border-b bg-white px-4 md:px-10 h-[8vh]">
+    <div className="flex flex-col h-[14vh] md:h-[8vh]">
+      <header className="flex items-center gap-4 border-b bg-white px-4 md:px-10 h-[14vh] md:h-[8vh]">
         <button
           onClick={toggleSidebar}
-          className="md:hidden flex items-center justify-center text-gray-700 hover:text-red-700"
+          className="lg:hidden flex items-center justify-center text-gray-700 hover:text-red-700"
           aria-label="Toggle sidebar"
         >
           <svg

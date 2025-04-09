@@ -85,7 +85,7 @@ export function CommandeList({ items }: commandeListProps) {
         {items.map((item) => (
           <Card className="w-full max-w-2xl mx-auto shadow-md">
             <CardHeader className="bg-gray-50 border-b">
-              <CardTitle className="text-lg font-semibold text-gray-800">
+              <CardTitle className="md:text-lg text-sm font-semibold text-gray-800">
                 Commande #{item.id}
               </CardTitle>
             </CardHeader>
@@ -93,26 +93,34 @@ export function CommandeList({ items }: commandeListProps) {
             <CardContent className="p-0">
               {/* Section Client */}
               <div className="p-4 border-b">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase mb-2">
                   Information Client
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Nom</p>
-                    <p className="font-medium">{item.client?.nom}</p>
+                    <p className="text-xs md:text-sm text-gray-500">Nom</p>
+                    <p className="font-medium text-xs md:text-base">
+                      {item.client?.nom}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Prenom</p>
-                    <p className="font-medium">{item.client?.prenom}</p>
+                    <p className="text-xs md:text-sm text-gray-500">Prenom</p>
+                    <p className="font-medium text-xs md:text-base">
+                      {item.client?.prenom}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Téléphone</p>
-                    <p className="font-medium">{item.client?.Tel}</p>
+                    <p className="text-xs md:text-sm text-gray-500">
+                      Téléphone
+                    </p>
+                    <p className="font-medium text-xs md:text-base">
+                      {item.client?.Tel}
+                    </p>
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500">Adresse</p>
-                    <p className="font-medium">
+                    <p className="text-xs md:text-sm text-gray-500">Adresse</p>
+                    <p className="font-medium text-xs md:text-base">
                       {item.client?.Pays} {item.client?.ville}
                     </p>
                   </div>
@@ -121,24 +129,26 @@ export function CommandeList({ items }: commandeListProps) {
 
               {/* Section Prestataire */}
               <div className="p-4 border-b">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase mb-2">
                   Prestataire de Service
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Nom</p>
-                    <p className="font-medium">{item.annonce?.client?.nom}</p>
+                    <p className="text-xs md:text-sm text-gray-500">Nom</p>
+                    <p className="font-medium text-xs md:text-base">
+                      {item.annonce?.client?.nom}
+                    </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Prenom</p>
-                    <p className="font-medium">
+                    <p className="text-xs md:text-sm text-gray-500">Prenom</p>
+                    <p className="font-medium text-xs md:text-base">
                       {item.annonce?.client?.prenom}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Adresse</p>
+                    <p className="text-xs md:text-sm text-gray-500">Adresse</p>
                     <div className="flex items-center">
-                      <span className="font-medium">
+                      <span className="font-medium text-xs md:text-base">
                         {item.annonce?.client?.Pays}{" "}
                         {item.annonce?.client?.ville}
                       </span>
@@ -153,21 +163,23 @@ export function CommandeList({ items }: commandeListProps) {
                   </div>
 
                   <div>
-                    <p className="text-sm text-gray-500">Contact</p>
-                    <p className="font-medium">{item.annonce?.client?.Tel}</p>
+                    <p className="text-xs md:text-sm text-gray-500">Contact</p>
+                    <p className="font-medium text-xs md:text-base">
+                      {item.annonce?.client?.Tel}
+                    </p>
                   </div>
                 </div>
               </div>
 
               {/* Section Commande */}
               <div className="p-4">
-                <h3 className="text-sm font-semibold text-gray-500 uppercase mb-2">
+                <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase mb-2">
                   Détails de la Commande
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm text-gray-500">Date</p>
-                    <p className="font-medium">
+                    <p className="text-xs md:text-sm text-gray-500">Date</p>
+                    <p className="font-medium text-xs md:text-base">
                       {format(
                         new Date(item.annonce.created_at),
                         "dd MMMM yyyy",
@@ -182,16 +194,16 @@ export function CommandeList({ items }: commandeListProps) {
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Trajet</p>
-                    <p className="font-medium">
+                    <p className="text-xs md:text-sm text-gray-500">Trajet</p>
+                    <p className="font-medium text-xs md:text-base">
                       {item.annonce.source} - {item.annonce.destination}
                     </p>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Statut</p>
+                    <p className="text-xs md:text-sm text-gray-500">Statut</p>
 
                     <span
-                      className={`inline-flex items-center p-2 rounded-md text-base font-medium ${
+                      className={`inline-flex items-center p-2 rounded-md  font-medium text-xs md:text-base ${
                         !item.validation_status
                           ? "bg-yellow-100 text-yellow-800"
                           : "bg-green-100 text-green-900"
@@ -201,8 +213,8 @@ export function CommandeList({ items }: commandeListProps) {
                     </span>
                   </div>
                   <div>
-                    <p className="text-sm text-gray-500">Prix</p>
-                    <p className="font-medium text-lg">
+                    <p className="text-xs md:text-sm text-gray-500">Prix</p>
+                    <p className="font-medium text-xs md:text-lg ">
                       {item.total_price}{" "}
                       {item.detail_commande?.articles[0].currency}
                     </p>

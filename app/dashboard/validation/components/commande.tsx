@@ -1,4 +1,21 @@
 "use client";
+// Hook personnalisé pour détecter la taille de l'écran
+const useMediaQuery = (query: any) => {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    if (media.matches !== matches) {
+      setMatches(media.matches);
+    }
+
+    const listener = () => setMatches(media.matches);
+    media.addEventListener("change", listener);
+    return () => media.removeEventListener("change", listener);
+  }, [matches, query]);
+
+  return matches;
+};
 
 import { CircleX, ClockAlert, Search } from "lucide-react";
 import * as React from "react";
@@ -31,11 +48,12 @@ interface CommandeProps {
 
 export function CommandeData({
   commandes,
-  defaultLayout = [24, 42, 34],
   defaultCollapsed = false,
-  navCollapsedSize,
 }: CommandeProps) {
-  const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [defaultLayout, setDefaultLayout] = useState([30, 70]);
+  const navCollapsedSize = 4;
+  const isMobile = useMediaQuery("(max-width: 768px)"); // Détecte si l'écran est inférieur à md
   const [searchQuery, setSearchQuery] = useState("");
 
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
@@ -107,61 +125,94 @@ export function CommandeData({
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
   };
+  useEffect(() => {
+    // Si on est sur mobile, on modifie le layout par défaut
+    if (isMobile) {
+      setIsCollapsed(true);
+    } else {
+      // Restaurer l'état depuis les cookies si disponible
+      const savedLayout = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("react-resizable-panels:layout:mail="));
+      if (savedLayout) {
+        setDefaultLayout(JSON.parse(savedLayout.split("=")[1]));
+      }
+
+      const savedCollapsed = document.cookie
+        .split("; ")
+        .find((row) => row.startsWith("react-resizable-panels:collapsed="));
+      if (savedCollapsed) {
+        setIsCollapsed(JSON.parse(savedCollapsed.split("=")[1]));
+      }
+    }
+  }, [isMobile]);
 
   return (
     <TooltipProvider delayDuration={0}>
       <ResizablePanelGroup
         direction="horizontal"
-        onLayout={(sizes: number[]) => {
-          document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(
-            sizes
-          )}`;
+        onLayout={(sizes) => {
+          // Ne sauvegarder que si on n'est pas sur mobile
+          if (!isMobile) {
+            document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(
+              sizes
+            )}`;
+          }
         }}
         className="h-full max-h-[88vh] items-stretch"
       >
+        {/* Première panel - caché sur mobile */}
+        {!isMobile && (
+          <>
+            <ResizablePanel
+              defaultSize={defaultLayout[0]}
+              collapsedSize={navCollapsedSize}
+              collapsible={true}
+              minSize={28}
+              maxSize={45}
+              onCollapse={() => {
+                setIsCollapsed(true);
+                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
+                  true
+                )}`;
+              }}
+              onResize={() => {
+                setIsCollapsed(false);
+                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
+                  false
+                )}`;
+              }}
+              className={cn(
+                isCollapsed &&
+                  "min-w-[55px] transition-all duration-300 ease-in-out"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex h-full flex-col items-center gap-2 justify-start mt-4",
+                  isCollapsed ? "h-[92px]" : "px-2"
+                )}
+              >
+                {/* SidePage component */}
+                <ValidationDiag />
+                <MoyenneGeneraleComponent />
+              </div>
+            </ResizablePanel>
+            <ResizableHandle withHandle />
+          </>
+        )}
+
+        {/* Deuxième panel - prend toute la largeur sur mobile */}
         <ResizablePanel
-          defaultSize={defaultLayout[0]}
-          collapsedSize={navCollapsedSize}
-          collapsible={true}
-          minSize={28}
-          maxSize={45}
-          onCollapse={() => {
-            setIsCollapsed(true);
-            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-              true
-            )}`;
-          }}
-          onResize={() => {
-            setIsCollapsed(false);
-            document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-              false
-            )}`;
-          }}
-          className={cn(
-            isCollapsed &&
-              "min-w-[55px] transition-all duration-300 ease-in-out"
-          )}
-        >
-          <div
-            className={cn(
-              "flex h-full flex-col items-center gap-2  justify-start mt-4",
-              isCollapsed ? "h-[92px]" : "px-2"
-            )}
-          >
-            {/* SidePage component */}
-            <ValidationDiag />
-            <MoyenneGeneraleComponent />
-          </div>
-        </ResizablePanel>
-        <ResizableHandle withHandle />
-        <ResizablePanel
-          defaultSize={defaultLayout[1]}
-          minSize={40}
-          maxSize={70}
+          defaultSize={isMobile ? 100 : defaultLayout[1]}
+          minSize={isMobile ? 100 : 40}
+          maxSize={isMobile ? 100 : 70}
         >
           <Tabs defaultValue="all">
             <div className="flex items-center px-4 py-2">
-              <h2 className="font-bold">Liste des commandes</h2>
+              <h2 className="font-bold md:text-base text-xs">
+                Liste des commandes
+              </h2>
               <TabsList className="ml-auto">
                 <TabsTrigger
                   value="all"
@@ -190,21 +241,21 @@ export function CommandeData({
                   e.preventDefault(); // Empêche le rechargement de la page
                 }}
               >
-                <div className="w-full  grid grid-cols-3 gap-16">
-                  <div className="mt-3  ">
-                    <Search className="absolute left-7 top-11 h-4 w-4 text-muted-foreground" />
+                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-16">
+                  <div className="mt-3 relative">
+                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Rechercher ..."
-                      className="pl-8 h-12  mb-4"
+                      className="pl-8 h-12 mb-0 md:mb-4"
                       value={searchQuery}
                       onChange={handleInputChange}
                     />
                   </div>
 
-                  <div className="flex gap-10 w-full col-span-2">
+                  <div className="flex flex-row gap-4 md:gap-10 w-full col-span-1 md:col-span-2">
                     {/* Sélection de la Date de Départ */}
                     <div className="flex flex-col items-center justify-center">
-                      <label className=" text-[12px] inline-block font-medium">
+                      <label className="text-[12px] inline-block font-medium">
                         Date de depart
                       </label>
                       <DatePickerDemo date={startDate} setDate={setStartDate} />
@@ -216,6 +267,13 @@ export function CommandeData({
                         Date de livraison
                       </label>
                       <DatePickerDemo date={endDate} setDate={setEndDate} />
+                    </div>
+                    <div className="text-[11px] items-center justify-center md:hidden flex bg-yellow-300 rounded-md font-bold text-yellow-800 p-1 py-2 text-center">
+                      {
+                        filteredByDate.filter((item) => !item.validation_status)
+                          .length
+                      }{" "}
+                      à valider
                     </div>
                   </div>
                 </div>
@@ -236,8 +294,12 @@ export function CommandeData({
             </TabsContent>
           </Tabs>
         </ResizablePanel>
-        <ResizableHandle withHandle />
+
+        {/* Le second ResizableHandle n'est affiché que si le premier panel est visible */}
+        {!isMobile && <ResizableHandle withHandle />}
       </ResizablePanelGroup>
     </TooltipProvider>
   );
 }
+
+export default CommandeData;

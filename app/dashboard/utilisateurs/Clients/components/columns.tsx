@@ -8,7 +8,7 @@ export const columns: ColumnDef<User>[] = [
     id: "index",
     header: "TOP",
     cell: ({ row }) => (
-      <div className="font-bold bg-red-600 items-center flex justify-center rounded-full text-white">
+      <div className="font-bold bg-red-600 items-center lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px]  flex justify-center rounded-full text-white">
         {row.index + 1}
       </div>
     ), // Affiche l'indice + 1 pour commencer à 1
@@ -19,7 +19,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Prénom" />
     ),
     cell: ({ row }) => (
-      <span className="max-w-[200px] px-2 truncate font-medium">
+      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px] font-medium">
         {row.getValue("prenom") as string}
       </span>
     ),
@@ -30,7 +30,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Nom" />
     ),
     cell: ({ row }) => (
-      <span className="max-w-[200px] truncate font-medium">
+      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px] font-medium">
         {row.getValue("nom") as string}
       </span>
     ),
@@ -40,21 +40,33 @@ export const columns: ColumnDef<User>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Téléphone" />
     ),
-    cell: ({ row }) => <span>{row.getValue("Tel") as string}</span>,
+    cell: ({ row }) => (
+      <span className="lg:text-sm text-[9px] md:text-[11px]">
+        {row.getValue("Tel") as string}
+      </span>
+    ),
   },
   {
     accessorKey: "Pays",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Pays" />
     ),
-    cell: ({ row }) => <span>{row.getValue("Pays") as string}</span>,
+    cell: ({ row }) => (
+      <span className="lg:text-sm text-[9px] md:text-[11px]">
+        {row.getValue("Pays") as string}
+      </span>
+    ),
   },
   {
     accessorKey: "ville",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ville" />
     ),
-    cell: ({ row }) => <span>{row.getValue("ville") as string}</span>,
+    cell: ({ row }) => (
+      <span className="lg:text-sm text-[9px] md:text-[11px]">
+        {row.getValue("ville") as string}
+      </span>
+    ),
   },
   {
     accessorKey: "total_commandes",
@@ -62,7 +74,9 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Commande" />
     ),
     cell: ({ row }) => (
-      <span className="px-5">{row.getValue("total_commandes") as bigint}</span>
+      <span className="lg:px-5 lg:text-sm text-[9px] md:text-[11px]">
+        {row.getValue("total_commandes") as bigint}
+      </span>
     ),
     enableSorting: true, // Activer le tri pour cette colonne
   },
@@ -72,7 +86,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Date d'inscription" />
     ),
     cell: ({ row }) => (
-      <span>
+      <span className="lg:text-sm text-[9px] md:text-[10px]">
         {new Date(row.getValue("created_at") as string).toLocaleString()}
       </span>
     ),
@@ -98,8 +112,8 @@ export const columns: ColumnDef<User>[] = [
 
     ),
   },  */
-  {
+  /*  {
     id: "actions",
     cell: ({ row }) => <DataTableRowActions row={row} />,
-  },
+  }, */
 ];

@@ -227,10 +227,10 @@ export default function Page() {
 
       {/* Drawer pour afficher les informations de l'utilisateur ou le formulaire d'ajout */}
       <Drawer anchor="right" open={isDrawerOpen} onClose={closeDrawer}>
-        <div className="p-4 w-[100vw] md:w-[35vw]">
+        <div className="p-4 w-[100vw] md:w-[48vw] lg:w-[35vw]">
           <IconButton
             onClick={closeDrawer}
-            className="absolute top-2 right-2"
+            className="absolute top-14 mt-1  left-4"
             aria-label="Fermer le tiroir"
           >
             <CircleX />
@@ -238,7 +238,7 @@ export default function Page() {
           {isAddingClient ? (
             // Formulaire d'ajout de client
             <div className="flex w-full max-w-xl flex-col items-center border bg-white p-10 text-left">
-              <h2 className="md:mb-8 mb-2 md:text-2xl text-sm font-bold">
+              <h2 className="md:mb-8 mb-2 lg:text-2xl text-sm font-bold">
                 Ajouter un Nouveau Client
               </h2>
               <form className="w-full" onSubmit={handleSubmit}>
@@ -255,7 +255,7 @@ export default function Page() {
                       alt="Cliquez pour télécharger une image"
                       width={120}
                       height={120}
-                      className=" md:h-44 h-24 w-24 md:w-44 opacity-60 hover:opacity-100 rounded-full object-cover"
+                      className=" lg:h-44 h-24 w-24 lg:w-44 opacity-60 hover:opacity-100 rounded-full object-cover"
                     />
                     <input
                       type="file"
