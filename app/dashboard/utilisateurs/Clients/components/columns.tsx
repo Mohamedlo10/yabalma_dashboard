@@ -7,7 +7,11 @@ export const columns: ColumnDef<User>[] = [
   {
     id: "index",
     header: "TOP",
-    cell: ({ row }) => <div className="font-bold bg-red-600 items-center flex justify-center rounded-full text-white">{row.index + 1}</div>, // Affiche l'indice + 1 pour commencer à 1
+    cell: ({ row }) => (
+      <div className="font-bold bg-red-600 items-center flex justify-center rounded-full text-white">
+        {row.index + 1}
+      </div>
+    ), // Affiche l'indice + 1 pour commencer à 1
   },
   {
     accessorKey: "prenom",
@@ -36,27 +40,21 @@ export const columns: ColumnDef<User>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Téléphone" />
     ),
-    cell: ({ row }) => (
-      <span>{row.getValue("Tel") as string}</span>
-    ),
+    cell: ({ row }) => <span>{row.getValue("Tel") as string}</span>,
   },
   {
     accessorKey: "Pays",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Pays" />
     ),
-    cell: ({ row }) => (
-      <span>{row.getValue("Pays") as string}</span>
-    ),
+    cell: ({ row }) => <span>{row.getValue("Pays") as string}</span>,
   },
   {
     accessorKey: "ville",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Ville" />
     ),
-    cell: ({ row }) => (
-      <span>{row.getValue("ville") as string}</span>
-    ),
+    cell: ({ row }) => <span>{row.getValue("ville") as string}</span>,
   },
   {
     accessorKey: "total_commandes",
@@ -64,17 +62,19 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Commande" />
     ),
     cell: ({ row }) => (
-      <span className="px-5" >{row.getValue("total_commandes") as bigint}</span>
+      <span className="px-5">{row.getValue("total_commandes") as bigint}</span>
     ),
     enableSorting: true, // Activer le tri pour cette colonne
-  }, 
+  },
   {
     accessorKey: "created_at",
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Date d'inscription" />
     ),
     cell: ({ row }) => (
-      <span>{new Date(row.getValue("created_at") as string).toLocaleString()}</span>
+      <span>
+        {new Date(row.getValue("created_at") as string).toLocaleString()}
+      </span>
     ),
   },
   /* {
