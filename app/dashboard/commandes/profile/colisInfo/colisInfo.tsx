@@ -1,12 +1,11 @@
 "use client";
-import React from 'react';
+import React from "react";
 
 import { Article, DetailsCommande } from "@/app/dashboard/commandes/schema";
-import ArticlesList from '@/components/ui/article/article-list';
-import { useRouter } from 'next/navigation';
+import ArticlesList from "@/components/ui/article/article-list";
+import { useRouter } from "next/navigation";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
-
 
 const override: CSSProperties = {
   display: "block",
@@ -24,32 +23,21 @@ const ColisInfo: React.FC<ColisInfoProps> = ({ detailCommande }) => {
 
   const [articles, setArticles] = useState<Article[]>([]);
 
-
-
   useEffect(() => {
-    if(detailCommande?.articles)
-    {
-      setArticles(detailCommande?.articles)
-      setIsLoading(false)
+    if (detailCommande?.articles) {
+      setArticles(detailCommande?.articles);
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
     }
-    else
-    {
-      setIsLoading(false)
+  }, []);
 
-    }
-  }, [])
+  const router = useRouter();
 
-const router = useRouter();
-
-
-const handleNavigation = (idUser:string) => {
-  // Par exemple, naviguer vers la page de profil en passant l'ID de l'utilisateur en paramètre
-  router.push(`/dashboard/utilisateurs/gp/profile?id=${idUser}`);
-};
-
-
-
-
+  const handleNavigation = (idUser: string) => {
+    // Par exemple, naviguer vers la page de profil en passant l'ID de l'utilisateur en paramètre
+    router.push(`/dashboard/utilisateurs/gp/profile?id=${idUser}`);
+  };
 
   if (isLoading) {
     return (
@@ -70,79 +58,71 @@ const handleNavigation = (idUser:string) => {
 
   return (
     <>
-      <div className="hidden max-h-[48vh] p-4 bg-zinc-50 rounded-lg items-center justify-center overflow-y-auto flex-1 flex-col md:flex">
+      <div className=" max-h-[48vh] p-4 text-xs md:text-base bg-zinc-50 rounded-lg items-center justify-center overflow-y-auto flex-1 flex-col flex">
+        <div className="mt-4 justify-start flex items-start w-full">
+          <p className="font-bold">Type : {detailCommande?.type}</p>
+        </div>
+        <div className="mt-4 h-full overflow-y-auto">
+          <ArticlesList articles={articles} />
+        </div>
 
-      <div className='mt-4 justify-start flex items-start w-full'>
-          <p className='font-bold'>Type : {detailCommande?.type}</p>
+        {detailCommande?.expediteur ? (
+          <div className="mt-4 justify-start text-xs md:text-base flex items-start w-full">
+            <p className="font-bold text-xs md:text-base">
+              Expediteur : {detailCommande?.expediteur}
+            </p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+
+        {detailCommande?.poids ? (
+          <div className="mt-4 justify-start text-xs md:text-base flex items-start w-full">
+            <p className="font-bold">Poids : {detailCommande?.poids}</p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+        {detailCommande?.payeur ? (
+          <div className="mt-4 justify-start text-xs md:text-base flex items-start w-full">
+            <p className="font-bold">Payeur : {detailCommande?.payeur}</p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+
+        {detailCommande?.destination ? (
+          <div className="mt-4 justify-start text-xs md:text-base flex items-start w-full">
+            <p className="font-bold">
+              Destination : {detailCommande?.destination}
+            </p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+
+        {detailCommande?.first_name ? (
+          <div className="mt-4 justify-start text-xs md:text-base flex items-start w-full">
+            <p className="font-bold">
+              Destinataire : {detailCommande?.first_name}
+            </p>
+          </div>
+        ) : (
+          <div></div>
+        )}
+
+        {detailCommande?.destinataire_number ? (
+          <div className="mt-4 justify-start flex items-start w-full">
+            <p className="font-bold">
+              Numero destinataire : {detailCommande?.destinataire_number}
+            </p>
+          </div>
+        ) : (
+          <div></div>
+        )}
       </div>
-      <div className='mt-4 h-full overflow-y-auto'>
-      <ArticlesList articles={articles} />
-      </div>
-
-
-{detailCommande?.expediteur?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Expediteur : {detailCommande?.expediteur}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-
-
-{detailCommande?.poids?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Poids : {detailCommande?.poids}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-{detailCommande?.payeur?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Payeur : {detailCommande?.payeur}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-   
-      {detailCommande?.destination?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Destination : {detailCommande?.destination}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-
-{detailCommande?.first_name?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Destinataire : {detailCommande?.first_name}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-
-
-
-
-{detailCommande?.destinataire_number?(
-         <div className='mt-4 justify-start flex items-start w-full'>
-         <p className='font-bold'>Numero destinataire : {detailCommande?.destinataire_number}</p>
-     </div>
-      ):(
-        <div></div>
-      )}
-
-     
-     
-      </div>
-  </>
+    </>
   );
+};
 
-
-}
-
-
-export default ColisInfo
-
-  
-
-   
+export default ColisInfo;

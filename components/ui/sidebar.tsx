@@ -123,7 +123,7 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         isOpen ? "w-full" : "w-0 lg:w-full"
       } transition-all duration-300 overflow-hidden`}
     >
-      <div className="flex justify-between h-[14vh] lg:h-[8vh] py-2 items-center border-b px-4 lg:h-22 lg:px-6">
+      <div className="flex justify-between h-[10vh] lg:h-[8vh] py-2 items-center border-b px-4 lg:h-22 lg:px-6">
         <div className="flex items-center gap-4 font-semibold">
           <Package2 className="2xl:h-6 lg w-8 p-2 bg-white text-red-700 rounded-full" />
           <span className="text-white font-bold">YABALMA</span>
@@ -136,9 +136,9 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
         </button>
       </div>
       <div className="h-[90%] overflow-y-auto">
-        <div className="relative top-8">
+        <div className="relative top-4 md:top-8">
           <nav className="grid gap-1 items-start text-sm font-medium  px-3 lg:px-3 xl:px-6">
-            <div className="px-1 font-bold text-gray-100 pb-3">MENU</div>
+            <div className="px-1 font-bold text-gray-100 md:pb-3">MENU</div>
 
             <Link
               href="/dashboard"
@@ -302,9 +302,9 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
           </nav>
         </div>
 
-        <div className="relative 2xl:top-24 top-16">
-          <nav className="grid gap-1 items-start pb-4 text-sm font-medium px-1 lg:px-3 xl:px-6">
-            <div className="px-1 font-bold text-gray-100 pb-3">OTHERS</div>
+        <div className="relative 2xl:top-24 top-10 md:top-16">
+          <nav className="grid gap-1 items-start md:pb-4 text-sm font-medium px-1 lg:px-3 xl:px-6">
+            <div className="px-1 font-bold text-gray-100 md:pb-3">OTHERS</div>
 
             <Link
               href="/dashboard/profile"

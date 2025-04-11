@@ -1,7 +1,10 @@
 "use client";
 
 // import { cookies } from "next/headers";
-import { getallcommandes } from "@/app/api/commandes/query";
+import {
+  getallcommandes,
+  getCommandesWithShop,
+} from "@/app/api/commandes/query";
 import { getSupabaseSession } from "@/lib/authMnager";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -30,7 +33,7 @@ export default function Page() {
     async function fetchData() {
       setIsLoading(true);
       try {
-        const data: any = await getallcommandes();
+        const data: any = await getCommandesWithShop();
         console.log(data);
 
         if (data && data.length > 0) {

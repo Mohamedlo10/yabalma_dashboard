@@ -15,7 +15,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   };
 
   return (
-    <div className="w-full h-screen">
+    <div className="w-full overflow-x-hidden h-screen">
       <div className="grid grid-cols-12 h-full w-full">
         {/* Sidebar for mobile */}
         <div
@@ -39,12 +39,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
         {/* Main content */}
         <div
-          className={`col-span-12 lg:col-span-10 h-full flex flex-col bg-white`}
+          className={`col-span-12 lg:col-span-10 h-full overflow-x-hidden flex flex-col bg-white`}
         >
-          <div className="h-[14vh] md:h-[8vh]">
+          <div className="h-[10vh] md:h-[8vh]">
             <Navbar toggleSidebar={toggleSidebar} />
           </div>
-          <div className="max-h-[86vh] md:max-h-[92vh] pb-28 overflow-y-auto">
+          <div className="max-h-[90vh] md:max-h-[92vh] md:pb-28 overflow-y-hidden">
             <section className="p-4">{children}</section>
           </div>
         </div>

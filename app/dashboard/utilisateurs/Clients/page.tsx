@@ -195,7 +195,7 @@ export default function Page() {
 
   return (
     <>
-      <div className=" h-full flex-1 flex-col space-y-8 p-8 flex">
+      <div className=" h-full flex-1 flex-col space-y-8 p-2 pt-6 md:pt-0 md:p-8 flex">
         <div className="flex items-center justify-between space-y-2">
           <div>
             <h2 className="md:text-4xl text-base font-extrabold tracking-tight">

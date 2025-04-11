@@ -108,7 +108,7 @@ function Commentaire() {
               <button
                 type="button"
                 onClick={() => router.push("dashboard/commentaires")}
-                className="w-fit h-10 bg-black rounded-sm text-white font-bold text-[9px] xl:text-sm"
+                className="w-fit h-10 bg-black rounded-md text-white font-bold text-[9px] xl:p-2 xl:text-sm"
               >
                 Voir Commentaires
               </button>

@@ -60,8 +60,8 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
 
   return (
     <div>
-      <div className="p-3 bg-zinc-50 rounded-md w-full items-center justify-start flex flex-col gap-1">
-        <div className="flex flex-col  max-h-[53vh]">
+      <div className="md:p-3 p-1 bg-zinc-50 rounded-md w-full items-center justify-start flex flex-col gap-1">
+        <div className="flex flex-col overflow-y-auto  md:max-h-[50vh] max-h-[44vh]">
           <div>
             <div className="flex items-center my-4">
               <UserRound />
@@ -72,7 +72,7 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
 
             {editMode && commande ? (
               <form className="w-full mb-6" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-3 gap-36 rounded-lg">
+                <div className="grid md:grid-cols-3 grid-cols-2 md:gap-36 gap-4 rounded-lg">
                   {/* <!-- First Bloc --> */}
                   <div className="p-4">
                     <div className="mb-4">
@@ -160,7 +160,7 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
               </form>
             ) : (
               <div className="mb-6">
-                <div className="grid grid-cols-3 xl:gap-16 gap-4 rounded-lg">
+                <div className="grid grid-cols-3 xl:gap-16 gap-0 md:gap-4 rounded-lg">
                   {/* <!-- First Bloc --> */}
                   <div className="p-4">
                     {Actucommande.annonce ? (

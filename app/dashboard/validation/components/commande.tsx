@@ -209,8 +209,8 @@ export function CommandeData({
           maxSize={isMobile ? 100 : 70}
         >
           <Tabs defaultValue="all">
-            <div className="flex items-center px-4 py-2">
-              <h2 className="font-bold md:text-base text-xs">
+            <div className="flex items-center px-4 md:py-2">
+              <h2 className="md:block hidden font-bold md:text-base text-xs">
                 Liste des commandes
               </h2>
               <TabsList className="ml-auto">
@@ -234,19 +234,19 @@ export function CommandeData({
                 </TabsTrigger>
               </TabsList>
             </div>
-            <Separator />
-            <div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <Separator className="hidden md:block" />
+            <div className="bg-background/95 p-2 md:p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
               <form
                 onSubmit={(e) => {
                   e.preventDefault(); // Empêche le rechargement de la page
                 }}
               >
-                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-16">
-                  <div className="mt-3 relative">
+                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-16">
+                  <div className="md:mt-3 relative">
                     <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                     <Input
                       placeholder="Rechercher ..."
-                      className="pl-8 h-12 mb-0 md:mb-4"
+                      className="pl-8 h-9 md:h-12 mb-0 md:mb-4"
                       value={searchQuery}
                       onChange={handleInputChange}
                     />

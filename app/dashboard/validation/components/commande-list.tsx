@@ -1,4 +1,11 @@
 import { formatDistanceToNow } from "date-fns";
+import {
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
+} from "@mui/material";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
@@ -24,6 +31,7 @@ import { Eye } from "lucide-react";
 import { fr } from "date-fns/locale";
 import { format } from "date-fns";
 import { validerCommande } from "@/app/api/commandes/query";
+import Drawer from "@mui/material/Drawer";
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
@@ -35,6 +43,30 @@ export function CommandeList({ items }: commandeListProps) {
   const [color] = useState("#ffffff");
   const [_, updateStats] = useUpdateStats();
   const router = useRouter();
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState<Commande | null>(null);
+
+  const handleOpenDrawer = (item: Commande) => {
+    setActiveItem(item);
+    setDrawerOpen(true);
+
+    // Si vous avez déjà ouvert le site dans un autre onglet, vous pouvez le noter
+    localStorage.setItem("lastViewedOrder", item.id.toString());
+  };
+
+  const handleCloseDrawer = () => {
+    setDrawerOpen(false);
+    setConfirmDialogOpen(true);
+  };
+
+  const handleConfirmValidation = (isValidated: boolean) => {
+    setConfirmDialogOpen(false);
+
+    if (isValidated && activeItem) {
+      ConfirmerCommande(activeItem.id);
+    }
+  };
 
   const ConfirmerCommande = async (id: number) => {
     setIsLoading(true);
@@ -53,9 +85,11 @@ export function CommandeList({ items }: commandeListProps) {
       setIsLoading(false);
     }
   };
+
   const handleNavigation = (idCommande: number) => {
     router.push(`/dashboard/commandes/profile?id=${idCommande}`);
   };
+
   if (items.length === 0) {
     return (
       <div className="text-xl items-center justify-center text-secondary-foreground flex w-full h-full mt-12">
@@ -63,6 +97,7 @@ export function CommandeList({ items }: commandeListProps) {
       </div>
     );
   }
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -79,19 +114,23 @@ export function CommandeList({ items }: commandeListProps) {
       </div>
     );
   }
+
   return (
-    <ScrollArea className="h-screen ">
-      <div className="flex flex-col pb-80 gap-2 p-4 pt-0 ">
+    <ScrollArea className="h-[70vh] ">
+      <div className="flex flex-col  md:pb-80 gap-2 p-4 pt-0">
         {items.map((item) => (
-          <Card className="w-full max-w-2xl mx-auto shadow-md">
+          <Card key={item.id} className="w-full max-w-2xl mx-auto shadow-md">
             <CardHeader className="bg-gray-50 border-b">
-              <CardTitle className="md:text-lg text-sm font-semibold text-gray-800">
+              <CardTitle className="md:text-lg flex flex-row gap-1 text-sm font-semibold text-gray-800">
                 Commande #{item.id}
+                <p className="text-zinc-500">
+                  {item.detail_commande?.type || "N/A"}
+                </p>
               </CardTitle>
             </CardHeader>
 
             <CardContent className="p-0">
-              {/* Section Client */}
+              {/* Section Ctext-lient */}
               <div className="p-4 border-b">
                 <h3 className="text-xs md:text-sm font-semibold text-gray-500 uppercase mb-2">
                   Information Client
@@ -235,13 +274,7 @@ export function CommandeList({ items }: commandeListProps) {
               {!item.validation_status && (
                 <Button
                   className="flex-1 bg-green-600 hover:bg-green-700"
-                  onClick={() => {
-                    ConfirmerCommande(item.id).then((success) => {
-                      if (success) {
-                        item.validation_status = true;
-                      }
-                    });
-                  }}
+                  onClick={() => handleOpenDrawer(item)}
                 >
                   Valider
                 </Button>
@@ -250,6 +283,141 @@ export function CommandeList({ items }: commandeListProps) {
           </Card>
         ))}
       </div>
+
+      {/* Drawer et Dialog en dehors de la boucle */}
+      {activeItem && (
+        <>
+          <Drawer
+            anchor="right"
+            open={drawerOpen}
+            onClose={handleCloseDrawer}
+            PaperProps={{
+              sx: { width: "80%" },
+            }}
+          >
+            <div className="flex flex-col h-full">
+              <div className="p-4 bg-gray-100 flex justify-between items-center">
+                <h3 className="font-semibold">
+                  Validation de la commande #{activeItem.id}
+                </h3>
+                <Button variant="default" onClick={handleCloseDrawer}>
+                  Fermer
+                </Button>
+              </div>
+
+              <div className="flex-grow overflow-auto p-4 xl:text-base text-xs">
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                  <h4 className="font-bold text-lg mb-2">
+                    Instructions de validation
+                  </h4>
+                  <p className="mb-3">
+                    Pour valider cette commande sur{" "}
+                    {activeItem.shop?.website || "Shein"}, veuillez suivre ces
+                    étapes :
+                  </p>
+                  <ol className="list-decimal pl-5 space-y-2">
+                    <li>
+                      Cliquez sur le bouton "Ouvrir le site" ci-dessous pour
+                      accéder au site
+                    </li>
+                    <li>Connectez-vous à votre compte si nécessaire</li>
+                    <li>
+                      Vérifiez les détails de la commande #{activeItem.id}
+                    </li>
+                    <li>Procédez à la validation sur le site</li>
+                    <li>
+                      Une fois terminé, revenez à cette fenêtre et cliquez sur
+                      "J'ai validé"
+                    </li>
+                    <li>
+                      Si vous ne voyez pas le bouton "Ouvrir le site" sachez que
+                      la commande n'est pas faite sur un site web
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="flex justify-center space-x-4 mb-6">
+                  {activeItem.shop?.url && (
+                    <Button
+                      className="bg-blue-600 hover:bg-blue-700"
+                      onClick={() => {
+                        const url = activeItem.shop?.url;
+                        window.open(url, "_blank");
+                      }}
+                    >
+                      Ouvrir le site
+                    </Button>
+                  )}
+
+                  <Button
+                    className="bg-green-600 hover:bg-green-700"
+                    onClick={handleCloseDrawer}
+                  >
+                    J'ai validé
+                  </Button>
+                </div>
+
+                {/* Informations de la commande pour référence */}
+                <div className="border rounded-md p-4">
+                  <h4 className="font-semibold text-gray-700 mb-3">
+                    Détails de la commande
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <p className="text-sm text-gray-500">Client</p>
+                      <p className="font-medium">
+                        {activeItem.client?.nom} {activeItem.client?.prenom}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Prix</p>
+                      <p className="font-medium">
+                        {activeItem.total_price}{" "}
+                        {activeItem.detail_commande?.articles[0]?.currency}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-gray-500">Trajet</p>
+                      <p className="font-medium">
+                        {activeItem.annonce.source} -{" "}
+                        {activeItem.annonce.destination}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </Drawer>
+
+          <Dialog
+            open={confirmDialogOpen}
+            onClose={() => setConfirmDialogOpen(false)}
+          >
+            <DialogTitle>Confirmation de validation</DialogTitle>
+            <DialogContent>
+              <DialogContentText>
+                Avez-vous validé la commande #{activeItem.id} sur le site
+                externe ?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => handleConfirmValidation(false)}
+                color="primary"
+              >
+                Non
+              </Button>
+              <Button
+                className="bg-green-400"
+                onClick={() => handleConfirmValidation(true)}
+                autoFocus
+              >
+                Oui
+              </Button>
+            </DialogActions>
+          </Dialog>
+        </>
+      )}
     </ScrollArea>
   );
 }

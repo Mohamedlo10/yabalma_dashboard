@@ -8,7 +8,7 @@ export const columns: ColumnDef<User>[] = [
     id: "index",
     header: "TOP",
     cell: ({ row }) => (
-      <div className="font-bold bg-red-600 items-center lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px]  flex justify-center rounded-full text-white">
+      <div className="font-bold bg-red-600 items-center lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-xs  flex justify-center rounded-full text-white">
         {row.index + 1}
       </div>
     ), // Affiche l'indice + 1 pour commencer à 1
@@ -19,7 +19,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Prénom" />
     ),
     cell: ({ row }) => (
-      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px] font-medium">
+      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-xs font-medium">
         {row.getValue("prenom") as string}
       </span>
     ),
@@ -30,7 +30,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Nom" />
     ),
     cell: ({ row }) => (
-      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-[9px] md:text-[11px] font-medium">
+      <span className="lg:max-w-[200px] max-w-[170px] truncate lg:text-sm text-xs font-medium">
         {row.getValue("nom") as string}
       </span>
     ),
@@ -41,7 +41,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Téléphone" />
     ),
     cell: ({ row }) => (
-      <span className="lg:text-sm text-[9px] md:text-[11px]">
+      <span className="lg:text-sm text-xs">
         {row.getValue("Tel") as string}
       </span>
     ),
@@ -52,7 +52,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Pays" />
     ),
     cell: ({ row }) => (
-      <span className="lg:text-sm text-[9px] md:text-[11px]">
+      <span className="lg:text-sm text-xs">
         {row.getValue("Pays") as string}
       </span>
     ),
@@ -63,7 +63,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Ville" />
     ),
     cell: ({ row }) => (
-      <span className="lg:text-sm text-[9px] md:text-[11px]">
+      <span className="lg:text-sm text-xs">
         {row.getValue("ville") as string}
       </span>
     ),
@@ -74,7 +74,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Commande" />
     ),
     cell: ({ row }) => (
-      <span className="lg:px-5 lg:text-sm text-[9px] md:text-[11px]">
+      <span className="lg:px-5 lg:text-sm text-xs">
         {row.getValue("total_commandes") as bigint}
       </span>
     ),
@@ -86,7 +86,7 @@ export const columns: ColumnDef<User>[] = [
       <DataTableColumnHeader column={column} title="Date d'inscription" />
     ),
     cell: ({ row }) => (
-      <span className="lg:text-sm text-[9px] md:text-[10px]">
+      <span className="lg:text-sm text-[10px]">
         {new Date(row.getValue("created_at") as string).toLocaleString()}
       </span>
     ),

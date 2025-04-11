@@ -26,6 +26,52 @@ export const getallcommandes = async () => {
     throw err;
   }
 };
+
+export const getCommandesWithShop = async () => {
+  try {
+    const { data, error } = await supabase
+      .from("commande")
+      .select(
+        `
+        *,
+        annonce(
+          *,
+          client(*)
+        ),
+        client(*)
+      `
+      )
+      .order("validation_status", { ascending: true })
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+
+    const shopIds = data.map((commande) => commande.id_shop).filter((id) => id);
+
+    const uniqueShopIds = shopIds.filter(
+      (id, index, self) => self.indexOf(id) === index
+    );
+
+    if (uniqueShopIds.length > 0) {
+      const { data: shopsData, error: shopsError } = await supabase
+        .from("shopping")
+        .select("*")
+        .in("id", uniqueShopIds);
+
+      if (shopsError) throw shopsError;
+
+      return data.map((commande) => ({
+        ...commande,
+        shop: shopsData.find((shop) => shop.id.toString() === commande.id_shop),
+      }));
+    }
+
+    return data || [];
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const getCommandesStats = async () => {
   try {
     const { count: totalCommandes, error: totalError } = await supabase

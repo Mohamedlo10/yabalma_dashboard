@@ -4,7 +4,7 @@ import Image from "next/image";
 export default function home() {
   return (
     <div className="w-full lg:grid h-screen  bg-zinc-800 lg:grid-cols-2 ">
-      <div className="flex items-center h-full justify-center ">
+      <div className="flex overflow-x-hidden items-center h-full justify-center ">
         <Login />
       </div>
       <div className="hidden px-8 bg-gray-50 lg:block">

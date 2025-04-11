@@ -5,8 +5,8 @@ interface NavbarProps {
 
 function Navbar({ toggleSidebar }: NavbarProps) {
   return (
-    <div className="flex flex-col h-[14vh] md:h-[8vh]">
-      <header className="flex items-center gap-4 border-b bg-white px-4 md:px-10 h-[14vh] md:h-[8vh]">
+    <div className="flex flex-col h-[10vh] md:h-[8vh]">
+      <header className="flex items-center md:items-center gap-4 border-b bg-white px-10 h-[10vh] md:h-[8vh]">
         <button
           onClick={toggleSidebar}
           className="lg:hidden flex items-center justify-center text-gray-700 hover:text-red-700"
@@ -36,7 +36,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
         </div>
 
         <div className="grid grid-cols-8 items-center gap-8 h-22 w-60">
-          <div className="col-span-6 flex flex-row gap-4 h-1/3 rounded-xl">
+          <div className="col-span-6 flex flex-row items-center justify-center gap-4 h-1/3 rounded-xl">
             <Image
               src="/logoYabalma.svg"
               alt="Image"
@@ -48,7 +48,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
               YABALMA
             </div>
           </div>
-          <div className="col-span-2"></div>
+          {/* <div className="col-span-2"></div> */}
         </div>
       </header>
     </div>
