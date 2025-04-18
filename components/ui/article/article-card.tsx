@@ -3,7 +3,7 @@ import React from "react";
 
 const ArticleCard: React.FC<{ article: Article }> = ({ article }) => {
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4 w-56 md:w-72">
+    <div className="bg-white rounded-2xl shadow-md p-4 w-36 md:w-56">
       <div className="relative">
         <img
           src={article.image}

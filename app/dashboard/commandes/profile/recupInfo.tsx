@@ -128,7 +128,7 @@ const RecupInfo = () => {
           </svg>
         </button>
       </div>
-      <div className="grid grid-cols-3 gap-2 w-full items-start gap-0 md:gap-16 justify-start flex-row">
+      <div className="grid grid-cols-3 gap-2 w-full items-start md:gap-16 justify-start flex-row">
         <div className="flex flex-col md:ml-0 ml-6 w-full items-center justify-center  min-w-0 md:my-4">
           {/* Avatar and name */}
           <div className=" flex items-center justify-center text-xs md:text-2xl font-semibold sm:w-full  w-36 tracking-tight leading-7 md:leading-snug truncate">

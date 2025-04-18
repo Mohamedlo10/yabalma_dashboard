@@ -35,7 +35,7 @@ export const shoppingSchema = z.object({
   user_id: z.string().uuid().nullable(),
 });
 
-// Schéma principal pour la commande
+z;
 export const commandeSchema = z.object({
   id: z.number(),
   id_annonce: z.string(),

@@ -61,7 +61,7 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
   return (
     <div>
       <div className="md:p-3 p-1 bg-zinc-50 rounded-md w-full items-center justify-start flex flex-col gap-1">
-        <div className="flex flex-col overflow-y-auto  md:max-h-[50vh] max-h-[44vh]">
+        <div className="flex flex-col overflow-y-auto  md:max-h-[50vh] max-h-[47vh]">
           <div>
             <div className="flex items-center my-4">
               <UserRound />
@@ -166,10 +166,10 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                     {Actucommande.annonce ? (
                       <>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Depart
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.annonce.source}{" "}
                             {Actucommande?.annonce.sourceAddress} le{" "}
                             {format(
@@ -180,10 +180,10 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Destination
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.annonce.destination}{" "}
                             {Actucommande?.annonce.destinationAddress} le{" "}
                             {format(
@@ -194,19 +194,19 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Type de Transport
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.annonce.type_transport}
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Date de publication
                           </div>
                           {commande ? (
-                            <div className="leading-6 mt-1 text-sm sm:text-base">
+                            <div className="leading-6 mt-1 text-xs sm:text-base">
                               {format(
                                 new Date(commande?.created_at),
                                 "dd MMMM yyyy",
@@ -231,19 +231,19 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                   {/* <!-- Second Bloc --> */}
                   <div className="p-4">
                     <div className="mb-4">
-                      <div className="text-gray-500 text-sm sm:text-base">
+                      <div className="text-gray-500 text-xs sm:text-base">
                         Annuler
                       </div>
-                      <div className="leading-6 mt-1 text-sm sm:text-base">
+                      <div className="leading-6 mt-1 text-xs sm:text-base">
                         {Actucommande.cancelled_status ? "Oui" : "Non"}{" "}
                       </div>
                     </div>
                     <div className="mb-4">
-                      <div className="text-gray-500 text-sm sm:text-base">
+                      <div className="text-gray-500 text-xs sm:text-base">
                         État de paiement
                       </div>
                       <div
-                        className={`leading-6 mt-1 text-sm sm:text-base px-2 py-1 rounded-md text-white 
+                        className={`leading-6 mt-1 text-xs sm:text-base px-2 py-1 rounded-md text-white 
                     ${
                       Actucommande?.payment_status === "unpaid"
                         ? "bg-red-500"
@@ -257,11 +257,11 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                     </div>
 
                     <div className="mb-4">
-                      <div className="text-gray-500 text-sm sm:text-base">
+                      <div className="text-gray-500 text-xs sm:text-base">
                         Validé
                       </div>
                       <div
-                        className={`leading-6 mt-1 text-sm sm:text-base px-2 py-1 rounded-md text-white 
+                        className={`leading-6 mt-1 text-xs sm:text-base px-2 py-1 rounded-md text-white 
                     ${
                       !Actucommande?.validation_status
                         ? "bg-red-500"
@@ -273,10 +273,10 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                     </div>
 
                     <div className="mb-4">
-                      <div className="text-gray-500 text-sm sm:text-base">
+                      <div className="text-gray-500 text-xs sm:text-base">
                         Statut
                       </div>
-                      <div className="leading-6 mt-1 text-sm sm:text-base">
+                      <div className="leading-6 mt-1 text-xs sm:text-base">
                         {Actucommande?.statut}
                       </div>
                     </div>
@@ -286,18 +286,18 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                     {Actucommande.detail_commande ? (
                       <>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Type de la commande
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.detail_commande?.type || "N/A"}
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Nombre d'article
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.detail_commande?.articles?.length ==
                             0
                               ? "N/A"
@@ -305,19 +305,19 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Prix total
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.total_price || "N/A"}{" "}
                             {Actucommande.detail_commande?.articles[0].currency}
                           </div>
                         </div>
                         <div className="mb-4">
-                          <div className="text-gray-500 text-sm sm:text-base">
+                          <div className="text-gray-500 text-xs sm:text-base">
                             Numero du destinataire
                           </div>
-                          <div className="leading-6 mt-1 text-sm sm:text-base">
+                          <div className="leading-6 mt-1 text-xs sm:text-base">
                             {Actucommande?.detail_commande
                               ?.destinataire_number || "N/A"}
                           </div>
