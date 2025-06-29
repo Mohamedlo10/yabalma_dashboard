@@ -22,7 +22,7 @@ export const get5lastCommentaires = async()=>{
         .rpc('get_last_commentaires')
 
         if (error) throw error;
-        return data as any;
+        return data as any || [];
     } catch (err) {
         throw err;
     }
@@ -37,7 +37,7 @@ export const getCommentairesLength = async () => {
       .select('*', { count: 'exact', head: true }); 
 
     if (error) throw error;
-    return count; 
+    return count || 0; 
   } catch (err) {
     throw err;
   }

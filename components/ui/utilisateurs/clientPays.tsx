@@ -40,27 +40,22 @@ export function ClientPays() {
   const [clients, setClients] = useState([]);
   let [color, setColor] = useState("#ffffff");
 
-
-
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const data: any = await getclientPays()
-        if (data!=null) {
-
-          setClients(data)         
+        const data: any = await getclientPays();
+        if (data != null) {
+          setClients(data);
         }
-        
       } catch (error) {
-        console.error("Error fetching room details:", error)
+        console.error("Error fetching room details:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
-
+    fetchData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -79,12 +74,13 @@ export function ClientPays() {
     );
   }
 
-  
   return (
-    <Card>
+    <Card className="md:p-0 -p-5">
       <CardHeader>
-        <CardTitle>Client</CardTitle>
-        <CardDescription>Par Pays</CardDescription>
+        <CardTitle className="md:text-base text-xs">Client</CardTitle>
+        <CardDescription className="md:text-base text-xs">
+          Par Pays
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -97,7 +93,7 @@ export function ClientPays() {
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 3)}
             />
-             <ChartTooltip
+            <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
@@ -106,16 +102,15 @@ export function ClientPays() {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
+        <div className="flex gap-2 font-medium md:text-base text-xs leading-none">
           Nombre de clients par pays <TrendingUp className="h-4 w-4" />
         </div>
-        <div className="leading-none text-muted-foreground">
+        <div className="leading-none md:text-base text-xs text-muted-foreground">
           statistique des clients
         </div>
       </CardFooter>
     </Card>
   );
 }
-
 
 export default ClientPays;

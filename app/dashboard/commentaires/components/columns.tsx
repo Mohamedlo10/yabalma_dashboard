@@ -11,7 +11,7 @@ export const columns: ColumnDef<Commente>[] = [
     cell: ({ row }) => <div className="w-[80px] font-bold">{row.getValue("id") as string}</div>,
     enableSorting: false,
     enableHiding: false,
-  }, */
+  }, */     
   {
     accessorKey: "content",
     header: ({ column }) => (

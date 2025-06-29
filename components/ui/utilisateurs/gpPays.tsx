@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/chart";
 import BeatLoader from "react-spinners/BeatLoader";
 
-
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
@@ -31,9 +30,9 @@ const override: CSSProperties = {
 const chartConfig = {
   GP: {
     label: "GP",
-    color: "#dc2626"
+    color: "#dc2626",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function GpPays() {
   const [error, setError] = useState(null);
@@ -41,25 +40,22 @@ export function GpPays() {
   const [gp, setGp] = useState([]);
   let [color, setColor] = useState("#ffffff");
 
-
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const data: any = await getGpPays()
-        if (data !=null) {
-          setGp(data)         
+        const data: any = await getGpPays();
+        if (data != null) {
+          setGp(data);
         }
-        
       } catch (error) {
-        console.error("Error fetching room details:", error)
+        console.error("Error fetching room details:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
-
+    fetchData();
+  }, []);
 
   if (isLoading) {
     return (
@@ -79,10 +75,12 @@ export function GpPays() {
   }
 
   return (
-    <Card>
+    <Card className="md:p-0 -p-5">
       <CardHeader>
-        <CardTitle>GP</CardTitle>
-        <CardDescription>Par Pays</CardDescription>
+        <CardTitle className="md:text-base text-xs">GP</CardTitle>
+        <CardDescription className="md:text-base text-xs">
+          Par Pays
+        </CardDescription>
       </CardHeader>
       <CardContent>
         <ChartContainer config={chartConfig}>
@@ -104,15 +102,15 @@ export function GpPays() {
         </ChartContainer>
       </CardContent>
       <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium leading-none">
+        <div className="flex gap-2 font-medium md:text-base text-xs leading-none">
           Nombre de Gp par pays <TrendingUp className="h-4 w-4" />
         </div>
-        <div className="leading-none text-muted-foreground">
+        <div className="leading-none md:text-base text-xs text-muted-foreground">
           statistique des gp
         </div>
       </CardFooter>
     </Card>
-  )
+  );
 }
 /* function CustomTick(props: any) {
   const { x, y, payload } = props;
@@ -124,4 +122,4 @@ export function GpPays() {
     </g>
   );
 } */
-export default GpPays
+export default GpPays;

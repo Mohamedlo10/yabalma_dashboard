@@ -2,9 +2,7 @@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import {
-  MapPin,
-  Phone,
-  UserRoundSearch
+  Phone
 } from "lucide-react";
 import React from 'react';
 
@@ -71,9 +69,8 @@ const CommandeInfo: React.FC<CommandeInfoProps> = ({ annonceId }) => {
 const router = useRouter();
 
 
-const handleNavigation = (idUser:string) => {
-  // Par exemple, naviguer vers la page de profil en passant l'ID de l'utilisateur en paramètre
-  router.push(`/dashboard/utilisateurs/gp/profile?id=${idUser}`);
+const handleNavigation = (idCommande:number) => {
+  router.push(`/dashboard/commandes/profile?id=${idCommande}`);
 };
 
   const handleUserClick = (user: any) => {
@@ -132,17 +129,17 @@ const handleNavigation = (idUser:string) => {
       <Drawer anchor='right' open={isDrawerOpen} onClose={closeDrawer}>
         <div className="p-4 mt-24 flex w-[30vw]">
             { selectedCommande && (
-             <div className="flex flex-1 flex-col h-full overflow-y-auto items-center justify-center">
-             <div className="flex w-full max-w-xl flex-col items-center justify-center bg-slate-50 p-8 text-left">
+             <div className="flex flex-1 flex-col max-h-[84vh] overflow-y-auto items-center ">
+             <div className="flex w-full max-w-xl flex-col items-center  bg-white p-4 text-left">
      
                      <div className="flex flex-row gap-2 w-full mb-4">
                          <div className="flex flex-col w-full items-center gap-2 ">
                                      <div className="mb-2 text-base font-bold leading-none">
                                        Client
                                      </div>
-                                         <Avatar className="hidden h-28 w-28  sm:flex">
+                                         <Avatar className="hidden h-24 w-24  sm:flex">
                                          <AvatarImage src={`${selectedCommande.client?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
-                                         <AvatarFallback>client</AvatarFallback>
+                                         <AvatarFallback className='text-xl  flex items-center justify-center'> N/A</AvatarFallback>
                                          </Avatar>
                                          <div className="grid gap-1">
                                          <p className="text-base font-bold leading-none text-red-700">
@@ -152,9 +149,9 @@ const handleNavigation = (idUser:string) => {
                                          </div>
                                  
      
-                                         <div className="line-clamp-2 flex flex-row gap-2 font-bold text-base text-muted-foreground">
+                                         <div className="line-clamp-2 flex flex-row gap-2 font-bold text-sm text-muted-foreground">
                                              
-                                         <MapPin /> {selectedCommande.client?.Tel}
+                                         <Phone /> {selectedCommande.client?.Tel}
                                        </div>
                          
                          </div> 
@@ -162,9 +159,9 @@ const handleNavigation = (idUser:string) => {
                          <div className="mb-2 text-base font-bold leading-none">
                                        GP
                                      </div>
-                                         <Avatar className="hidden h-28 w-28  sm:flex">
+                                         <Avatar className="hidden h-24 w-24  sm:flex">
                                          <AvatarImage src={`${selectedCommande.annonce?.client?.img_url}`} className="rounded-full object-cover w-full h-full" alt="Avatar" />
-                                         <AvatarFallback>client</AvatarFallback>
+                                         <AvatarFallback className='text-xl  flex items-center justify-center'>{selectedCommande.detail_selectedCommande?.type || 'N/A'}</AvatarFallback>
                                          </Avatar>
                                          <div className="grid gap-1">
                                          <p className="text-base font-bold leading-none text-red-700">
@@ -174,7 +171,7 @@ const handleNavigation = (idUser:string) => {
                                          </div>
                                  
      
-                                         <div className="line-clamp-2 flex flex-row gap-2 font-bold text-base text-muted-foreground">
+                                         <div className="line-clamp-2 flex flex-row gap-2 font-bold text-sm text-muted-foreground">
                                              
                                          <Phone /> {selectedCommande.annonce?.client?.Tel}
                                        </div>
@@ -202,31 +199,33 @@ const handleNavigation = (idUser:string) => {
                        {selectedCommande.id}
                        </div>
                      </div> */}
-                     <div className="pt-8 px-2 lg:px-2 xl:px-2 w-full grid items-center gap-0 justify-center grid-cols-2">
-                       <div className="flex flex-row w-full col-span-2 gap-14 ">
-                       <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-base text-muted-foreground">Tarif: </div>
-                           <div className="text-base text-red-700 flex items-end w-full justify-end">
-                           {selectedCommande.annonce?.poids_max}F/KG
+                     <div className="pt-8 px-2 lg:px-2 xl:px-2 w-full grid items-center gap-0 justify-center grid-cols-1">
+                       <div className="grid grid-cols-2 w-full col-span-2 gap-14 ">
+                       <div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row  p-1 font-bold text-sm text-muted-foreground">Poids max: </div>
+                           <div className="text-sm text-black flex items-end w-full justify-end">
+                           {selectedCommande.annonce?.poids_max}
                            </div>
                          </div>
-                         <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-base text-muted-foreground">Statut </div>
-                           <div className="text-base text-red-700 flex items-end w-full justify-end">
-                           {selectedCommande.annonce?.statut}
+                         <div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-6 p-1 font-bold text-sm text-muted-foreground">Type: </div>
+                           <div className="text-sm text-black flex items-end w-full justify-end">
+                           {selectedCommande.detail_selectedCommande?.type}
                            </div>
                          </div>
                        </div>
                        
                        <div className="flex flex-row w-full col-span-2 gap-14 ">
-                         <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-base text-muted-foreground">Stocks: </div>
-                           <div className=" flex items-end w-full text-red-700 justify-end">
-                           {selectedCommande.annonce?.stock_annonce} 
+                       <div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Avec le GP:</div>
+                           <div className="flex items-end w-full justify-end">
+                           {selectedCommande.is_received_by_gp ?
+                                 `OUI`
+                               :'NON' }
                            </div>
                          </div>
-                         <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-base text-muted-foreground">Transport: </div>
+                         <div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Transport: </div>
                            <div className=" flex items-end w-full justify-end">
                            {selectedCommande.annonce?.type_transport} 
      
@@ -235,50 +234,67 @@ const handleNavigation = (idUser:string) => {
                          </div>
      
      
-                         <div className="text-base grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-base text-muted-foreground">Commande passée le: </div>
+                         <div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">selectedCommande passée le: </div>
                            <div className="flex items-end w-full justify-end">
                              {format(new Date(selectedCommande.created_at), 'dd MMMM yyyy', { locale: fr })}
                              {` à ${format(new Date(selectedCommande.created_at), 'HH:mm')}`}
                            </div>
                          </div>
-                         
-     
-                         <div className="flex flex-col w-full col-span-2 gap-4 ">
-
-                          <div className="text-base grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
-                           <div className="line-clamp-2 flex flex-row p-1 gap-4 font-bold text-base text-muted-foreground"><UserRoundSearch /> Destinataire: </div>
+                         <div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Date de depart le: </div>
                            <div className="flex items-end w-full justify-end">
-                           {selectedCommande.detail_commande.first_name} {selectedCommande.detail_commande.last_name}
+                             {format(new Date(selectedCommande.annonce.date_depart), 'dd MMMM yyyy', { locale: fr })}
                            </div>
                          </div>
-
-
-                          <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full ">
-                            <div className="line-clamp-2 flex flex-row gap-4  p-1 font-bold text-base text-muted-foreground"><Phone /> Telephone:</div>
-                            <div className="flex items-end w-full justify-end">
-                            {selectedCommande.detail_commande.phone_number}
-
-                            </div>
-                          </div>
-
-                          <div className="text-base grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full ">
-                            <div className="line-clamp-2 flex flex-row gap-4  p-1 font-bold text-base text-muted-foreground"><MapPin />  lieu de livraison:</div>
-                            <div className="flex items-end w-full justify-end">
-                            {selectedCommande.detail_commande.location} {selectedCommande.detail_commande.code_postal}
-
-                            </div>
-                          </div>
-
+                         <div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Date d'arriver le: </div>
+                           <div className="flex items-end w-full justify-end">
+                             {format(new Date(selectedCommande.annonce.date_arrive), 'dd MMMM yyyy', { locale: fr })}
+                           </div>
                          </div>
-    
+                         <div className="text-sm grid grid-cols-2 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Etat du colis:</div>
+                           <div className="flex items-end w-full justify-end">
+                           {selectedCommande.annonce?.statut}
+     
+                           </div>
+                         </div>
+                         <div className="text-sm grid grid-cols-3 col-span-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                           <div className="line-clamp-2 flex flex-row gap-12 p-1 font-bold text-sm text-muted-foreground">Etat de paiement:</div>
+                           <div className={`leading-6 text-sm  sm:text-base px-2 w-fit  flex items-end  justify-end  py-1 rounded-md text-white ${selectedCommande?.payment_status === 'unpaid' ? 'bg-red-500' : 'bg-green-500'}`}>
+                           {selectedCommande?.payment_status=='unpaid'?'Non regler':'Regler' }
+     
+                           </div>
+                         </div>
+     
+                         <div className="flex flex-col w-full col-span-2 gap-4 ">
+                         
+                         <div className="text-sm grid grid-cols-2 gap-auto items-center justify-center font-bold  w-full mt-4">
+                         {selectedCommande.detail_commande?.first_name?(<>  <div className="line-clamp-2 flex flex-row  p-1 font-bold text-sm text-muted-foreground">Destinataire: </div>
+                           <div className="flex items-end w-full justify-end">
+                           {selectedCommande.detail_commande?.first_name} 
+                           </div> </>):( <div></div> )}
+                           {selectedCommande.detail_commande?.destinataire_number ? (<>  <div className="line-clamp-2 flex flex-row  mt-4 p-1 font-bold text-sm text-muted-foreground">Telephone Destinataire: </div>
+                           <div className="flex mt-4 items-end w-full justify-end">
+                           {selectedCommande.detail_commande?.destinataire_number} 
+                           </div> </>):( <div></div> )}
+                         </div>
+                        
+     
+                         </div>
+                        {/*  {commande.detail_commande?.location && (
+                         <div className=" col-span-2 flex flex-row gap-auto items-center justify-center font-bold text-lg gap-2 w-full mt-8">
+                           <MapPin /> {commande.detail_commande?.location} {commande.detail_commande?.code_postal}
+                         </div>
+                         )} */}
+     
                         
                        
                          
                          </div>
-                         <div className="ml-auto pt-24 w-full items-center justify-center flex font-medium">
-                                        <Button onClick={() => handleNavigation(selectedCommande.annonce.client.id_client)} className="w-fit h-10 font-bold">Voir GP</Button>   
-                         </div>
+                         <div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
+                         <Button onClick={() => handleNavigation(selectedCommande.id)} className="w-fit h-10 font-bold">Voir Détails</Button>   </div>
                    </div>
              </div>
             )}
