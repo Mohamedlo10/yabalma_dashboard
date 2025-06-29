@@ -5,10 +5,7 @@ import { Table } from "@tanstack/react-table"
 
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { DataTableViewOptions } from "@/components/proprio_table/data-table-view-options"
-
-import { priorities, statuses } from "./data/data"
-import { DataTableFacetedFilter } from "./data-table-faceted-filter"
+import { DataTableViewOptions } from "./data-table-view-options"
 
 interface DataTableToolbarProps<TData> {
   table: Table<TData>
@@ -21,30 +18,22 @@ export function DataTableToolbar<TData>({
 
   return (
     <div className="flex items-center justify-between">
-      <div className="flex flex-1 space-x-4 items-center ">
+      <div className="flex flex-1 items-center space-x-2">
         <Input
-          placeholder="Filter number ..."
-          value={(table.getColumn("userphone")?.getFilterValue() as string) ?? ""}
+          placeholder="Rechercher par source, destination..."
+          value={(table.getColumn("source")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
-            table.getColumn("userphone")?.setFilterValue(event.target.value)
+            table.getColumn("source")?.setFilterValue(event.target.value)
           }
           className="h-8 w-[150px] lg:w-[250px]"
         />
-        {table.getColumn("type") && (
-          <DataTableFacetedFilter
-            column={table.getColumn("type")}
-            title="log Type"
-            options={statuses}
-          />
-        )}
-      
         {isFiltered && (
           <Button
             variant="ghost"
             onClick={() => table.resetColumnFilters()}
             className="h-8 px-2 lg:px-3"
           >
-            Reset
+            Réinitialiser
             <Cross2Icon className="ml-2 h-4 w-4" />
           </Button>
         )}
@@ -52,4 +41,4 @@ export function DataTableToolbar<TData>({
       <DataTableViewOptions table={table} />
     </div>
   )
-}
+} 

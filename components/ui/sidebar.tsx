@@ -6,6 +6,8 @@ import {
   Book,
   ChevronDown,
   ChevronUp,
+  DollarSign,
+  Edit,
   Home,
   LineChart,
   LogOut,
@@ -219,18 +221,31 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
             {/* Rest of the sidebar menu items */}
             {role?.access_groups.annonces ? (
-              <Link
-                href="/dashboard/annonces"
-                className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
-                  pathname === "/dashboard/annonces" ||
-                  pathname === "/dashboard/annonces/profile"
-                    ? "bg-white text-red-700 shadow-lg"
-                    : "text-white hover:bg-white hover:text-red-700"
-                }`}
-              >
-                <Book className="2xl:h-6 lg w-4" />
-                Annonces
-              </Link>
+              <div>
+                <Link
+                  href="/dashboard/annonces"
+                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
+                    pathname === "/dashboard/annonces" ||
+                    pathname === "/dashboard/annonces/profile"
+                      ? "bg-white text-red-700 shadow-lg"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  <Book className="2xl:h-6 lg w-4" />
+                  Annonces
+                </Link>
+                <Link
+                  href="/dashboard/annonces/gestion"
+                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ml-6 ${
+                    pathname === "/dashboard/annonces/gestion"
+                      ? "bg-white text-red-700 shadow-lg"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  <Edit className="2xl:h-6 lg w-4" />
+                  Gestion Annonce
+                </Link>
+              </div>
             ) : (
               <div></div>
             )}
@@ -336,17 +351,30 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             )}
 
             {role?.access_groups.settings ? (
-              <Link
-                href="/dashboard/settings"
-                className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
-                  pathname === "/dashboard/settings"
-                    ? "bg-white text-red-700 shadow-lg"
-                    : "text-white hover:bg-white hover:text-red-700"
-                }`}
-              >
-                <Settings className="2xl:h-6 lg w-4" />
-                Paramètres
-              </Link>
+              <>
+                <Link
+                  href="/dashboard/settings"
+                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
+                    pathname === "/dashboard/settings"
+                      ? "bg-white text-red-700 shadow-lg"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  <Settings className="2xl:h-6 lg w-4" />
+                  Paramètres
+                </Link>
+                <Link
+                  href="/dashboard/currency"
+                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
+                    pathname === "/dashboard/currency"
+                      ? "bg-white text-red-700 shadow-lg"
+                      : "text-white hover:bg-white hover:text-red-700"
+                  }`}
+                >
+                  <DollarSign className="2xl:h-6 lg w-4" />
+                  Devises
+                </Link>
+              </>
             ) : (
               <div></div>
             )}

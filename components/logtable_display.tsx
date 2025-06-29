@@ -22,6 +22,7 @@ export default function Log_table() {
 
     const [rooms, setRooms] = useState([]);
     
+    getalllogs().then(data=>setRooms(data))
 
   return (
     <div className=" h-full px-3 ">

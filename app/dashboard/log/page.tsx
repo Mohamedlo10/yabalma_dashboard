@@ -6,18 +6,18 @@ import React from 'react'
 function page() {
   return (
     <div className='w-full h-full bg-white' >
-        <div className='flex justify-between py-2 px-2 shadow-md'>
-            <p className='text-base'>yabalma log</p>
-           <div className='flex space-x-3'>
-                <p className='text-black font-medium'>Enregistrer</p>
-                <p>Exporter</p>
+        <div className='flex justify-end py-2 px-2 shadow-md'>
+          
+           <div className='flex space-x-3 py-2'>
+                <p className='text-white font-medium rounded-md px-2 bg-[#b91c1c] py-2'>Enregistrer </p>
+               
            </div>
         </div>
-        <div className='flex gap-2'>
-            <div>
-            <Input id="search" type="email" className="bg-white"  placeholder="user number"  required/>
+        <div className='flex gap-2 py-4 px-3'>
+            <div className='w-1/2 '>
+            <Input id="search" type="tel" className="bg-white h-10"  placeholder="search"  required/>
             </div>
-            <div>
+            <div className='w-1/2'>
                 <Pop />
             </div>
         </div>

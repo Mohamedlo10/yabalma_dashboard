@@ -3,6 +3,28 @@ import { createClient } from "@/lib/supabaseClient";
 
 const supabase =createClient()
 
+export const creerAnnonce = async (annonceData: Record<string, any>) => {
+  try {
+    // Générer un ID unique pour l'annonce
+    const id_annonce = `ANN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    const { data, error } = await supabase
+      .from('annonce')
+      .insert([{
+        ...annonceData,
+        id_annonce,
+        statut: annonceData.statut || 'Entrepot',
+        id_client: annonceData.id_client || 'd04cda0e-0fa8-4fbc-bc3d-50e446e4ac79',
+        is_boost: annonceData.is_boost || false,
+      }]);
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+
 export const getallannonces =async()=>{
 
   try {

@@ -5,7 +5,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Checkbox } from "@/components/ui/checkbox"
 
 import { FolderSearch } from 'lucide-react';
-
+import { statuses } from './data/data';
 
 import { Log } from "./data/schema"
 import { DataTableColumnHeader } from "./data-table-column-header"
@@ -56,7 +56,34 @@ export const columns: ColumnDef<Log>[] = [
     header: ({ column }) => (
       <DataTableColumnHeader column={column} title="Type" />
     ),
-    
+    cell:({row})=>{
+      const status = statuses.find(
+        (status) => status.value === row.getValue("type")
+      )
+      return (
+        <div className='flex items-center'>
+          {( ()=> {
+              switch (status?.label){
+                case "error":
+                return (
+                  <>
+                  <span className="font-medium text-red-500">{status.label}</span>
+                  </>
+                );
+                case "info":
+                return (
+                  <>
+                  <span className="font-medium text-green-400">{status.label}</span>
+                  </>
+                );
+                default:
+              return null;
+              }
+            }
+          )()}
+        </div>
+      )
+    }
   },
   {
     accessorKey: "time",

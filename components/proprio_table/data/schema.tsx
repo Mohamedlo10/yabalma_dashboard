@@ -5,7 +5,7 @@ import { z } from "zod"
 export const LogSchemma = z.object({
   logid: z.number(),
   message: z.string(),
-  time: z.number(),
+  time: z.string(),
   userphone: z.string(),
   type:z.string(),
  

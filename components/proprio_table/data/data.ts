@@ -27,30 +27,16 @@ import {
   
   export const statuses = [
     {
-      value: "Clean",
-      label: "Clean",
+      value: "info",
+      label: "info",
       icon: ShieldCheck,
     },
     {
-      value: "Inspected",
-      label: "Inspected",
+      value: "error",
+      label: "error",
       icon: CircleIcon,
     },
-    {
-      value: "Service",
-      label: "Out of Service",
-      icon: StopwatchIcon,
-    },
-    {
-      value: "dirty",
-      label: "Dirty",
-      icon: CheckCircledIcon,
-    },
-    {
-      value: "cleanup",
-      label: "Clean up",
-      icon: CrossCircledIcon,
-    },
+ 
   ]
   
   export const priorities = [

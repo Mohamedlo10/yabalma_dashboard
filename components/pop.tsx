@@ -9,17 +9,14 @@ import Datepic from './datepic'
 
 function Pop() {
   return (
-    <div className='flex'>
+    <div className='flex  w-full shadow-md py-2 px-2 justify-center '>
         <Popover>
-            <PopoverTrigger>Open</PopoverTrigger>
+            <PopoverTrigger >Select a date</PopoverTrigger>
             <PopoverContent className='w-96'>
                 <Datepic />
             </PopoverContent>
         </Popover>
-        <Popover>
-            <PopoverTrigger>autre open</PopoverTrigger>
-            <PopoverContent>Place content for the popover here.</PopoverContent>
-        </Popover>
+       
     </div>
   )
 }
