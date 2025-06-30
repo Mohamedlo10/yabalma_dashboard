@@ -130,7 +130,7 @@ export function AnnonceList({ items }: annonceListProps) {
 									: "text-muted-foreground"
 							)}>
 							<div className="text-xs flex flex-row gap-2 bg-white p-2  rounded-sm items-center justify-center oneline">
-								{formatDistanceToNow(new Date(item.created_at), {
+								{item.created_at && formatDistanceToNow(new Date(item.created_at), {
 									addSuffix: true,
 								})}
 

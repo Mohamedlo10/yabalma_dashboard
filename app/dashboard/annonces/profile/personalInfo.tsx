@@ -269,11 +269,9 @@ const deleteUser = async () => {
               </div>
               <div className="mb-4">
                 <div className="text-gray-500 text-sm sm:text-base">Date de publication</div>
-               {annonce? ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(annonce?.created_at), 'dd MMMM yyyy', { locale: fr })}
-                {` à ${format(new Date(annonce?.created_at), 'HH:mm')}`}</div>):
-                (
-                  <div className='text-2xl'>Erreur lors du chargement des donnees</div>
-                )}
+               {annonce?.created_at && ( <div className="leading-6 mt-1 text-sm sm:text-base font-bold">{format(new Date(annonce?.created_at), 'dd MMMM yyyy', { locale: fr })}
+                {` à ${format(new Date(annonce?.created_at), 'HH:mm')}`}</div>)}
+               
               </div>
            
             </div>

@@ -171,7 +171,7 @@ export function CommandeList({ items }: commandeListProps) {
                   <div>
                     <p className="text-xs md:text-sm text-gray-500">Date</p>
                     <p className="font-medium text-xs md:text-sm">
-                      {format(
+                      {item.annonce.created_at && format(
                         new Date(item.annonce.created_at),
                         "dd MMMM yyyy",
                         {
@@ -179,9 +179,10 @@ export function CommandeList({ items }: commandeListProps) {
                         }
                       )}
                       {" à "}
-                      {format(new Date(item.annonce.created_at), "mm:ss", {
-                        locale: fr,
-                      })}
+                      {item.annonce.created_at &&
+                        format(new Date(item.annonce.created_at), "mm:ss", {
+                          locale: fr,
+                        })}
                     </p>
                   </div>
                   {/*  <div>

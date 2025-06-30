@@ -1,12 +1,12 @@
 import { createClient } from "@/lib/supabaseClient";
-
+import { v4 as uuidv4 } from 'uuid';
 
 const supabase =createClient()
 
 export const creerAnnonce = async (annonceData: Record<string, any>) => {
   try {
-    // Générer un ID unique pour l'annonce
-    const id_annonce = `ANN-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Générer un UUID pour l'annonce
+    const id_annonce = uuidv4();
     
     const { data, error } = await supabase
       .from('annonce')

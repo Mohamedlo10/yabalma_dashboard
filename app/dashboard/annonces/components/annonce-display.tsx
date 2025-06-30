@@ -129,10 +129,10 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
 									Publication:{" "}
 								</div>
 								<div className="flex items-end w-full justify-end">
-									{format(new Date(annonce.created_at), "dd MMMM yyyy", {
+									{annonce.created_at && format(new Date(annonce.created_at), "dd MMMM yyyy", {
 										locale: fr,
 									})}
-									{` à ${format(new Date(annonce.created_at), "HH:mm")}`}
+									{` à ${annonce.created_at && format(new Date(annonce.created_at), "HH:mm")}`}
 								</div>
 							</div>
 							<div className="text-sm grid grid-cols-2 whitespace-nowrap gap-auto items-center justify-start   w-full mt-4">
@@ -168,7 +168,7 @@ export function AnnonceDisplay({ annonce }: AnnonceDisplayProps) {
 						</div>
 						<div className="ml-auto pt-12 w-full items-center justify-center flex font-medium">
 							<Button
-								onClick={() => handleNavigation(annonce.id_annonce)}
+								onClick={() => handleNavigation(annonce.id_annonce || "")}
 								className="w-fit h-10 ">
 								Voir Détails
 							</Button>{" "}
