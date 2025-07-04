@@ -20,6 +20,7 @@ export const detailsCommandeSchema = z.object({
   payeur: z.string().optional(),
   expediteur: z.string().optional(),
   first_name: z.string().optional(),
+  whatsapp: z.string().optional(),
   destinataire_number: z.string().optional(),
   destination: z.string().optional(),
 });

@@ -171,13 +171,14 @@ export function CommandeList({ items }: commandeListProps) {
                   <div>
                     <p className="text-xs md:text-sm text-gray-500">Date</p>
                     <p className="font-medium text-xs md:text-sm">
-                      {item.annonce.created_at && format(
-                        new Date(item.annonce.created_at),
-                        "dd MMMM yyyy",
-                        {
-                          locale: fr,
-                        }
-                      )}
+                      {item.annonce.created_at &&
+                        format(
+                          new Date(item.annonce.created_at),
+                          "dd MMMM yyyy",
+                          {
+                            locale: fr,
+                          }
+                        )}
                       {" à "}
                       {item.annonce.created_at &&
                         format(new Date(item.annonce.created_at), "mm:ss", {
@@ -290,11 +291,14 @@ export function CommandeList({ items }: commandeListProps) {
                 </div>
 
                 <div className="flex justify-center space-x-4 mb-6">
-                  {activeItem.shop?.url && (
+                  {(activeItem.shop?.url ||
+                    activeItem.detail_commande?.whatsapp) && (
                     <Button
                       className="bg-blue-600 hover:bg-blue-700"
                       onClick={() => {
-                        const url = activeItem.shop?.url;
+                        const url =
+                          activeItem.shop?.url ||
+                          activeItem.detail_commande?.whatsapp;
                         window.open(url, "_blank");
                       }}
                     >
