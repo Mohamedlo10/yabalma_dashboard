@@ -1,8 +1,5 @@
 "use client";
 
-
-
-
 // import { cookies } from "next/headers";
 import { getallcommandes } from "@/app/api/commandes/query";
 import { getSupabaseSession } from "@/lib/authMnager";
@@ -22,49 +19,40 @@ const override: CSSProperties = {
 
 export default function Page() {
   const [config, setConfig] = useCommande();
-  const defaultLayout = [ 300,200 ];
+  const defaultLayout = [300, 200];
   const defaultCollapsed = false;
   const router = useRouter();
   const [commandes, setCommandes] = useState<Commande[]>([]);
   let [color, setColor] = useState("#ffffff");
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-
-        const data: any = await getallcommandes()
-        console.log(data)
+        const data: any = await getallcommandes();
+        console.log(data);
 
         if (data && data.length > 0) {
-          console.log(data)
-          setCommandes(data)
+          console.log(data);
+          setCommandes(data);
         }
-       
-        const data3= getSupabaseSession()
-        if (data3 != null) {
-          if(data3.access_groups?.commandes)
-            {
-              console.log("autoriser...")
-            }
-            else
-            {
-              router.push(`/dashboard`);
-            }
-            
-        
-      }
+
+        const data3 = getSupabaseSession();
+        if (data3.access_groups?.commandes) {
+          console.log("autoriser...");
+        } else {
+          router.push(`/dashboard`);
+        }
       } catch (error) {
-        console.error("Error fetching room details:", error)
+        console.error("Error fetching room details:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
-  
+    fetchData();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -81,9 +69,6 @@ export default function Page() {
       </div>
     );
   }
-
-
-
 
   return (
     <>
@@ -112,5 +97,5 @@ export default function Page() {
         />
       </div>
     </>
-  )
+  );
 }
