@@ -55,6 +55,7 @@ export function CommandeData({
   const navCollapsedSize = 4;
   const isMobile = useMediaQuery("(max-width: 768px)"); // Détecte si l'écran est inférieur à md
   const [searchQuery, setSearchQuery] = useState("");
+  const [activeTab, setActiveTab] = useState("all");
 
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
@@ -108,19 +109,24 @@ export function CommandeData({
     threshold: 0.3,
   });
 
-  const filteredItems = searchQuery
-    ? fuse.search(searchQuery.toLowerCase()).map((res) => res.item)
-    : commandes;
-
-  const filteredByDate = filteredItems.filter((item) => {
-    const dateDepart = new Date(`${item.annonce.date_depart}T23:59:59.999Z`);
-    const dateArrive = new Date(`${item.annonce.date_arrive}T23:59:59.999Z`);
-
-    return (
-      (!startDate || dateDepart >= startDate) &&
-      (!endDate || dateArrive <= endDate)
-    );
-  });
+  const filteredItems = (() => {
+    let filtered = searchQuery
+      ? fuse.search(searchQuery.toLowerCase()).map((res) => res.item)
+      : commandes;
+    filtered = filtered.filter((item) => {
+      const dateDepart = new Date(`${item.annonce.date_depart}T23:59:59.999Z`);
+      const dateArrive = new Date(`${item.annonce.date_arrive}T23:59:59.999Z`);
+      return (
+        (!startDate || dateDepart >= startDate) &&
+        (!endDate || dateArrive <= endDate)
+      );
+    });
+    if (activeTab === "Validé")
+      return filtered.filter((item) => item.validation_status);
+    if (activeTab === "NonValidé")
+      return filtered.filter((item) => !item.validation_status);
+    return filtered;
+  })();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
@@ -208,89 +214,67 @@ export function CommandeData({
           minSize={isMobile ? 100 : 40}
           maxSize={isMobile ? 100 : 70}
         >
-          <Tabs defaultValue="all">
-            <div className="flex items-center px-4 md:py-2">
-              <h2 className="md:block hidden font-bold md:text-base text-xs">
-                Liste des commandes
-              </h2>
-              <TabsList className="ml-auto">
-                <TabsTrigger
-                  value="all"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
-                  All
-                </TabsTrigger>
-                <TabsTrigger
-                  value="Validé"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
-                  Validé
-                </TabsTrigger>
-                <TabsTrigger
-                  value="NonValidé"
-                  className="text-zinc-600 dark:text-zinc-200"
-                >
-                  Non validé
-                </TabsTrigger>
-              </TabsList>
+          <Tabs
+            defaultValue="all"
+            value={activeTab}
+            onValueChange={setActiveTab}
+          >
+            <div className="w-full bg-white sticky top-0 z-10 border-b p-4">
+              <div className="flex flex-col md:flex-row md:items-end gap-4 w-full">
+                {/* Filtres de statut */}
+                <div className="flex gap-2 items-center">
+                  <TabsList>
+                    <TabsTrigger value="all">Toutes</TabsTrigger>
+                    <TabsTrigger value="Validé">Validées</TabsTrigger>
+                    <TabsTrigger value="NonValidé">Non validées</TabsTrigger>
+                  </TabsList>
+                </div>
+                {/* Recherche et dates */}
+                <div className="flex flex-1 flex-col md:flex-row gap-4 items-end">
+                  <div className="flex flex-col flex-1">
+                    <label className="text-xs font-medium mb-1">
+                      Recherche
+                    </label>
+                    <div className="relative">
+                      <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Rechercher ..."
+                        className="pl-8 h-10"
+                        value={searchQuery}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium mb-1">
+                      Date de départ
+                    </label>
+                    <DatePickerDemo date={startDate} setDate={setStartDate} />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="text-xs font-medium mb-1">
+                      Date de livraison
+                    </label>
+                    <DatePickerDemo date={endDate} setDate={setEndDate} />
+                  </div>
+                  <span className="ml-4 px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+                    {filteredItems.length} commande
+                    {filteredItems.length > 1 ? "s" : ""} trouvée
+                    {filteredItems.length > 1 ? "s" : ""}
+                  </span>
+                </div>
+              </div>
             </div>
             <Separator className="hidden md:block" />
-            <div className="bg-background/95 p-2 md:p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-              <form
-                onSubmit={(e) => {
-                  e.preventDefault(); // Empêche le rechargement de la page
-                }}
-              >
-                <div className="w-full grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-16">
-                  <div className="md:mt-3 relative">
-                    <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      placeholder="Rechercher ..."
-                      className="pl-8 h-9 md:h-12 mb-0 md:mb-4"
-                      value={searchQuery}
-                      onChange={handleInputChange}
-                    />
-                  </div>
 
-                  <div className="flex flex-row gap-4 md:gap-10 w-full col-span-1 md:col-span-2">
-                    {/* Sélection de la Date de Départ */}
-                    <div className="flex flex-col items-center justify-center">
-                      <label className="text-[12px] inline-block font-medium">
-                        Date de depart
-                      </label>
-                      <DatePickerDemo date={startDate} setDate={setStartDate} />
-                    </div>
-
-                    {/* Sélection de la Date d'Arrivée */}
-                    <div className="flex flex-col items-center justify-center">
-                      <label className="inline-block text-[12px] font-medium">
-                        Date de livraison
-                      </label>
-                      <DatePickerDemo date={endDate} setDate={setEndDate} />
-                    </div>
-                    <div className="text-[11px] items-center justify-center md:hidden flex bg-yellow-300 rounded-md font-bold text-yellow-800 p-1 py-2 text-center">
-                      {
-                        filteredByDate.filter((item) => !item.validation_status)
-                          .length
-                      }{" "}
-                      à valider
-                    </div>
-                  </div>
-                </div>
-              </form>
-            </div>
-            <TabsContent value="all" className="m-0">
-              <CommandeList items={filteredByDate} />
+            <TabsContent value="all" className="pt-3">
+              <CommandeList items={filteredItems} />
             </TabsContent>
-            <TabsContent value="Validé" className="m-0">
-              <CommandeList
-                items={filteredByDate.filter((item) => item.validation_status)}
-              />
+            <TabsContent value="Validé" className="pt-3">
+              <CommandeList items={filteredItems} />
             </TabsContent>
-            <TabsContent value="NonValidé" className="m-0">
-              <CommandeList
-                items={filteredByDate.filter((item) => !item.validation_status)}
-              />
+            <TabsContent value="NonValidé" className="pt-3">
+              <CommandeList items={filteredItems} />
             </TabsContent>
           </Tabs>
         </ResizablePanel>

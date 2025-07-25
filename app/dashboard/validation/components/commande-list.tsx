@@ -181,7 +181,7 @@ export function CommandeList({ items }: commandeListProps) {
                         )}
                       {" à "}
                       {item.annonce.created_at &&
-                        format(new Date(item.annonce.created_at), "mm:ss", {
+                        format(new Date(item.annonce.created_at), "HH:mm", {
                           locale: fr,
                         })}
                     </p>
@@ -217,20 +217,12 @@ export function CommandeList({ items }: commandeListProps) {
             </CardContent>
 
             <CardFooter className="flex justify-between gap-4 p-4 bg-gray-50 border-t">
-              <Button
-                variant="outline"
-                className="flex-1 gap-2"
-                onClick={() => handleNavigation(item.id)}
-              >
-                <Eye size={16} />
-                Voir Détails
-              </Button>
               {!item.validation_status && (
                 <Button
-                  className="flex-1 bg-green-600 hover:bg-green-700"
+                  className="flex-1 bg-blue-600 hover:bg-blue-700"
                   onClick={() => handleOpenDrawer(item)}
                 >
-                  Valider
+                  Valider cette commande
                 </Button>
               )}
             </CardFooter>
@@ -245,34 +237,31 @@ export function CommandeList({ items }: commandeListProps) {
             anchor="right"
             open={drawerOpen}
             onClose={handleCloseDrawer}
-            PaperProps={{
-              sx: { width: "83%" },
-            }}
+            PaperProps={{ sx: { width: "83%" } }}
           >
             <div className="flex flex-col h-full">
-              <div className="p-4 bg-gray-100 flex justify-between items-center">
-                <h3 className="font-semibold">
-                  Validation de la commande #{activeItem.id}
+              <div className="p-4 bg-gray-100 flex justify-between items-center border-b">
+                <h3 className="font-bold text-lg text-blue-700 flex items-center gap-2">
+                  <span className="inline-block bg-blue-100 text-blue-700 px-2 py-1 rounded-full text-xs font-semibold mr-2">
+                    Commande #{activeItem.id}
+                  </span>
+                  Validation
                 </h3>
                 <Button variant="default" onClick={handleCloseDrawer}>
                   Fermer
                 </Button>
               </div>
-
-              <div className="flex-grow overflow-auto p-4 xl:text-base text-xs">
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
-                  <h4 className="font-bold text-lg mb-2">
-                    Instructions de validation
+              <div className="flex-grow overflow-auto p-4 xl:text-base text-xs space-y-6">
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow mb-6">
+                  <h4 className="font-bold text-lg mb-2 text-yellow-800 flex items-center gap-2">
+                    <span className="inline-block bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
+                      Instructions
+                    </span>
+                    de validation
                   </h4>
-                  <p className="mb-3">
-                    Pour valider cette commande sur{" "}
-                    {activeItem.shop?.website || "Shein"}, veuillez suivre ces
-                    étapes :
-                  </p>
-                  <ol className="list-decimal pl-5 space-y-2">
+                  <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
                     <li>
-                      Cliquez sur le bouton "Ouvrir le site" ci-dessous pour
-                      accéder au site
+                      Cliquez sur "Ouvrir le site" pour accéder au site marchand
                     </li>
                     <li>Connectez-vous à votre compte si nécessaire</li>
                     <li>
@@ -280,21 +269,15 @@ export function CommandeList({ items }: commandeListProps) {
                     </li>
                     <li>Procédez à la validation sur le site</li>
                     <li>
-                      Une fois terminé, revenez à cette fenêtre et cliquez sur
-                      "J'ai validé"
-                    </li>
-                    <li>
-                      Si vous ne voyez pas le bouton "Ouvrir le site" sachez que
-                      la commande n'est pas faite sur un site web
+                      Une fois terminé, revenez ici et cliquez sur "J'ai validé"
                     </li>
                   </ol>
                 </div>
-
-                <div className="flex justify-center space-x-4 mb-6">
+                <div className="flex flex-col md:flex-row justify-center gap-4 mb-6">
                   {(activeItem.shop?.url ||
                     activeItem.detail_commande?.whatsapp) && (
                     <Button
-                      className="bg-blue-600 hover:bg-blue-700"
+                      className="bg-blue-600 hover:bg-blue-700 w-full md:w-auto"
                       onClick={() => {
                         const url =
                           activeItem.shop?.url ||
@@ -305,17 +288,14 @@ export function CommandeList({ items }: commandeListProps) {
                       Ouvrir le site
                     </Button>
                   )}
-
                   <Button
-                    className="bg-green-600 hover:bg-green-700"
-                    onClick={handleCloseDrawer}
+                    className="bg-green-600 hover:bg-green-700 w-full md:w-auto"
+                    onClick={() => setConfirmDialogOpen(true)}
                   >
                     J'ai validé
                   </Button>
                 </div>
-
-                {/* Informations de la commande pour référence */}
-                <div className="border rounded-md p-4">
+                <div className="border rounded-md p-4 bg-white shadow">
                   <h4 className="font-semibold text-gray-700 mb-3">
                     Détails de la commande
                   </h4>
@@ -342,18 +322,16 @@ export function CommandeList({ items }: commandeListProps) {
                     </div>
                   </div>
                 </div>
-                <div className="border rounded-md mt-2 p-1 md:p-4">
+                <div className="border rounded-md p-4 bg-white shadow">
                   <h4 className="font-semibold text-gray-700 mb-3">Colis</h4>
-                  <div className="mt-4 h-full overflow-y-auto">
-                    <ArticlesList
-                      articles={activeItem?.detail_commande?.articles || []}
-                    />
-                  </div>
+                  <ArticlesList
+                    articles={activeItem?.detail_commande?.articles || []}
+                    variant="modern"
+                  />
                 </div>
               </div>
             </div>
           </Drawer>
-
           <Dialog
             open={confirmDialogOpen}
             onClose={() => setConfirmDialogOpen(false)}

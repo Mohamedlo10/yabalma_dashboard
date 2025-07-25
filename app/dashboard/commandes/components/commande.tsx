@@ -2,14 +2,15 @@
 
 import { CircleX, ClockAlert, Search } from "lucide-react";
 import * as React from "react";
+import { AnimatePresence, motion } from "framer-motion";
 
 import { CommandeDiag } from "@/app/dashboard/commandes/components/commandeDiag";
 import { DatePickerDemo } from "@/components/ui/datePickerDemo";
 import { Input } from "@/components/ui/input";
 import {
-	ResizableHandle,
-	ResizablePanel,
-	ResizablePanelGroup,
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
 } from "@/components/ui/resizable";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -22,266 +23,208 @@ import { useCommande } from "../use-commande";
 import { CommandeDisplay } from "./commande-display";
 import { CommandeList } from "./commande-list";
 interface CommandeProps {
-	commandes: Commande[];
-	defaultLayout: number[] | undefined;
-	defaultCollapsed?: boolean;
-	navCollapsedSize: number;
+  commandes: Commande[];
+  defaultLayout: number[] | undefined;
+  defaultCollapsed?: boolean;
+  navCollapsedSize: number;
 }
 
 export function CommandeData({
-	commandes,
-	defaultLayout = [24, 42, 34],
-	defaultCollapsed = false,
-	navCollapsedSize,
+  commandes,
+  defaultLayout = [24, 42, 34],
+  defaultCollapsed = false,
+  navCollapsedSize,
 }: CommandeProps) {
-	const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
-	const [mail] = useCommande();
-	const [searchQuery, setSearchQuery] = useState("");
-	const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
-	const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
-	const commandesWithFullNames = commandes.map((commande) => ({
-		...commande,
-		client: commande.client
-			? {
-					...commande.client,
-					id: commande.client.id ?? null,
-					fullName: `${commande.client.nom || ""}${
-						commande.client.prenom || ""
-					} || ${commande.client.prenom || ""}${
-						commande.client.nom || ""
-					}  `.toLowerCase(),
-			  }
-			: null,
-		trajet: `${commande.annonce.source || ""}${
-			commande.annonce.destination || ""
-		} ${commande.annonce.destination || ""}${
-			commande.annonce.source || ""
-		}`.toLowerCase(),
+  const [isCollapsed, setIsCollapsed] = React.useState(defaultCollapsed);
+  const [mail] = useCommande();
+  const [searchQuery, setSearchQuery] = useState("");
+  const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
+  const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
+  const [activeTab, setActiveTab] = useState("all");
+  const commandesWithFullNames = commandes.map((commande) => ({
+    ...commande,
+    client: commande.client
+      ? {
+          ...commande.client,
+          id: commande.client.id ?? null,
+          fullName: `${commande.client.nom || ""}${
+            commande.client.prenom || ""
+          } || ${commande.client.prenom || ""}${
+            commande.client.nom || ""
+          }  `.toLowerCase(),
+        }
+      : null,
+    trajet: `${commande.annonce.source || ""}${
+      commande.annonce.destination || ""
+    } ${commande.annonce.destination || ""}${
+      commande.annonce.source || ""
+    }`.toLowerCase(),
 
-		annonce: {
-			...commande.annonce,
-			client: commande.annonce.client
-				? {
-						...commande.annonce.client,
-						id: commande.annonce.client.id ?? null,
-						fullName: `${commande.annonce.client.nom || ""}${
-							commande.annonce.client.prenom || ""
-						} || ${commande.annonce.client.prenom || ""}${
-							commande.annonce.client.nom || ""
-						}`.toLowerCase(),
-				  }
-				: undefined,
-		},
-	}));
+    annonce: {
+      ...commande.annonce,
+      client: commande.annonce.client
+        ? {
+            ...commande.annonce.client,
+            id: commande.annonce.client.id ?? null,
+            fullName: `${commande.annonce.client.nom || ""}${
+              commande.annonce.client.prenom || ""
+            } || ${commande.annonce.client.prenom || ""}${
+              commande.annonce.client.nom || ""
+            }`.toLowerCase(),
+          }
+        : undefined,
+    },
+  }));
 
-	const fuse = new Fuse(commandesWithFullNames, {
-		keys: [
-			"client.nom",
-			"client.prenom",
-			"client.Tel",
-			"trajet",
-			"client.fullName",
-			"annonce.client.nom",
-			"annonce.client.prenom",
-			"annonce.client.Tel",
-			"annonce.client.fullName",
-		],
-		threshold: 0.3,
-	});
+  const fuse = new Fuse(commandesWithFullNames, {
+    keys: [
+      "client.nom",
+      "client.prenom",
+      "client.Tel",
+      "trajet",
+      "client.fullName",
+      "annonce.client.nom",
+      "annonce.client.prenom",
+      "annonce.client.Tel",
+      "annonce.client.fullName",
+    ],
+    threshold: 0.3,
+  });
 
-	const filteredItems = searchQuery
-		? fuse.search(searchQuery.toLowerCase()).map((res) => res.item)
-		: commandes;
+  // Calculer le nombre d'items réellement affichés après tous les filtres
+  const filteredItems = (() => {
+    let filtered = searchQuery
+      ? fuse.search(searchQuery.toLowerCase()).map((res) => res.item)
+      : commandes;
+    filtered = filtered.filter((item) => {
+      const dateDepart = new Date(`${item.annonce.date_depart}T23:59:59.999Z`);
+      const dateArrive = new Date(`${item.annonce.date_arrive}T23:59:59.999Z`);
+      return (
+        (!startDate || dateDepart >= startDate) &&
+        (!endDate || dateArrive <= endDate)
+      );
+    });
+    if (activeTab === "Validé")
+      return filtered.filter((item) => item.validation_status);
+    if (activeTab === "NonValidé")
+      return filtered.filter((item) => !item.validation_status);
+    if (activeTab === "payer")
+      return filtered.filter((item) => item.payment_status === "paid");
+    if (activeTab === "nonPayer")
+      return filtered.filter((item) => item.payment_status === "unpaid");
+    if (activeTab === "Annuler")
+      return filtered.filter((item) => item.cancelled_status);
+    return filtered;
+  })();
 
-	const filteredByDate = filteredItems.filter((item) => {
-		const dateDepart = new Date(`${item.annonce.date_depart}T23:59:59.999Z`);
-		const dateArrive = new Date(`${item.annonce.date_arrive}T23:59:59.999Z`);
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
 
-		return (
-			(!startDate || dateDepart >= startDate) &&
-			(!endDate || dateArrive <= endDate)
-		);
-	});
-
-	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setSearchQuery(e.target.value);
-	};
-
-	return (
-		<TooltipProvider delayDuration={0}>
-			<ResizablePanelGroup
-				direction="horizontal"
-				onLayout={(sizes: number[]) => {
-					document.cookie = `react-resizable-panels:layout:mail=${JSON.stringify(
-						sizes
-					)}`;
-				}}
-				className="h-full max-h-[88vh] items-stretch">
-				<ResizablePanel
-					defaultSize={defaultLayout[0]}
-					collapsedSize={navCollapsedSize}
-					collapsible={true}
-					minSize={24}
-					maxSize={24}
-					onCollapse={() => {
-						setIsCollapsed(true);
-						document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-							true
-						)}`;
-					}}
-					onResize={() => {
-						setIsCollapsed(false);
-						document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-							false
-						)}`;
-					}}
-					className={cn(
-						isCollapsed &&
-							"min-w-[55px] transition-all duration-300 ease-in-out"
-					)}>
-					<div
-						className={cn(
-							"flex h-full flex-col items-center gap-2  justify-start mt-4",
-							isCollapsed ? "h-[92px]" : "px-2"
-						)}>
-						{/* SidePage component */}
-						<CommandeDiag />
-					</div>
-				</ResizablePanel>
-				<ResizableHandle withHandle />
-				<ResizablePanel
-					defaultSize={defaultLayout[1]}
-					minSize={47}
-					maxSize={47}>
-					<Tabs defaultValue="all">
-						<div className="flex items-center px-4 py-2">
-							<TabsList className="ml-auto">
-								<TabsTrigger
-									value="all"
-									className="text-zinc-600 dark:text-zinc-200">
-									All
-								</TabsTrigger>
-								<TabsTrigger
-									value="Validé"
-									className="text-zinc-600 dark:text-zinc-200">
-									Validé
-								</TabsTrigger>
-								<TabsTrigger
-									value="NonValidé"
-									className="text-zinc-600 dark:text-zinc-200">
-									Non validé
-								</TabsTrigger>
-
-								<TabsTrigger
-									value="payer"
-									className="text-zinc-600 dark:text-zinc-200">
-									Payer
-								</TabsTrigger>
-								<TabsTrigger
-									value="nonPayer"
-									className="text-zinc-600 dark:text-zinc-200">
-									Non payer
-								</TabsTrigger>
-								<TabsTrigger
-									value="Enattente"
-									className="text-zinc-600 dark:text-zinc-200">
-									<ClockAlert />
-								</TabsTrigger>
-								<TabsTrigger
-									value="Annuler"
-									className="text-zinc-600 dark:text-zinc-200">
-									<CircleX />{" "}
-								</TabsTrigger>
-							</TabsList>
-						</div>
-						<Separator />
-						<div className="bg-background/95 p-4 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-							<form
-								onSubmit={(e) => {
-									e.preventDefault(); // Empêche le rechargement de la page
-								}}>
-								<div className="w-full  grid grid-cols-6 gap-4">
-									<div className="mt-3 col-span-2 ">
-										<Search className="absolute left-7 top-11 h-4 w-4 text-muted-foreground" />
-										<Input
-											placeholder="Rechercher ..."
-											className="pl-8 h-12  mb-4"
-											value={searchQuery}
-											onChange={handleInputChange}
-										/>
-									</div>
-
-									<div className="flex gap-4 col-span-3">
-										{/* Sélection de la Date de Départ */}
-										<div>
-											<label className=" text-[12px] inline-block font-medium">
-												Date de depart
-											</label>
-											<DatePickerDemo date={startDate} setDate={setStartDate} />
-										</div>
-
-										{/* Sélection de la Date d'Arrivée */}
-										<div>
-											<label className="inline-block text-[12px] font-medium">
-												Date de livraison
-											</label>
-											<DatePickerDemo date={endDate} setDate={setEndDate} />
-										</div>
-									</div>
-								</div>
-							</form>
-						</div>
-						<TabsContent value="all" className="m-0">
-							<CommandeList items={filteredByDate} />
-						</TabsContent>
-						<TabsContent value="Validé" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter((item) => item.validation_status)}
-							/>
-						</TabsContent>
-						<TabsContent value="NonValidé" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter((item) => !item.validation_status)}
-							/>
-						</TabsContent>
-						<TabsContent value="Enattente" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter((item) => !item.validation_status)}
-							/>
-						</TabsContent>
-						<TabsContent value="payer" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter(
-									(item) => item.payment_status == "paid"
-								)}
-							/>
-						</TabsContent>
-						<TabsContent value="nonPayer" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter(
-									(item) => item.payment_status == "unpaid"
-								)}
-							/>
-						</TabsContent>
-						<TabsContent value="Annuler" className="m-0">
-							<CommandeList
-								items={filteredByDate.filter((item) => item.cancelled_status)}
-							/>
-						</TabsContent>
-					</Tabs>
-				</ResizablePanel>
-				<ResizableHandle withHandle />
-				<ResizablePanel
-					defaultSize={defaultLayout[2]}
-					minSize={30}
-					maxSize={30}>
-					<CommandeDisplay
-						commande={
-							filteredByDate.find((item) => item.id === mail.selected) || null
-						}
-					/>
-				</ResizablePanel>
-			</ResizablePanelGroup>
-		</TooltipProvider>
-	);
+  // Modernisation des filtres et de la recherche
+  return (
+    <div className="flex flex-col h-full w-full">
+      <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-100 p-4 flex flex-col md:flex-row gap-4 items-center justify-between shadow-sm">
+        <div className="flex flex-wrap gap-2 items-center">
+          <button
+            onClick={() => setActiveTab("all")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "all"
+                ? "bg-red-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Toutes
+          </button>
+          <button
+            onClick={() => setActiveTab("Validé")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "Validé"
+                ? "bg-green-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Validées
+          </button>
+          <button
+            onClick={() => setActiveTab("NonValidé")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "NonValidé"
+                ? "bg-yellow-500 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Non validées
+          </button>
+          <button
+            onClick={() => setActiveTab("payer")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "payer"
+                ? "bg-green-700 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Payées
+          </button>
+          <button
+            onClick={() => setActiveTab("nonPayer")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "nonPayer"
+                ? "bg-red-600 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Non payées
+          </button>
+          <button
+            onClick={() => setActiveTab("Annuler")}
+            className={`px-3 py-1 rounded-full text-sm font-medium ${
+              activeTab === "Annuler"
+                ? "bg-gray-400 text-white"
+                : "bg-gray-100 text-gray-700"
+            }`}
+          >
+            Annulées
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2 items-center">
+          <input
+            type="text"
+            placeholder="Rechercher..."
+            className="border rounded px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-red-500"
+            value={searchQuery}
+            onChange={handleInputChange}
+          />
+          <div className="flex gap-2 items-center">
+            <label className="text-xs font-medium">Départ</label>
+            <DatePickerDemo date={startDate} setDate={setStartDate} />
+            <label className="text-xs font-medium">Arrivée</label>
+            <DatePickerDemo date={endDate} setDate={setEndDate} />
+          </div>
+          <span className="ml-4 px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
+            {filteredItems.length} commande{filteredItems.length > 1 ? "s" : ""}{" "}
+            trouvée{filteredItems.length > 1 ? "s" : ""}
+          </span>
+        </div>
+      </div>
+      <div className="flex-1 overflow-y-auto">
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={
+              activeTab +
+              searchQuery +
+              (startDate?.toISOString() || "") +
+              (endDate?.toISOString() || "")
+            }
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            transition={{ duration: 0.25, ease: "easeInOut" }}
+          >
+            <CommandeList items={filteredItems} />
+          </motion.div>
+        </AnimatePresence>
+      </div>
+    </div>
+  );
 }
