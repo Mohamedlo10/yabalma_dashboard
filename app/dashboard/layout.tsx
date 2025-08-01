@@ -9,6 +9,7 @@ interface DashboardLayoutProps {
 
 export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [sidebarHovered, setSidebarHovered] = useState(false);
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen);
@@ -32,14 +33,26 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
 
-        {/* Sidebar for desktop */}
-        <div className="hidden lg:block lg:col-span-2 h-full bg-red-700">
-          <Sidebar isOpen={true} toggleSidebar={toggleSidebar} />
+        {/* Sidebar for desktop - s'ouvre au survol */}
+        <div
+          className={`hidden lg:block h-full bg-red-700 transition-all duration-300 ease-in-out ${
+            sidebarHovered ? "lg:col-span-2" : "lg:col-span-1"
+          }`}
+          onMouseEnter={() => setSidebarHovered(true)}
+          onMouseLeave={() => setSidebarHovered(false)}
+        >
+          <Sidebar
+            isOpen={true}
+            toggleSidebar={toggleSidebar}
+            isHovered={sidebarHovered}
+          />
         </div>
 
         {/* Main content */}
         <div
-          className={`col-span-12 lg:col-span-10 h-full overflow-x-hidden flex flex-col bg-white`}
+          className={`col-span-12 h-full overflow-x-hidden flex flex-col bg-white transition-all duration-300 ease-in-out ${
+            sidebarHovered ? "lg:col-span-10" : "lg:col-span-11"
+          }`}
         >
           <div className="h-[10vh] md:h-[8vh]">
             <Navbar toggleSidebar={toggleSidebar} />

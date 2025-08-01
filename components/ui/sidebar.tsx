@@ -45,9 +45,10 @@ export const paths = [
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void;
+  isHovered?: boolean;
 }
 
-function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
+function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
@@ -80,6 +81,9 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
   useEffect(() => {
     if (!pathname.startsWith("/dashboard/utilisateurs")) {
+      setIsSubMenuOpen(false);
+    }
+    if (!pathname.startsWith("/dashboard/annonces")) {
       setIsSubMenuOpen(false);
     }
   }, [pathname]);
@@ -128,7 +132,11 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       <div className="flex justify-between h-[10vh] lg:h-[8vh] py-2 items-center border-b px-4 lg:h-22 lg:px-6">
         <div className="flex items-center gap-4 font-semibold">
           <Package2 className="2xl:h-6 lg w-8 p-2 bg-white text-red-700 rounded-full" />
-          <span className="text-white font-bold">YABALMA</span>
+          <span
+            className={`text-white font-bold transition-opacity duration-300 `}
+          >
+            YABALMA
+          </span>
         </div>
         <button
           onClick={toggleSidebar}
@@ -140,7 +148,11 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
       <div className="h-[90%] overflow-y-auto">
         <div className="relative top-4 md:top-8">
           <nav className="grid gap-1 items-start text-sm font-medium  px-3 lg:px-3 xl:px-6">
-            <div className="px-1 font-bold text-gray-100 md:pb-3">MENU</div>
+            <div
+              className={`px-1 font-bold text-gray-100 md:pb-3 transition-opacity duration-300 `}
+            >
+              MENU
+            </div>
 
             <Link
               href="/dashboard"
@@ -151,7 +163,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               }`}
             >
               <Home className="2xl:h-6 h-4 w-4" />
-              Dashboard
+              <span
+                className={`transition-opacity duration-300 ${
+                  isHovered ? "block" : "hidden"
+                }`}
+              >
+                Dashboard
+              </span>
             </Link>
 
             {role?.access_groups.utilisateurs ? (
@@ -169,7 +187,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                   }`}
                 >
                   <Users className="2xl:h-6 lg w-4" />
-                  Utilisateurs
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    Utilisateurs
+                  </span>
                   {isSubMenuOpen ? (
                     <ChevronUp className="ml-auto" />
                   ) : (
@@ -223,28 +247,58 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
             {role?.access_groups.annonces ? (
               <div>
                 <Link
-                  href="/dashboard/annonces"
-                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
+                  href="#"
+                  onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
+                  className={`flex items-center gap-1 lg:gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ${
                     pathname === "/dashboard/annonces" ||
-                    pathname === "/dashboard/annonces/profile"
+                    pathname === "/dashboard/annonces/profile" ||
+                    pathname === "/dashboard/annonces/gestion" ||
+                    isSubMenuOpen
                       ? "bg-white text-red-700 shadow-lg"
                       : "text-white hover:bg-white hover:text-red-700"
                   }`}
                 >
                   <Book className="2xl:h-6 lg w-4" />
-                  Annonces
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    Annonces
+                  </span>
+                  {isSubMenuOpen ? (
+                    <ChevronUp className="ml-auto" />
+                  ) : (
+                    <ChevronDown className="ml-auto" />
+                  )}
                 </Link>
-                <Link
-                  href="/dashboard/annonces/gestion"
-                  className={`flex items-center gap-3 w-auto rounded-lg lg:px-3  px-3 py-2 font-bold transition-all ml-6 ${
-                    pathname === "/dashboard/annonces/gestion"
-                      ? "bg-white text-red-700 shadow-lg"
-                      : "text-white hover:bg-white hover:text-red-700"
-                  }`}
-                >
-                  <Edit className="2xl:h-6 lg w-4" />
-                  Gestion Annonce
-                </Link>
+
+                {/* Sous-liens */}
+                {isSubMenuOpen && (
+                  <div className="ml-8 mt-2 flex flex-col space-y-2">
+                    <Link
+                      href="/dashboard/annonces"
+                      className={`font-bauto rounded-lg lg:px-3  px-3 py-2 transition-all ${
+                        pathname === "/dashboard/annonces" ||
+                        pathname === "/dashboard/annonces/profile"
+                          ? "bg-white text-red-700"
+                          : "text-white hover:bg-white hover:text-red-700"
+                      }`}
+                    >
+                      Accueil
+                    </Link>
+                    <Link
+                      href="/dashboard/annonces/gestion"
+                      className={`font-bauto rounded-lg lg:px-3  px-3 py-2 transition-all ${
+                        pathname === "/dashboard/annonces/gestion"
+                          ? "bg-white text-red-700"
+                          : "text-white hover:bg-white hover:text-red-700"
+                      }`}
+                    >
+                      Gestion Annonce
+                    </Link>
+                  </div>
+                )}
               </div>
             ) : (
               <div></div>
@@ -265,7 +319,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                   }`}
                 >
                   <ShoppingCart className="2xl:h-6 lg w-4" />
-                  Commandes
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    Commandes
+                  </span>
                 </Link>
                 <Link
                   href="/dashboard/validation"
@@ -276,7 +336,14 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                       : "text-white hover:bg-white hover:text-red-700"
                   }`}
                 >
-                  <UpdateIcon className="2xl:h-6 lg w-4" />A valider
+                  <UpdateIcon className="2xl:h-6 lg w-4" />
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    A valider
+                  </span>
                 </Link>
               </>
             ) : (
@@ -293,7 +360,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 }`}
               >
                 <LineChart className="2xl:h-6 lg w-4" />
-                Finances
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "hidden"
+                  }`}
+                >
+                  Finances
+                </span>
               </Link>
             ) : (
               <div></div>
@@ -309,7 +382,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 }`}
               >
                 <Text className="2xl:h-6 lg w-4" />
-                Commentaires
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "hidden"
+                  }`}
+                >
+                  Commentaires
+                </span>
               </Link>
             ) : (
               <div></div>
@@ -319,7 +398,11 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
 
         <div className="relative 2xl:top-24 top-10 md:top-16">
           <nav className="grid gap-1 items-start md:pb-4 text-sm font-medium px-1 lg:px-3 xl:px-6">
-            <div className="px-1 font-bold text-gray-100 md:pb-3">OTHERS</div>
+            <div
+              className={`px-1 font-bold text-gray-100 md:pb-3 transition-opacity duration-300 `}
+            >
+              OTHERS
+            </div>
 
             <Link
               href="/dashboard/profile"
@@ -330,7 +413,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               }`}
             >
               <User className="2xl:h-6 lg w-4" />
-              Profile
+              <span
+                className={`transition-opacity duration-300 ${
+                  isHovered ? "block" : "hidden"
+                }`}
+              >
+                Profile
+              </span>
             </Link>
 
             {role?.access_groups.accounts ? (
@@ -344,7 +433,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                 }`}
               >
                 <Users className="2xl:h-6 lg w-4" />
-                Comptes
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "hidden"
+                  }`}
+                >
+                  Comptes
+                </span>
               </Link>
             ) : (
               <div></div>
@@ -361,7 +456,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                   }`}
                 >
                   <Settings className="2xl:h-6 lg w-4" />
-                  Paramètres
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    Paramètres
+                  </span>
                 </Link>
                 <Link
                   href="/dashboard/currency"
@@ -372,7 +473,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
                   }`}
                 >
                   <DollarSign className="2xl:h-6 lg w-4" />
-                  Devises
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "hidden"
+                    }`}
+                  >
+                    Devises
+                  </span>
                 </Link>
               </>
             ) : (
@@ -388,7 +495,13 @@ function Sidebar({ isOpen, toggleSidebar }: SidebarProps) {
               }`}
             >
               <LogOut className="2xl:h-6 lg w-4" />
-              Deconnexion
+              <span
+                className={`transition-opacity duration-300 ${
+                  isHovered ? "block" : "hidden"
+                }`}
+              >
+                Deconnexion
+              </span>
             </button>
             <ConfirmDialog
               isOpen={isDialogOpen}

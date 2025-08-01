@@ -89,7 +89,7 @@ const PersonalInfo: React.FC<PersonalInfoProps> = ({ commande }) => {
           <div className="font-bold text-lg text-red-700">
             {Actucommande.client?.prenom} {Actucommande.client?.nom}
           </div>
-          <span className="ml-auto px-2 py-1 rounded text-xs font-semibold bg-gray-100 text-gray-700">
+          <span className="ml-auto px-2 py-2 rounded-xl text-lg font-semibold bg-gray-100 text-gray-700">
             ID: {Actucommande.id}
           </span>
         </div>

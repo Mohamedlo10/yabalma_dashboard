@@ -184,6 +184,11 @@ export function CommandeList({ items }: commandeListProps) {
                   >
                     {item.payment_status === "paid" ? "Payé" : "Non payé"}
                   </span>
+                  <span
+                    className={`px-2 py-1 rounded font-semibold bg-gray-100 text-gray-700`}
+                  >
+                    ID: {item.id}
+                  </span>
                 </div>
               </div>
             ))}
