@@ -78,6 +78,7 @@ export function CommandeData({
 
   const fuse = new Fuse(commandesWithFullNames, {
     keys: [
+      "id",
       "client.nom",
       "client.prenom",
       "client.Tel",

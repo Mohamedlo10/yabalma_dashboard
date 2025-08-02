@@ -88,7 +88,7 @@ export function BarChartComponent() {
               <LabelList
                 position="top"
                 offset={12}
-                className="fill-foreground text-[9px] md:text-sm lg:text-base"
+                className="fill-foreground text-[9px] "
               />
             </Bar>
           </BarChart>

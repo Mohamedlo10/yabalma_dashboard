@@ -10,6 +10,7 @@ import { Icon } from "react-icons-kit";
 import { eye } from "react-icons-kit/feather/eye";
 import { eyeOff } from "react-icons-kit/feather/eyeOff";
 import BeatLoader from "react-spinners/BeatLoader";
+
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
@@ -65,7 +66,6 @@ function Login() {
         setError(error.message);
       } else if (data) {
         // Redirige vers le tableau de bord
-
         router.push("/dashboard");
       }
     } catch (err: any) {
@@ -93,68 +93,70 @@ function Login() {
   }
 
   return (
-    <div className="mx-auto flex flex-col text-white xl:justify-center text-bold shadow-2xl h-3/5 p-4 md:px-20 px-10 xl:w-3/4 md:w-2/3 w-full rounded-sm gap-4">
-      <div className="grid gap-2 text-center">
-        <h1 className="text-2xl  text- font-bold">Login</h1>
-        <p className="text-balance font-medium ">
-          Enter your email below to login to your account
-        </p>
-      </div>
+    <div className="w-full max-w-md mx-auto flex flex-col text-white justify-center h-full p-6 sm:p-8 md:p-5 rounded-lg gap-6">
       <form onSubmit={handleLogin} className="grid gap-4">
-        <div className="grid  gap-2">
-          <Label htmlFor="email">Email</Label>
+        <div className="grid gap-2">
+          <Label htmlFor="email" className="text-sm font-semibold">
+            Email
+          </Label>
           <Input
             id="email"
             type="email"
-            className="bg-white text-black h-14"
-            placeholder="m@example.com"
+            className="bg-white text-black h-12 sm:h-14 text-sm sm:text-base"
+            placeholder="exemple@email.com"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
         </div>
+
         <div className="grid gap-2">
-          <div className="flex items-center ">
-            <Label htmlFor="password">Password</Label>
-            <Link href="#" className="ml-auto inline-block  text-sm underline ">
-              Forgot your password?
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password" className="text-sm font-semibold">
+              Mot de passe
+            </Label>
+            <Link
+              href="#"
+              className="text-xs sm:text-sm underline text-gray-300 hover:text-white transition-colors"
+            >
+              Mot de passe oublié ?
             </Link>
           </div>
-          <div className=" flex flex-row gap-full">
+
+          <div className="relative">
             <Input
               id="password"
-              className="bg-white h-14 text-black"
+              className="bg-white h-12 sm:h-14 text-black text-sm sm:text-base pr-12"
               type={type}
-              placeholder="Password"
+              placeholder="Mot de passe"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
-            ></Input>
-            <span
-              className="flex justify-around items-center"
+            />
+            <button
+              type="button"
+              className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 p-1 rounded-full transition-colors"
               onClick={handleToggle}
             >
-              <Icon
-                className="absolute mr-14 text-zinc-500 hover:bg-slate-200 p-1 rounded-full "
-                icon={icon}
-                size={24}
-              />
-            </span>
+              <Icon icon={icon} size={20} />
+            </button>
           </div>
         </div>
-        <Button type="submit" className="w-full h-14 mt-2 bg-red-800">
-          Login
+
+        {error && (
+          <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3">
+            <p className="text-red-300 text-sm">{error}</p>
+          </div>
+        )}
+
+        <Button
+          type="submit"
+          className="w-full h-12 sm:h-14 mt-2 bg-red-700 hover:bg-red-800 text-sm sm:text-base font-semibold transition-colors"
+          disabled={isLoading}
+        >
+          {isLoading ? "Connexion..." : "Se connecter"}
         </Button>
-        {/* <Button variant="outline" className="w-full h-14 text-black">
-              Login with Google
-            </Button> */}
       </form>
-      {/* <div className="mb-4 text-center text-sm">
-            Don&apos;t have an account?{" "}
-            <Link href="#" className="underline">
-              Sign up
-            </Link>
-          </div> */}
     </div>
   );
 }

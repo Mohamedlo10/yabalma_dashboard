@@ -136,7 +136,10 @@ export const modifierCommande = async (
   }
 };
 
-export const validerCommande = async (id_commande: number) => {
+export const validerCommande = async (
+  id_commande: number,
+  mail_valideur?: string
+) => {
   try {
     const { data: commandeExistante, error: erreurRecherche } = await supabase
       .from("commande")
@@ -159,7 +162,11 @@ export const validerCommande = async (id_commande: number) => {
 
     const { data, error: erreurUpdate } = await supabase
       .from("commande")
-      .update({ validation_status: true })
+      .update({
+        validation_status: true,
+        mail_valideur: mail_valideur || null,
+        validationPending: false, // Débloquer automatiquement lors de la validation
+      })
       .eq("id", id_commande);
 
     if (erreurUpdate) throw erreurUpdate;
@@ -167,6 +174,32 @@ export const validerCommande = async (id_commande: number) => {
     return { message: "Commande validée avec succès", data };
   } catch (err) {
     console.error("Erreur lors de la validation de la commande:", err);
+    throw err;
+  }
+};
+
+// Nouvelle fonction pour gérer le statut de validation en cours
+export const updateValidationStatus = async (
+  id_commande: number,
+  validationPending: boolean,
+  mail_valideur: string | null
+) => {
+  try {
+    const { data, error } = await supabase
+      .from("commande")
+      .update({
+        validationPending: validationPending,
+        mail_valideur: mail_valideur,
+      })
+      .eq("id", id_commande);
+
+    if (error) throw error;
+    return { message: "Statut de validation mis à jour", data };
+  } catch (err) {
+    console.error(
+      "Erreur lors de la mise à jour du statut de validation:",
+      err
+    );
     throw err;
   }
 };

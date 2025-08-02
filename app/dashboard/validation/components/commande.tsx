@@ -59,7 +59,8 @@ export function CommandeData({
 
   const [startDate, setStartDate] = React.useState<Date | undefined>(undefined);
   const [endDate, setEndDate] = React.useState<Date | undefined>(undefined);
-  const commandesWithFullNames = commandes.map((commande) => ({
+  const [localItems, setLocalItems] = useState<Commande[]>(commandes);
+  const commandesWithFullNames = localItems.map((commande) => ({
     ...commande,
     client: commande.client
       ? {
@@ -96,6 +97,7 @@ export function CommandeData({
 
   const fuse = new Fuse(commandesWithFullNames, {
     keys: [
+      "id",
       "client.nom",
       "client.prenom",
       "client.Tel",
@@ -130,6 +132,12 @@ export function CommandeData({
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);
+  };
+
+  const handleItemUpdate = (updatedItem: Commande) => {
+    setLocalItems((prevItems) =>
+      prevItems.map((item) => (item.id === updatedItem.id ? updatedItem : item))
+    );
   };
   useEffect(() => {
     // Si on est sur mobile, on modifie le layout par défaut
@@ -268,13 +276,22 @@ export function CommandeData({
             <Separator className="hidden md:block" />
 
             <TabsContent value="all" className="pt-3">
-              <CommandeList items={filteredItems} />
+              <CommandeList
+                items={filteredItems}
+                onItemUpdate={handleItemUpdate}
+              />
             </TabsContent>
             <TabsContent value="Validé" className="pt-3">
-              <CommandeList items={filteredItems} />
+              <CommandeList
+                items={filteredItems}
+                onItemUpdate={handleItemUpdate}
+              />
             </TabsContent>
             <TabsContent value="NonValidé" className="pt-3">
-              <CommandeList items={filteredItems} />
+              <CommandeList
+                items={filteredItems}
+                onItemUpdate={handleItemUpdate}
+              />
             </TabsContent>
           </Tabs>
         </ResizablePanel>

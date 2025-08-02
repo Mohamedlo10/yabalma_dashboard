@@ -60,84 +60,106 @@ export default function DashboardPage() {
       </div>
     );
   }
+
   return (
-    <div className="chart-wrapper h-full   mx-auto flex max-w-8xl flex-col flex-wrap items-start justify-center gap-2 p-2 md:p-6 sm:flex-row sm:p-8">
-      <div className="grid w-full mx-auto h-[90vh] md:pb-0 pb-28 overflow-y-auto gap-2 sm:grid-cols-1 lg:grid-cols-1 ">
-        <div className="w-full grid-cols-1 grid lg:grid-cols-2 gap-2">
-          <div className=" grid grid-cols-1 gap-2">
+    <div className="h-full w-full p-2 sm:p-4 lg:p-6">
+      <div className="h-full w-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+        {/* Colonne gauche */}
+        <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+          {/* Section Finance ou Bienvenue */}
+          <div className="flex-1 min-h-0">
             {role?.access_groups.finance ? (
-              <BarChartComponent />
+              <div className="h-full">
+                <BarChartComponent />
+              </div>
             ) : (
-              <div className=" flex flex-col md:pb-12 pb-4 justify-center items-center ">
-                <div className="relative w-full md:max-w-[485px] max-w-[70px] h-auto aspect-square">
+              <div className="h-full flex flex-col justify-center items-center">
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48">
                   <Image
                     src="/yabalma.jpg"
-                    alt="Image"
+                    alt="Logo Yabalma"
                     fill
                     style={{ objectFit: "cover" }}
-                    className="object-cover"
+                    className="object-cover rounded-lg"
                   />
                 </div>
-                <div className="h-8 md:text-3xl text-sm xl:text-4xl font-serif flex justify-center items-center font-extrabold text-red-800 mr-3 ">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-serif font-extrabold text-red-800 mt-4 text-center">
                   Bienvenue {user?.user_metadata?.prenom}{" "}
                   {user?.user_metadata?.nom}
                 </div>
               </div>
             )}
-            {role?.access_groups.utilisateurs ? (
-              <div className=" grid grid-cols-2 gap-2">
-                <ClientPays />
+          </div>
 
+          {/* Section Utilisateurs */}
+          {role?.access_groups.utilisateurs && (
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 h-48 sm:h-56 lg:h-64">
+              <div className="h-full">
+                <ClientPays />
+              </div>
+              <div className="h-full">
                 <GpPays />
               </div>
-            ) : (
-              <div></div>
-            )}
-          </div>
-          <div className=" grid grid-cols-1 gap-2">
+            </div>
+          )}
+        </div>
+
+        {/* Colonne droite */}
+        <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+          {/* Section Utilisateurs/Commentaires ou Bienvenue */}
+          <div className="flex-1 min-h-0">
             {role?.access_groups.utilisateurs ||
             role?.access_groups.commentaires ||
             !role?.access_groups.finance ? (
-              <div className=" grid grid-cols-2 gap-2 ">
-                <div className="">
+              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 h-full">
+                <div className="h-full">
                   {role?.access_groups.utilisateurs ? (
                     <CirculaireComponent />
                   ) : (
-                    <div></div>
+                    <div className="h-full bg-gray-50 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">
+                        Aucun graphique
+                      </span>
+                    </div>
                   )}
                 </div>
-                <div className="">
+                <div className="h-full">
                   {role?.access_groups.commentaires ? (
                     <Commentaire />
                   ) : (
-                    <div></div>
+                    <div className="h-full bg-gray-50 rounded-lg flex items-center justify-center">
+                      <span className="text-gray-400 text-sm">
+                        Aucun graphique
+                      </span>
+                    </div>
                   )}
                 </div>
               </div>
             ) : (
-              <div className=" flex flex-col justify-center items-center ">
-                <div className="relative w-full md:max-w-[485px] max-w-[70px] h-auto aspect-square">
+              <div className="h-full flex flex-col justify-center items-center">
+                <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48">
                   <Image
                     src="/yabalma.jpg"
-                    alt="Image"
+                    alt="Logo Yabalma"
                     fill
                     style={{ objectFit: "cover" }}
-                    className="object-cover"
+                    className="object-cover rounded-lg"
                   />
                 </div>
-                x
-                <div className="h-14 md:text-3xl text-sm xl:text-4xl  font-serif flex justify-center items-center font-extrabold text-red-800 mr-3 ">
+                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-serif font-extrabold text-red-800 mt-4 text-center">
                   Bienvenue {user?.user_metadata?.prenom}{" "}
                   {user?.user_metadata?.nom}
                 </div>
               </div>
             )}
-            {role?.access_groups.annonces || role?.access_groups.commandes ? (
-              <Commande />
-            ) : (
-              <div></div>
-            )}
           </div>
+
+          {/* Section Annonces/Commandes */}
+          {(role?.access_groups.annonces || role?.access_groups.commandes) && (
+            <div className="h-48 sm:h-56 lg:h-64">
+              <Commande />
+            </div>
+          )}
         </div>
       </div>
     </div>

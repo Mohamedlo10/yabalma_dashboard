@@ -53,6 +53,8 @@ export const commandeSchema = z.object({
   cancelled_status: z.boolean(),
   annonce: annonceSchema,
   total_price: z.string().optional().nullable(),
+  mail_valideur: z.string().optional().nullable(),
+  validationPending: z.boolean().optional().nullable(),
   client: clientSchema.nullable(),
   detail_commande: detailsCommandeSchema.optional(),
 });
