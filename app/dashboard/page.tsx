@@ -63,7 +63,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-full w-full sm:px-4 lg:px-6">
+    <div className="h-full w-full sm:p-4 lg:p-6">
       <div className="h-full w-full grid grid-cols-1 lg:grid-cols-2 gap-2 pb-12 sm:gap-3 lg:gap-4">
         {/* Colonne gauche */}
         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
