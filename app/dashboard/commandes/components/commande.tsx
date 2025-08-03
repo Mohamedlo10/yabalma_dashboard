@@ -124,7 +124,7 @@ export function CommandeData({
 
   // Modernisation des filtres et de la recherche
   return (
-    <div className="flex flex-col h-screen w-full">
+    <div className="flex flex-col p-3 max-h-[87vh] w-full">
       <div className="sticky top-0 z-10 bg-white/80 backdrop-blur border-b border-gray-100 p-2 sm:px-3 lg:px-4 flex flex-col gap-2 sm:gap-3 lg:gap-4 items-start sm:items-center justify-between shadow-sm">
         {/* Filtres principaux */}
         <div className="flex flex-wrap gap-1 sm:gap-2 items-center w-full sm:w-auto">

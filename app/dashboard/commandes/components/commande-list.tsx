@@ -244,10 +244,10 @@ export function CommandeList({ items }: commandeListProps) {
   }
 
   return (
-    <div className="flex w-fit h-full min-h-0">
+    <div className="flex w-full h-full min-h-0">
       {/* Liste des commandes à gauche */}
-      <div className="w-full md:w-[60%] border-r h-full min-h-0 flex flex-col">
-        <ScrollArea className="flex-1 h-full max-h-[70vh] sm:max-h-[75vh] lg:max-h-[80vh] xl:max-h-[85vh] overflow-y-auto min-h-0">
+      <div className="w-full md:w-[45%] border-r h-full  max-h-[70vh] sm:max-h-[72vh]   min-h-0 flex flex-col">
+        <ScrollArea className="flex-1 h-full max-h-[70vh] sm:max-h-[72vh]   overflow-y-auto min-h-0">
           <div className="flex flex-col gap-1.5 sm:gap-2 lg:gap-3 p-1.5 sm:p-2 lg:p-3 pt-1.5 sm:pt-2 lg:pt-3">
             {items.map((item) => (
               <div
@@ -371,7 +371,7 @@ export function CommandeList({ items }: commandeListProps) {
       </div>
 
       {/* Détails de la commande à droite */}
-      <div className="hidden md:flex md:w-[40%] h-full max-h-[70vh] sm:max-h-[75vh] lg:max-h-[80vh] xl:max-h-[85vh] overflow-y-auto min-h-0 flex-col">
+      <div className="hidden md:flex md:w-[55%] h-full max-h-[70vh] sm:max-h-[72vh]   min-h-0 flex-col">
         <AnimatePresence mode="wait">
           {commande.selected && selectedCommande ? (
             <motion.div
