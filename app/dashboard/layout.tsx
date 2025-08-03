@@ -55,7 +55,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
           {/* Content area */}
           <div className="flex-1 overflow-y-auto">
-            <section className="p-4 lg:p-6">{children}</section>
+            <section className="px-2">{children}</section>
           </div>
         </div>
       </div>

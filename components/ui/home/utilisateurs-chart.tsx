@@ -131,20 +131,20 @@ export function CirculaireComponent() {
   }
 
   return (
-    <Card data-chart={id} className="flex flex-col md:p-0 -p-6 h-full">
+    <Card data-chart={id} className="flex flex-col h-full">
       <ChartStyle id={id} config={chartConfig} />
-      <CardHeader className="md:flex-row flex-col items-start space-y-0 pb-0">
-        <div className="grid md:grid-cols-1 grid-cols-2 md:gap-1 gap-16">
-          <CardTitle className="xl:text-lg md:text-base   text-sm">
+      <CardHeader className="flex-row items-start space-y-0 pb-2">
+        <div className="grid grid-cols-2 gap-4 flex-1">
+          <CardTitle className="text-xs sm:text-sm lg:text-base">
             Utilisateurs
           </CardTitle>
-          <CardTitle className="text-red-600 font-bold md:text-4xl text-sm xl:text-5xl">
+          <CardTitle className="text-red-600 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
             {totalUsers}
           </CardTitle>
         </div>
         <Select value={activeMonth} onValueChange={setActiveMonth}>
           <SelectTrigger
-            className="ml-auto md:h-10 h-7 xl:w-[100px] md:w-[70px] w-fit rounded-lg xl:pl-2.5"
+            className="ml-auto h-7 sm:h-8 w-fit sm:w-[70px] lg:w-[80px] xl:w-[100px] rounded-lg pl-2"
             aria-label="Select a value"
           >
             <SelectValue placeholder="Select month" />
@@ -178,11 +178,11 @@ export function CirculaireComponent() {
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent className="flex flex-1 justify-center pb-0">
+      <CardContent className="flex flex-1 justify-center pb-2">
         <ChartContainer
           id={id}
           config={chartConfig}
-          className=" p-2 aspect-square w-full max-w-[330px]"
+          className="p-1 sm:p-2 aspect-square w-full max-w-[280px] sm:max-w-[300px] lg:max-w-[330px]"
         >
           <PieChart>
             <ChartTooltip
@@ -198,19 +198,19 @@ export function CirculaireComponent() {
               data={desktopData}
               dataKey="desktop"
               nameKey="month"
-              innerRadius={80}
-              strokeWidth={30}
+              innerRadius={60}
+              strokeWidth={20}
               activeIndex={activeIndex}
               activeShape={({
                 outerRadius = 0,
                 ...props
               }: PieSectorDataItem) => (
                 <g>
-                  <Sector {...props} outerRadius={outerRadius + 4} />
+                  <Sector {...props} outerRadius={outerRadius + 3} />
                   <Sector
                     {...props}
-                    outerRadius={outerRadius + 10}
-                    innerRadius={outerRadius + 4}
+                    outerRadius={outerRadius + 8}
+                    innerRadius={outerRadius + 3}
                   />
                 </g>
               )}
@@ -228,14 +228,14 @@ export function CirculaireComponent() {
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className="fill-foreground text-4xl font-bold"
+                          className="fill-foreground text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl font-bold"
                         >
                           {desktopData[activeIndex].desktop.toLocaleString()}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
-                          y={(viewBox.cy || 0) + 24}
-                          className="fill-muted-foreground"
+                          y={(viewBox.cy || 0) + 16}
+                          className="fill-muted-foreground text-xs sm:text-sm"
                         >
                           {desktopData[activeIndex].month}
                         </tspan>
@@ -248,11 +248,11 @@ export function CirculaireComponent() {
           </PieChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-end md:gap-2 gap-0 ">
+      <CardFooter className="flex-col items-end gap-1 sm:gap-2 pt-2">
         <button
           type="button"
           onClick={() => router.push("dashboard/utilisateurs")}
-          className="w-fit md:h-10 h-9 bg-black p-1 rounded-sm text-white  text-[9px] xl:text-sm font-bold"
+          className="w-fit h-7 sm:h-8 lg:h-10 bg-black p-1 rounded-sm text-white text-[8px] sm:text-[9px] lg:text-xs xl:text-sm font-bold"
         >
           Gerer les Utilisateurs
         </button>

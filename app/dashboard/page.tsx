@@ -13,6 +13,7 @@ import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { User } from "./accounts/schema";
 import { Role } from "./settings/schema";
+import { ValidationDiag } from "./validation/components/validationDiag";
 
 const override: CSSProperties = {
   display: "block",
@@ -62,8 +63,8 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="h-full w-full p-2 sm:p-4 lg:p-6">
-      <div className="h-full w-full grid grid-cols-1 lg:grid-cols-2 gap-2 sm:gap-3 lg:gap-4">
+    <div className="h-full w-full sm:px-4 lg:px-6">
+      <div className="h-full w-full grid grid-cols-1 lg:grid-cols-2 gap-2 pb-12 sm:gap-3 lg:gap-4">
         {/* Colonne gauche */}
         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
           {/* Section Finance ou Bienvenue */}
@@ -74,7 +75,7 @@ export default function DashboardPage() {
               </div>
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48">
                   <Image
                     src="/yabalma.jpg"
                     alt="Logo Yabalma"
@@ -83,7 +84,7 @@ export default function DashboardPage() {
                     className="object-cover rounded-lg"
                   />
                 </div>
-                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-serif font-extrabold text-red-800 mt-4 text-center">
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-serif font-extrabold text-red-800 mt-4 text-center">
                   Bienvenue {user?.user_metadata?.prenom}{" "}
                   {user?.user_metadata?.nom}
                 </div>
@@ -93,7 +94,7 @@ export default function DashboardPage() {
 
           {/* Section Utilisateurs */}
           {role?.access_groups.utilisateurs && (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 h-48 sm:h-56 lg:h-64">
+            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 sm:h-80 lg:h-40">
               <div className="h-full">
                 <ClientPays />
               </div>
@@ -106,38 +107,15 @@ export default function DashboardPage() {
 
         {/* Colonne droite */}
         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
-          {/* Section Utilisateurs/Commentaires ou Bienvenue */}
+          {/* Section Validation/Commentaires ou Bienvenue */}
           <div className="flex-1 min-h-0">
-            {role?.access_groups.utilisateurs ||
-            role?.access_groups.commentaires ||
-            !role?.access_groups.finance ? (
-              <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 h-full">
-                <div className="h-full">
-                  {role?.access_groups.utilisateurs ? (
-                    <CirculaireComponent />
-                  ) : (
-                    <div className="h-full bg-gray-50 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">
-                        Aucun graphique
-                      </span>
-                    </div>
-                  )}
-                </div>
-                <div className="h-full">
-                  {role?.access_groups.commentaires ? (
-                    <Commentaire />
-                  ) : (
-                    <div className="h-full bg-gray-50 rounded-lg flex items-center justify-center">
-                      <span className="text-gray-400 text-sm">
-                        Aucun graphique
-                      </span>
-                    </div>
-                  )}
-                </div>
+            {role?.access_groups.commandes ? (
+              <div className="h-full">
+                <ValidationDiag />
               </div>
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
-                <div className="relative w-32 h-32 sm:w-40 sm:h-40 lg:w-48 lg:h-48">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48">
                   <Image
                     src="/yabalma.jpg"
                     alt="Logo Yabalma"
@@ -146,7 +124,7 @@ export default function DashboardPage() {
                     className="object-cover rounded-lg"
                   />
                 </div>
-                <div className="text-lg sm:text-xl lg:text-2xl xl:text-3xl font-serif font-extrabold text-red-800 mt-4 text-center">
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-serif font-extrabold text-red-800 mt-4 text-center">
                   Bienvenue {user?.user_metadata?.prenom}{" "}
                   {user?.user_metadata?.nom}
                 </div>
@@ -156,7 +134,7 @@ export default function DashboardPage() {
 
           {/* Section Annonces/Commandes */}
           {(role?.access_groups.annonces || role?.access_groups.commandes) && (
-            <div className="h-48 sm:h-56 lg:h-64">
+            <div className="h-48 sm:h-56 lg:h-64 xl:h-72">
               <Commande />
             </div>
           )}

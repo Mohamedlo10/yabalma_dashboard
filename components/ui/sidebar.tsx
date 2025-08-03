@@ -53,6 +53,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
+  const [isSubMenuOpenAnnonce, setIsSubMenuOpenAnnonce] = useState(false);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<Role>();
@@ -63,6 +64,16 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
     setIsSubMenuOpen(!isSubMenuOpen);
   };
 
+  const toggleSubMenuAnnonce = () => {
+    setIsSubMenuOpenAnnonce(!isSubMenuOpenAnnonce);
+  };
+  const handleMenuClick = () => {
+    if (isOpen) {
+      toggleSidebar();
+    } else {
+      toggleSidebar();
+    }
+  };
   const handleNavigation = () => {
     router.push(`/`);
   };
@@ -207,7 +218,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 )}
               </button>
 
-              {isSubMenuOpen && (
+              {isSubMenuOpen && isHovered && (
                 <div className="ml-4 mt-0.5 space-y-0.5">
                   <Link
                     href="/dashboard/utilisateurs"
@@ -250,12 +261,12 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
           {role?.access_groups.annonces && (
             <div>
               <button
-                onClick={() => setIsSubMenuOpen(!isSubMenuOpen)}
+                onClick={() => setIsSubMenuOpenAnnonce(!isSubMenuOpenAnnonce)}
                 className={`flex items-center justify-between w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/annonces" ||
                   pathname === "/dashboard/annonces/profile" ||
                   pathname === "/dashboard/annonces/gestion" ||
-                  isSubMenuOpen
+                  isSubMenuOpenAnnonce
                     ? "bg-white text-red-700 shadow-sm"
                     : "text-white hover:bg-white hover:text-red-700"
                 }`}
@@ -270,14 +281,14 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                     Annonces
                   </span>
                 </div>
-                {isSubMenuOpen ? (
+                {isSubMenuOpenAnnonce ? (
                   <ChevronUp className="h-4 w-4" />
                 ) : (
                   <ChevronDown className="h-4 w-4" />
                 )}
               </button>
 
-              {isSubMenuOpen && (
+              {isSubMenuOpenAnnonce && isHovered && (
                 <div className="ml-4 mt-0.5 space-y-0.5">
                   <Link
                     href="/dashboard/annonces"

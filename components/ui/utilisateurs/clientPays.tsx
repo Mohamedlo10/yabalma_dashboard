@@ -75,37 +75,41 @@ export function ClientPays() {
   }
 
   return (
-    <Card className="md:p-0 -p-5">
-      <CardHeader>
-        <CardTitle className="md:text-base text-xs">Client</CardTitle>
-        <CardDescription className="md:text-base text-xs">
-          Par Pays
-        </CardDescription>
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-1 flex-shrink-0">
+        <CardTitle className="text-xs sm:text-sm">Client</CardTitle>
+        <CardDescription className="text-xs">Par Pays</CardDescription>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
-          <BarChart accessibilityLayer data={clients}>
+      <CardContent className="flex-1 min-h-0 px-2 pt-1 sm:px-3 sm:pt-2 pb-1">
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <BarChart
+            accessibilityLayer
+            data={clients}
+            margin={{ top: 3, right: 8, left: 8, bottom: 15 }}
+          >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="pays"
               tickLine={false}
-              tickMargin={10}
+              tickMargin={3}
               axisLine={false}
+              fontSize={8}
+              minTickGap={15}
               tickFormatter={(value) => value.slice(0, 3)}
             />
             <ChartTooltip
               cursor={false}
               content={<ChartTooltipContent indicator="dot" />}
             />
-            <Bar dataKey="count" fill="var(--color-Client)" radius={8} />
+            <Bar dataKey="count" fill="var(--color-Client)" radius={4} />
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-start gap-2 text-sm">
-        <div className="flex gap-2 font-medium md:text-base text-xs leading-none">
-          Nombre de clients par pays <TrendingUp className="h-4 w-4" />
+      <CardFooter className="flex-col items-start gap-1 text-xs pt-1 flex-shrink-0">
+        <div className="flex gap-1 font-medium text-xs leading-none">
+          Nombre de clients par pays <TrendingUp className="h-3 w-3" />
         </div>
-        <div className="leading-none md:text-base text-xs text-muted-foreground">
+        <div className="leading-none text-xs text-muted-foreground">
           statistique des clients
         </div>
       </CardFooter>

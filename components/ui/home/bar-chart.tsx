@@ -47,33 +47,38 @@ export function BarChartComponent() {
   const router = useRouter();
 
   return (
-    <Card className=" ">
-      <CardHeader>
-        <CardDescription>Revenue </CardDescription>
-        <CardTitle className="flex items-baseline gap-1 text-xl md:text-4xl tabular-nums">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="pb-1 flex-shrink-0">
+        <CardDescription className="text-xs">Revenue </CardDescription>
+        <CardTitle className="flex items-baseline gap-1 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl tabular-nums">
           10 765
-          <span className="text-sm font-normal tracking-normal text-muted-foreground">
+          <span className="text-xs font-normal tracking-normal text-muted-foreground">
             Euro
           </span>
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <ChartContainer config={chartConfig}>
+      <CardContent className="flex-1 min-h-0 px-1 pt-1 sm:px-2 sm:pt-2 pb-1">
+        <ChartContainer config={chartConfig} className="h-full w-full">
           <BarChart
             accessibilityLayer
             data={chartData}
             margin={{
-              top: 20,
+              top: 2,
+              right: 5,
+              left: 5,
+              bottom: 10,
             }}
-            barCategoryGap="25%" // Augmente l'espacement entre les barres
+            barCategoryGap="15%"
           >
             <CartesianGrid vertical={false} />
             <XAxis
               dataKey="month"
               tickLine={false}
-              tickMargin={10}
+              tickMargin={2}
               axisLine={false}
               tickFormatter={(value) => value.slice(0, 3)}
+              fontSize={7}
+              minTickGap={12}
             />
             <ChartTooltip
               cursor={false}
@@ -84,21 +89,21 @@ export function BarChartComponent() {
                 />
               }
             />
-            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={8}>
+            <Bar dataKey="desktop" fill="var(--color-desktop)" radius={3}>
               <LabelList
                 position="top"
-                offset={12}
-                className="fill-foreground text-[9px] "
+                offset={3}
+                className="fill-foreground text-[5px] sm:text-[6px] md:text-[7px] lg:text-[8px] xl:text-[9px]"
               />
             </Bar>
           </BarChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter className="flex-col items-end gap-2 text-sm">
+      <CardFooter className="flex-col items-end gap-1 text-xs pt-1 flex-shrink-0">
         <Button
           type="button"
           onClick={() => router.push("dashboard/finance")}
-          className="w-28 h-10 font-bold"
+          className="w-16 sm:w-20 h-6 sm:h-8 font-bold text-xs"
         >
           Voir Details
         </Button>
