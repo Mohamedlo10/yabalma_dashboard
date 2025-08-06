@@ -137,9 +137,9 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
   }
 
   return role?.access_groups ? (
-    <div className="h-screen w-full bg-red-700 flex flex-col">
+    <div className="h-full w-full bg-red-700 flex flex-col">
       {/* Header - hauteur minimale */}
-      <div className="flex justify-between items-center h-14 px-3 border-b border-red-600 flex-shrink-0">
+      <div className="flex justify-between items-center h-10 px-3 border-b border-red-600 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Package2 className="h-7 w-7 p-1 bg-white text-red-700 rounded-lg shadow-sm" />
           <span
