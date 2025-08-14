@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { annonceSchema } from "../../annonces/schema";
+import { annonceSchema } from "../../trajets/schema";
 import { clientSchema } from "../../utilisateurs/schema";
 
 

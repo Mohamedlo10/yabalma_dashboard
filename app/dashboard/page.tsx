@@ -4,8 +4,7 @@ import { BarChartComponent } from "@/components/ui/home/bar-chart";
 import Commande from "@/components/ui/home/commande";
 import Commentaire from "@/components/ui/home/commentaire";
 import CirculaireComponent from "@/components/ui/home/utilisateurs-chart";
-import ClientPays from "@/components/ui/utilisateurs/clientPays";
-import GpPays from "@/components/ui/utilisateurs/gpPays";
+import ClientPays from "@/components/ui/home/clientPays";
 import { getSupabaseSession, getSupabaseUser } from "@/lib/authMnager";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -13,7 +12,8 @@ import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { User } from "./accounts/schema";
 import { Role } from "./settings/schema";
-import { ValidationDiag } from "./validation/components/validationDiag";
+import { ValidationDiag } from "../../components/ui/home/validationDiag";
+import { TotalAvalideComponent } from "../../components/ui/home/TotalAvalideDiag";
 
 const override: CSSProperties = {
   display: "block",
@@ -68,9 +68,9 @@ export default function DashboardPage() {
         {/* Colonne gauche */}
         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
           {/* Section Finance ou Bienvenue */}
-          <div className="flex-1 min-h-0">
+          <div className="flex-1 min-h-0 sm:mb-0 mb-16">
             {role?.access_groups.finance ? (
-              <div className="h-full">
+              <div className="h-80 lg:h-96">
                 <BarChartComponent />
               </div>
             ) : (
@@ -93,25 +93,27 @@ export default function DashboardPage() {
           </div>
 
           {/* Section Utilisateurs */}
-          {role?.access_groups.utilisateurs && (
-            <div className="grid grid-cols-2 gap-2 sm:gap-3 lg:gap-4 sm:h-80 lg:h-40">
-              <div className="h-full">
-                <ClientPays />
+         
+
+           {role?.access_groups.commandes && (
+              <div className="flex-1 min-h-0 ">
+                <div className="h-64 sm:h-80 lg:h-96">
+                <Commande />
               </div>
-              <div className="h-full">
-                <GpPays />
               </div>
-            </div>
-          )}
+            )}
+          
         </div>
 
+
         {/* Colonne droite */}
-        <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
-          {/* Section Validation/Commentaires ou Bienvenue */}
-          <div className="flex-1 min-h-0">
+         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+          {/* Section Commandes ou Bienvenue */}
+          <div className="flex-1 min-h-0 sm:mb-0 mb-16">
             {role?.access_groups.commandes ? (
-              <div className="h-full">
+              <div className="h-48 grid grid-cols-2 sm:h-80 gap-4 lg:h-96">
                 <ValidationDiag />
+                <TotalAvalideComponent />
               </div>
             ) : (
               <div className="h-full flex flex-col justify-center items-center">
@@ -132,13 +134,19 @@ export default function DashboardPage() {
             )}
           </div>
 
-          {/* Section Annonces/Commandes */}
-          {(role?.access_groups.annonces || role?.access_groups.commandes) && (
-            <div className="h-48 sm:h-56 lg:h-64 xl:h-72">
-              <Commande />
-            </div>
-          )}
+          {/* Section users */}
+         
+
+           {role?.access_groups.utilisateurs && (
+              <div className="flex-1 min-h-0">
+                <div className="h-80 lg:h-96">
+               <ClientPays />    
+              </div>
+              </div>
+            )}
+          
         </div>
+
       </div>
     </div>
   );

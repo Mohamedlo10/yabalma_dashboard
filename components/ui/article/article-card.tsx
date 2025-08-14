@@ -7,53 +7,76 @@ const ArticleCard: React.FC<{ article: Article; variant?: string }> = ({
 }) => {
   if (variant === "modern") {
     return (
-      <div className="flex flex-col items-center bg-blue-50 rounded-xl shadow p-3 min-w-[170px] max-w-[200px]">
-        <div className="w-32 h-32 rounded-full overflow-hidden border-2 border-blue-200 mb-2">
+      <div className="group relative flex flex-row items-center bg-gradient-to-br from-emerald-50 via-white to-emerald-50 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 p-4 border border-emerald-100 hover:border-emerald-200 hover:-translate-y-1">
+        {/* Image container with improved styling */}
+        <div className="relative sm:w-28 sm:h-20 w-20 h-20 rounded-2xl overflow-hidden mb-3 ring-2 ring-emerald-200 group-hover:ring-emerald-300 transition-all duration-300">
           <img
             src={article.image}
             alt={article.name}
-            className="w-full h-full object-cover"
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
         </div>
-        <div className="font-semibold text-sm text-blue-900 text-center  w-full">
-          {article.name.length > 50
-            ? article.name.substring(0, 50) + "…"
+        
+        {/* Product name */}
+        <h3 className="font-medium text-[10px] sm:text-xs text-gray-800 text-center leading-tight mb-2 px-1">
+          {article.name.length > 33
+            ? article.name.substring(0, 33) + "…"
             : article.name}
+        </h3>
+        
+        {/* Quantity badge */}
+        <div className="inline-flex items-center px-1 py-1 bg-amber-100 text-amber-700 text-[10px] sm:text-xs font-medium rounded-full mb-3">
+          Qté: {article.quantity}
         </div>
-        <div className="text-xs text-gray-500 mt-1">
-          Qté : {article.quantity}
-        </div>
-        <div className="flex flex-col items-center mt-1">
-          <span className="bg-blue-200 text-blue-900 text-base font-bold rounded-full px-2 py-0.5">
+        
+        {/* Price section */}
+        <div className="flex flex-col items-center gap-2 w-full ">
+          <span className="bg-gradient-to-r from-amber-400 to-amber-500 text-white text-[10px] sm:text-xs font-semibold rounded-xl px-1 sm:px-2 py-1.5 shadow-sm">
             {article.price} €
           </span>
-          <span className="bg-blue-600 text-white text-base font-bold rounded-full px-2 py-0.5 mt-1">
-            Total {article.totalPrice.toFixed(2)} €
+          <span className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] sm:text-xs font-semibold rounded-xl px-1 sm:px-2 py-1.5 shadow-sm">
+            T : {article.totalPrice.toFixed(2)} €
           </span>
         </div>
       </div>
     );
   }
+
   return (
-    <div className="bg-white rounded-2xl shadow-md p-4 w-28 md:w-44">
-      <div className="relative">
+    <div className="group relative bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 p-4 w-40 border border-gray-100 hover:border-amber-200 hover:-translate-y-0.5">
+      {/* Image container */}
+      <div className="relative overflow-hidden rounded-xl mb-3">
         <img
           src={article.image}
           alt={article.name}
-          className="w-full h-32 md:h-36 object-cover rounded-lg"
+          className="w-full h-28 object-cover group-hover:scale-105 transition-transform duration-300"
         />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
       </div>
-      <h2 className="font-semibold text-sm md:text-sm mt-2">
-        {article.name.length > 50
-          ? article.name.substring(0, 50) + "..."
+      
+      {/* Product name */}
+      <h3 className="font-medium text-xs text-gray-800 leading-tight mb-2 sm:text-[10px]">
+        {article.name.length > 38
+          ? article.name.substring(0, 38) + "..."
           : article.name}
-      </h2>{" "}
-      <p className="text-gray-500 text-base md:text-sm">
-        Quantity: {article.quantity}
+      </h3>
+      
+      {/* Quantity */}
+      <p className="text-xs text-gray-500 mb-3 flex items-center gap-1">
+        <span className="w-1.5 h-1.5 bg-amber-400 rounded-full"></span>
+        Quantité: {article.quantity}
       </p>
-      <div className="flex justify-between text-base md:text-sm flex-col items-center mt-3">
-        <span className="font-bold  ">${article.price}</span>
-        <span className="font-bold  ">Total ${article.totalPrice}</span>
+      
+      {/* Price section */}
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center justify-between text-xs">
+          <span className="text-xs text-gray-500">Prix unitaire</span>
+          <span className="font-semibold text-amber-600">{article.price} €</span>
+        </div>
+        <div className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-center py-2 rounded-lg">
+          <span className="text-xs font-semibold">T : {article.totalPrice.toFixed(2)} €</span>
+        </div>
       </div>
     </div>
   );

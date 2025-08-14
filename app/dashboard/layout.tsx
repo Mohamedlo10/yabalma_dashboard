@@ -25,7 +25,7 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               className="absolute inset-0 bg-black bg-opacity-50"
               onClick={toggleSidebar}
             />
-            <div className="relative w-80 h-full z-50">
+            <div className="relative w-full h-full z-50">
               <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
             </div>
           </div>

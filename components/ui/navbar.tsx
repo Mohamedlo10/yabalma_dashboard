@@ -5,8 +5,8 @@ interface NavbarProps {
 
 function Navbar({ toggleSidebar }: NavbarProps) {
   return (
-    <div className="flex flex-col h-[10vh] md:h-[8vh]">
-      <header className="flex items-center md:items-center gap-4 border-b bg-white px-10 h-[10vh] md:h-[8vh]">
+    <div className="flex flex-col">
+      <header className="flex items-center md:items-center gap-4 border-b bg-white px-10 h-[8vh] md:h-[5vh]">
         <button
           onClick={toggleSidebar}
           className="lg:hidden flex items-center justify-center text-gray-700 hover:text-red-700"

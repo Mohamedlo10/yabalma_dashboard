@@ -20,6 +20,7 @@ import {
   Users,
   X,
   CheckCircle,
+  Plane,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -35,7 +36,7 @@ const override: CSSProperties = {
 
 export const paths = [
   "utilisateurs",
-  "annonces",
+  "trajets",
   "commandes",
   "commentaires",
   "finance",
@@ -53,7 +54,6 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
   const router = useRouter();
   const pathname = usePathname();
   const [isSubMenuOpen, setIsSubMenuOpen] = useState(false);
-  const [isSubMenuOpenAnnonce, setIsSubMenuOpenAnnonce] = useState(false);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<Role>();
@@ -64,9 +64,6 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
     setIsSubMenuOpen(!isSubMenuOpen);
   };
 
-  const toggleSubMenuAnnonce = () => {
-    setIsSubMenuOpenAnnonce(!isSubMenuOpenAnnonce);
-  };
   const handleMenuClick = () => {
     if (isOpen) {
       toggleSidebar();
@@ -139,7 +136,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
   return role?.access_groups ? (
     <div className="h-full w-full bg-red-700 flex flex-col">
       {/* Header - hauteur minimale */}
-      <div className="flex justify-between items-center h-10 px-3 border-b border-red-600 flex-shrink-0">
+      <div className="flex justify-between items-center h-[8vh] sm:h-[5vh] px-3 border-b border-red-600 flex-shrink-0">
         <div className="flex items-center gap-2">
           <Package2 className="h-7 w-7 p-1 bg-white text-red-700 rounded-lg shadow-sm" />
           <span
@@ -190,136 +187,54 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
           {/* Utilisateurs */}
           {role?.access_groups.utilisateurs && (
             <div>
-              <button
-                onClick={toggleSubMenu}
-                className={`flex items-center justify-between w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+              
+
+              <Link
+              href="/dashboard/utilisateurs"
+              className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/utilisateurs" ||
-                  pathname === "/dashboard/utilisateurs/gp" ||
-                  pathname === "/dashboard/utilisateurs/Clients" ||
-                  isSubMenuOpen
-                    ? "bg-white text-red-700 shadow-sm"
-                    : "text-white hover:bg-white hover:text-red-700"
+                  pathname === "/dashboard/utilisateurs/Clients" 
+                  ? "bg-white text-red-700 shadow-sm"
+                  : "text-white hover:bg-white hover:text-red-700"
+              }`}
+            >
+                  <Users className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={`transition-opacity duration-300 ${
+                  isHovered ? "block" : "lg:hidden"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Users className="h-5 w-5 flex-shrink-0" />
-                  <span
-                    className={`transition-opacity duration-300 ${
-                      isHovered ? "block" : "lg:hidden"
-                    }`}
-                  >
-                    Utilisateurs
-                  </span>
-                </div>
-                {isSubMenuOpen ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </button>
-
-              {isSubMenuOpen && isHovered && (
-                <div className="ml-4 mt-0.5 space-y-0.5">
-                  <Link
-                    href="/dashboard/utilisateurs"
-                    className={`block rounded-md px-2 py-1 text-xs transition-all ${
-                      pathname === "/dashboard/utilisateurs"
-                        ? "bg-white text-red-700"
-                        : "text-white hover:bg-white hover:text-red-700"
-                    }`}
-                  >
-                    Accueil
-                  </Link>
-                  <Link
-                    href="/dashboard/utilisateurs/Clients"
-                    className={`block rounded-md px-2 py-1 text-xs transition-all ${
-                      pathname === "/dashboard/utilisateurs/Clients" ||
-                      pathname === "/dashboard/utilisateurs/Clients/profile"
-                        ? "bg-white text-red-700"
-                        : "text-white hover:bg-white hover:text-red-700"
-                    }`}
-                  >
-                    Clients
-                  </Link>
-                  <Link
-                    href="/dashboard/utilisateurs/gp"
-                    className={`block rounded-md px-2 py-1 text-xs transition-all ${
-                      pathname === "/dashboard/utilisateurs/gp" ||
-                      pathname === "/dashboard/utilisateurs/gp/profile"
-                        ? "bg-white text-red-700"
-                        : "text-white hover:bg-white hover:text-red-700"
-                    }`}
-                  >
-                    GP
-                  </Link>
-                </div>
-              )}
+                Utilisateurs
+              </span>
+            </Link>
             </div>
           )}
 
-          {/* Annonces */}
+          {/* Trajets */}
           {role?.access_groups.annonces && (
-            <div>
-              <button
-                onClick={() => setIsSubMenuOpenAnnonce(!isSubMenuOpenAnnonce)}
-                className={`flex items-center justify-between w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
-                  pathname === "/dashboard/annonces" ||
-                  pathname === "/dashboard/annonces/profile" ||
-                  pathname === "/dashboard/annonces/gestion" ||
-                  isSubMenuOpenAnnonce
-                    ? "bg-white text-red-700 shadow-sm"
-                    : "text-white hover:bg-white hover:text-red-700"
+            <Link
+              href="/dashboard/trajets"
+              className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                pathname === "/dashboard/trajets"
+                  ? "bg-white text-red-700 shadow-sm"
+                  : "text-white hover:bg-white hover:text-red-700"
+              }`}
+            >
+              <Plane className="h-5 w-5 flex-shrink-0" />
+              <span
+                className={`transition-opacity duration-300 ${
+                  isHovered ? "block" : "lg:hidden"
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <Book className="h-5 w-5 flex-shrink-0" />
-                  <span
-                    className={`transition-opacity duration-300 ${
-                      isHovered ? "block" : "lg:hidden"
-                    }`}
-                  >
-                    Annonces
-                  </span>
-                </div>
-                {isSubMenuOpenAnnonce ? (
-                  <ChevronUp className="h-4 w-4" />
-                ) : (
-                  <ChevronDown className="h-4 w-4" />
-                )}
-              </button>
-
-              {isSubMenuOpenAnnonce && isHovered && (
-                <div className="ml-4 mt-0.5 space-y-0.5">
-                  <Link
-                    href="/dashboard/annonces"
-                    className={`block rounded-md px-2 py-1 text-xs transition-all ${
-                      pathname === "/dashboard/annonces" ||
-                      pathname === "/dashboard/annonces/profile"
-                        ? "bg-white text-red-700"
-                        : "text-white hover:bg-white hover:text-red-700"
-                    }`}
-                  >
-                    Accueil
-                  </Link>
-                  <Link
-                    href="/dashboard/annonces/gestion"
-                    className={`block rounded-md px-2 py-1 text-xs transition-all ${
-                      pathname === "/dashboard/annonces/gestion"
-                        ? "bg-white text-red-700"
-                        : "text-white hover:bg-white hover:text-red-700"
-                    }`}
-                  >
-                    Gestion Annonce
-                  </Link>
-                </div>
-              )}
-            </div>
+                Trajets
+              </span>
+            </Link>
           )}
 
           {/* Commandes */}
           {role?.access_groups.commandes && (
             <>
-              <Link
+             {/*  <Link
                 href="/dashboard/commandes"
                 className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/commandes" ||
@@ -336,7 +251,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 >
                   Commandes
                 </span>
-              </Link>
+              </Link> */}
 
               <Link
                 href="/dashboard/validation"
@@ -381,7 +296,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
           )}
 
           {/* Commentaires */}
-          {role?.access_groups.commentaires && (
+          {/* {role?.access_groups.commentaires && (
             <Link
               href="/dashboard/commentaires"
               className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
@@ -399,7 +314,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 Commentaires
               </span>
             </Link>
-          )}
+          )} */}
         </nav>
 
         {/* Section OTHERS - position fixe en bas */}

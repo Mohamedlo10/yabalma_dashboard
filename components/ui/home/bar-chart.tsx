@@ -39,7 +39,9 @@ const chartData = [
 const chartConfig = {
   desktop: {
     label: "Revenue",
-    color: "#dc2626",
+    color: "#24801B",
+    gradientStart: "#24801B",
+    gradientEnd: "#24801B",
   },
 } satisfies ChartConfig;
 
@@ -52,7 +54,9 @@ export function BarChartComponent() {
         <CardDescription className="text-xs">Revenue </CardDescription>
         <CardTitle className="flex items-baseline gap-1 text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl tabular-nums">
           10 765
-          <span className="text-xs font-normal tracking-normal text-muted-foreground">
+          <span
+            className="text-xs fill-gray-400 font-medium"
+          >
             Euro
           </span>
         </CardTitle>
@@ -66,9 +70,9 @@ export function BarChartComponent() {
               top: 2,
               right: 5,
               left: 5,
-              bottom: 10,
+              bottom: 0,
             }}
-            barCategoryGap="15%"
+            barCategoryGap="30%"
           >
             <CartesianGrid vertical={false} />
             <XAxis
@@ -76,8 +80,8 @@ export function BarChartComponent() {
               tickLine={false}
               tickMargin={2}
               axisLine={false}
-              tickFormatter={(value) => value.slice(0, 3)}
-              fontSize={7}
+              tickFormatter={(value) => value.slice(0, 5)}
+              fontSize={9}
               minTickGap={12}
             />
             <ChartTooltip
@@ -93,7 +97,7 @@ export function BarChartComponent() {
               <LabelList
                 position="top"
                 offset={3}
-                className="fill-foreground text-[5px] sm:text-[6px] md:text-[7px] lg:text-[8px] xl:text-[9px]"
+                className="bg-gray-600 dark:bg-gray-700 text-[11px]"
               />
             </Bar>
           </BarChart>

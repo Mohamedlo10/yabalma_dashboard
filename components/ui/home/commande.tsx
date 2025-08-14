@@ -34,12 +34,16 @@ const chartConfig = {
     label: "Visitors",
   },
   annonces: {
-    label: "annonces",
-    color: "#dc2626",
+    label: "Trajets",
+    color: "rgb(220, 38, 38)",
+    gradientStart: "rgb(220, 38, 38)",
+    gradientEnd: "rgb(220, 38, 38)",
   },
   commande: {
-    label: "commande",
-    color: "#1A6DEA",
+    label: "Commandes",
+    color: "#24801B",
+    gradientStart: "#24801B",
+    gradientEnd: "#24801B",
   },
 } satisfies ChartConfig;
 
@@ -91,10 +95,10 @@ export function Commande() {
       <CardHeader className="flex items-center gap-2 sm:gap-4 space-y-0 border-b py-2 sm:py-3 flex-row flex-shrink-0">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
           <CardTitle className="text-sm sm:text-base lg:text-lg">
-            Annonces - Commandes
+            Trajets - Commandes
           </CardTitle>
           <CardDescription className="text-xs sm:text-sm">
-            Annonces et commandes des{" "}
+            Trajets et commandes des{" "}
             {timeRange === "90d"
               ? "3 derniers mois"
               : timeRange === "30d"
@@ -181,7 +185,7 @@ export function Commande() {
                     });
                   }}
                   indicator="dot"
-                  className="bg-white p-2 shadow-md rounded-md"
+                  className="text-xs fill-indigo-400 font-medium shadow-md rounded-md"
                 />
               }
             />

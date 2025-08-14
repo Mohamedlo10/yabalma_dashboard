@@ -5,7 +5,6 @@ import { Label, Pie, PieChart, Sector } from "recharts";
 import { PieSectorDataItem } from "recharts/types/polar/Pie";
 
 import { getClientCount } from "@/app/api/clients/query";
-import { getGpCount } from "@/app/api/gp/query";
 import { getUsersCount } from "@/app/api/users/query";
 import {
   Card,
@@ -41,19 +40,18 @@ const override: CSSProperties = {
 export const description = "An interactive pie chart";
 
 const desktopData = [
-  { month: "Client", desktop: 0, fill: "var(--color-Client)" },
-  { month: "GP", desktop: 0, fill: "var(--color-GP)" },
+  { month: "Client", desktop: 0, fill: "#4f46e5" },
+
 ];
 
 const chartConfig = {
   Client: {
     label: "Client",
-    color: "#4D4D4D",
+    color: "#4f46e5",
+    gradientStart: "#818cf8",
+    gradientEnd: "#4f46e5",
   },
-  GP: {
-    label: "GP",
-    color: "#dc2626",
-  },
+
 } satisfies ChartConfig;
 
 export function CirculaireComponent() {
@@ -92,12 +90,8 @@ export function CirculaireComponent() {
         console.error("Error fetching Client details:", error);
       }
       try {
-        const data: any = await getGpCount();
-
-        if (data >= 0) {
-          setTotalGp(data);
-          desktopData[1].desktop = data;
-        }
+        // La fonctionnalité GP a été supprimée
+        setTotalGp(0);
       } catch (error) {
         console.error("Error fetching room details:", error);
       } finally {
@@ -133,9 +127,9 @@ export function CirculaireComponent() {
   return (
     <Card data-chart={id} className="flex flex-col h-full">
       <ChartStyle id={id} config={chartConfig} />
-      <CardHeader className="flex-row items-start space-y-0 pb-2">
+      <CardHeader className="flex-row items-start space-y-0">
         <div className="grid grid-cols-2 gap-4 flex-1">
-          <CardTitle className="text-xs sm:text-sm lg:text-base">
+          <CardTitle className="text-xs fill-indigo-400 font-medium sm lg:text-base">
             Utilisateurs
           </CardTitle>
           <CardTitle className="text-red-600 font-bold text-lg sm:text-xl md:text-2xl lg:text-3xl xl:text-4xl">
@@ -178,7 +172,7 @@ export function CirculaireComponent() {
           </SelectContent>
         </Select>
       </CardHeader>
-      <CardContent className="flex flex-1 justify-center pb-2">
+      <CardContent className="flex flex-1 justify-center">
         <ChartContainer
           id={id}
           config={chartConfig}

@@ -37,8 +37,7 @@ import { useEffect, useState } from "react";
 import { type Commande } from "../schema";
 import { useCommande, useUpdateStats } from "../use-commande";
 import { CommandeList } from "./commande-list";
-import { ValidationDiag } from "./validationDiag";
-import { MoyenneGeneraleComponent } from "./TotalAvalideDiag";
+import { ValidationDiag } from "../../../../components/ui/home/validationDiag";
 interface CommandeProps {
   commandes: Commande[];
   defaultLayout: number[] | undefined;
@@ -175,46 +174,7 @@ export function CommandeData({
         }}
         className="h-full max-h-[88vh] items-stretch"
       >
-        {/* Première panel - caché sur mobile */}
-        {!isMobile && (
-          <>
-            <ResizablePanel
-              defaultSize={defaultLayout[0]}
-              collapsedSize={navCollapsedSize}
-              collapsible={true}
-              minSize={28}
-              maxSize={45}
-              onCollapse={() => {
-                setIsCollapsed(true);
-                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-                  true
-                )}`;
-              }}
-              onResize={() => {
-                setIsCollapsed(false);
-                document.cookie = `react-resizable-panels:collapsed=${JSON.stringify(
-                  false
-                )}`;
-              }}
-              className={cn(
-                isCollapsed &&
-                  "min-w-[55px] transition-all duration-300 ease-in-out"
-              )}
-            >
-              <div
-                className={cn(
-                  "flex h-full flex-col items-center gap-2 justify-start mt-4",
-                  isCollapsed ? "h-[92px]" : "px-2"
-                )}
-              >
-                {/* SidePage component */}
-                <ValidationDiag />
-                <MoyenneGeneraleComponent />
-              </div>
-            </ResizablePanel>
-            <ResizableHandle withHandle />
-          </>
-        )}
+ 
 
         {/* Deuxième panel - prend toute la largeur sur mobile */}
         <ResizablePanel
@@ -236,40 +196,41 @@ export function CommandeData({
                     <TabsTrigger value="Validé">Validées</TabsTrigger>
                     <TabsTrigger value="NonValidé">Non validées</TabsTrigger>
                   </TabsList>
+                   <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-lgt">
+                    {filteredItems.length} 
+                  </span>
                 </div>
                 {/* Recherche et dates */}
-                <div className="flex flex-1 flex-col md:flex-row gap-4 items-end">
-                  <div className="flex flex-col flex-1">
+                <div className="flex flex-1 sm:flex-row flex-col gap-4 items-center sm:items-end">
+                  <div className="flex flex-col w-full">
                     <label className="text-xs font-medium mb-1">
                       Recherche
                     </label>
-                    <div className="relative">
+                    <div className="relative w-full">
                       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                       <Input
                         placeholder="Rechercher ..."
-                        className="pl-8 h-10"
+                        className="pl-8 h-10 w-full"
                         value={searchQuery}
                         onChange={handleInputChange}
                       />
                     </div>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium mb-1">
-                      Date de départ
-                    </label>
-                    <DatePickerDemo date={startDate} setDate={setStartDate} />
+                  <div className="flex flex-row sm:gap-8 gap-4 w-full sm:justify-start justify-between ">
+                    <div className="flex flex-col">
+                      <label className="text-xs font-medium mb-1">
+                        Date de départ
+                      </label>
+                      <DatePickerDemo date={startDate} setDate={setStartDate} />
+                    </div>
+                    <div className="flex flex-col">
+                      <label className="text-xs font-medium mb-1">
+                        Date de livraison
+                      </label>
+                      <DatePickerDemo date={endDate} setDate={setEndDate} />
+                    </div>
                   </div>
-                  <div className="flex flex-col">
-                    <label className="text-xs font-medium mb-1">
-                      Date de livraison
-                    </label>
-                    <DatePickerDemo date={endDate} setDate={setEndDate} />
-                  </div>
-                  <span className="ml-4 px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-sm">
-                    {filteredItems.length} commande
-                    {filteredItems.length > 1 ? "s" : ""} trouvée
-                    {filteredItems.length > 1 ? "s" : ""}
-                  </span>
+                 
                 </div>
               </div>
             </div>
