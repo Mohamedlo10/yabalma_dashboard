@@ -186,7 +186,8 @@ export default function AnnonceGestionPage() {
     setIsLoading(true);
     try {
       console.log(annonce);
-      await modifierAnnonce(annonce.id_annonce, annonce);
+      const { client, ...annonceSansClient } = annonce;
+      await modifierAnnonce(annonce.id_annonce, { ...annonceSansClient });
 
       setAnnonce({
         type_transport: "economy",
@@ -351,7 +352,7 @@ export default function AnnonceGestionPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label htmlFor="poids_max" className="block text-sm font-bold mb-2">
-                      Prix du Transport
+                      Tarif par kilo
                     </Label>
                     <Input
                       type="number"
@@ -790,7 +791,7 @@ export default function AnnonceGestionPage() {
                   
                   <div className="flex items-center gap-2">
                     <span className="text-sm text-gray-600">
-                      Prix transport: {annonceItem.poids_max ? `${annonceItem.poids_max} ${annonceItem.devise_prix}` : 'Non spécifié'}
+                      Tarif par kilo: {annonceItem.poids_max ? `${annonceItem.poids_max} ${annonceItem.devise_prix}` : 'Non spécifié'}
                     </span>
                   </div>
 

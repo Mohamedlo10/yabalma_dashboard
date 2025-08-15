@@ -404,9 +404,12 @@ const [refundCurrency, setRefundCurrency] = useState<string>('XOF');
               {!item.validation_status ? (
                
                <div>
-                  {!item.validationPending ? (
-                <button onClick={() => handleOpenDrawer(item)} className="w-full bg-[#0E7D0A]  text-primary-foreground hover:bg-[#0E7D0A]/80 px-4 py-2 rounded-md text-sm font-bold transition-colors">
-                  Valider la commande
+                  {!item.validationPending || currentUser?.email === item.mail_valideur ? (
+                <button 
+                  onClick={() => handleOpenDrawer(item)} 
+                  className={`w-full ${currentUser?.email === item.mail_valideur ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-[#0E7D0A] hover:bg-[#0E7D0A]/80'} text-primary-foreground px-4 py-2 rounded-md text-sm font-bold transition-colors`}
+                >
+                  {currentUser?.email === item.mail_valideur ? 'Débloquer la commande' : 'Valider la commande'}
                 </button>
                 ):(<div className="w-full bg-black opacity-60 text-center font-bold text-primary-foreground  px-4 py-2 rounded-md text-sm ">
                   Bloque par {item.mail_valideur}
@@ -419,6 +422,9 @@ const [refundCurrency, setRefundCurrency] = useState<string>('XOF');
                 <button onClick={() => handleOpenDrawer(item)} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md text-sm font-bold transition-colors">
                   Voir les détails
                 </button>
+              )}
+              {currentUser?.email === item.mail_valideur &&(
+                <span className="text-xs text-muted-foreground">Bloqué par vous {item.mail_valideur}</span>
               )}
             </div>
           </CardFooter>
