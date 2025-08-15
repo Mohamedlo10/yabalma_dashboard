@@ -18,7 +18,7 @@ import {
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart";
-import { useCommande, useUpdateStats } from "../../../app/dashboard/validation/use-commande";
+import { useCommande, useUpdateStats } from "../../../app/dashboard/commandes/use-commande";
 import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 

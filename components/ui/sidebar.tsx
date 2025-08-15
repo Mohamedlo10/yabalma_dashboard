@@ -234,7 +234,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
           {/* Commandes */}
           {role?.access_groups.commandes && (
             <>
-             {/*  <Link
+              <Link
                 href="/dashboard/commandes"
                 className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/commandes" ||
@@ -251,9 +251,9 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 >
                   Commandes
                 </span>
-              </Link> */}
+              </Link>
 
-              <Link
+         {/*      <Link
                 href="/dashboard/validation"
                 className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/validation" ||
@@ -270,7 +270,7 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 >
                   À valider
                 </span>
-              </Link>
+              </Link> */}
             </>
           )}
 

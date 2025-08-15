@@ -20,6 +20,7 @@ export const detailsCommandeSchema = z.object({
   payeur: z.string().optional(),
   expediteur: z.string().optional(),
   first_name: z.string().optional(),
+  whatsapp: z.string().optional(),
   destinataire_number: z.string().optional(),
   destination: z.string().optional(),
 });
@@ -35,7 +36,7 @@ export const shoppingSchema = z.object({
   user_id: z.string().uuid().nullable(),
 });
 
-z;
+// Schéma principal pour la commande
 export const commandeSchema = z.object({
   id: z.number(),
   id_annonce: z.string(),
@@ -52,6 +53,8 @@ export const commandeSchema = z.object({
   cancelled_status: z.boolean(),
   annonce: annonceSchema,
   total_price: z.string().optional().nullable(),
+  mail_valideur: z.string().optional().nullable(),
+  validationPending: z.boolean().optional().nullable(),
   client: clientSchema.nullable(),
   detail_commande: detailsCommandeSchema.optional(),
 });

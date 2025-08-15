@@ -17,7 +17,7 @@ import {
 } from "@/components/ui/chart";
 import { CSSProperties, useEffect, useState } from "react";
 import { number } from "zod";
-import { useCommande, useUpdateStats } from "../../../app/dashboard/validation/use-commande";
+import { useCommande, useUpdateStats } from "../../../app/dashboard/commandes/use-commande";
 import BeatLoader from "react-spinners/BeatLoader";
 
 const override: CSSProperties = {

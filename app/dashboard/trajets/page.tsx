@@ -108,7 +108,7 @@ export default function AnnonceGestionPage() {
 
 
 const handleNavigation = (idCommande:number) => {
-  router.push(`/dashboard/commandes/profile?id=${idCommande}`);
+  router.push(`/dashboard/commandes/profile/${idCommande}`);
 };
   const handleSelectChange = (name: string, value: string) => {
     console.log(`Changing ${name} from ${annonce[name as keyof typeof annonce]} to ${value}`);
@@ -171,11 +171,11 @@ const handleNavigation = (idCommande:number) => {
   const handleOpenCommandes = async (annonce: Annonce) => {
     try {
       // Récupérer les commandes de l'annonce
+      setIsCommandesDrawerOpen(true);
+      setAnnonce(annonce);
       const data = await getCommandesByIdAnnonce(annonce.id_annonce);
       if (data && data.length > 0) {
       setAnnonceCommandes(data);
-      setAnnonce(annonce);
-      setIsCommandesDrawerOpen(true);
       }
       
     } catch (error) {

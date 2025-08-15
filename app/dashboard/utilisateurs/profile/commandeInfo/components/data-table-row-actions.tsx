@@ -13,7 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
-import { commandeSchema } from "@/app/dashboard/validation/schema"
+import { commandeSchema } from "@/app/dashboard/commandes/schema"
 
 interface DataTableRowActionsProps<TData> {
   row: Row<TData>
