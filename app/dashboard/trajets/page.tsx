@@ -16,13 +16,15 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabaseSession } from "@/lib/authMnager";
 import Drawer from "@mui/material/Drawer";
-import { Book, Plus, Save, Trash2, X, Edit, MapPin, Calendar, Package, Truck, Grid, List, Plane } from "lucide-react";
+import { Plus, Trash2, Edit, X, Save, Plane, Grid, List, Book, Calendar, MapPin, Package, Truck, ShoppingCart } from "lucide-react";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { Annonce } from "./schema";
 import { DataTable } from "./components/data-table";
 import { createColumns } from "./components/columns";
+import { getCommandesByIdAnnonce } from "@/app/api/commandes/query";
 
 const override: CSSProperties = {
   display: "block",
@@ -40,6 +42,8 @@ export default function AnnonceGestionPage() {
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [isCommandesDrawerOpen, setIsCommandesDrawerOpen] = useState(false);
+  const [annonceCommandes, setAnnonceCommandes] = useState<any[]>([]);
   let [color, setColor] = useState("#ffffff");
   const [annonce, setAnnonce] = useState<Annonce>({
     type_transport: "economy",
@@ -102,6 +106,10 @@ export default function AnnonceGestionPage() {
     });
   };
 
+
+const handleNavigation = (idCommande:number) => {
+  router.push(`/dashboard/commandes/profile?id=${idCommande}`);
+};
   const handleSelectChange = (name: string, value: string) => {
     console.log(`Changing ${name} from ${annonce[name as keyof typeof annonce]} to ${value}`);
     setAnnonce(prev => ({ ...prev, [name]: value }));
@@ -158,6 +166,22 @@ export default function AnnonceGestionPage() {
     setAnnonce(annonceItem);
     setIsAddingAnnonce(false);
     setIsDrawerOpen(true);
+  };
+
+  const handleOpenCommandes = async (annonce: Annonce) => {
+    try {
+      // Récupérer les commandes de l'annonce
+      const data = await getCommandesByIdAnnonce(annonce.id_annonce);
+      if (data && data.length > 0) {
+      setAnnonceCommandes(data);
+      setAnnonce(annonce);
+      setIsCommandesDrawerOpen(true);
+      }
+      
+    } catch (error) {
+      console.error('Erreur:', error);
+      // Gérer l'erreur (afficher une notification, etc.)
+    }
   };
 
   const handleAddAnnonceClick = () => {
@@ -820,7 +844,7 @@ export default function AnnonceGestionPage() {
                   </div>
                 </CardContent>
                 <CardFooter className="pt-2">
-                  <div className="w-full grid grid-cols-2 gap-2">
+                  <div className="w-full grid grid-cols-3 gap-2">
                     <Button
                       onClick={() => handleDeleteClick(annonceItem)}
                       variant="destructive"
@@ -832,9 +856,18 @@ export default function AnnonceGestionPage() {
                     <Button
                       onClick={() => handleAnnonceClick(annonceItem)}
                       size="sm"
+                      variant="outline"
                       className="font-bold gap-1">
                       <Edit className="h-4 w-4" />
                       Modifier
+                    </Button>
+                    <Button
+                      onClick={() => handleOpenCommandes(annonceItem)}
+                      size="sm"
+                      variant="secondary"
+                      className="font-bold gap-1">
+                      <ShoppingCart className="h-4 w-4" />
+                      Commandes
                     </Button>
                   </div>
                 </CardFooter>
@@ -863,6 +896,100 @@ export default function AnnonceGestionPage() {
           )}
         </div>
       </div>
+
+      {/* Drawer des commandes de l'annonce */}
+      <Drawer anchor="right" open={isCommandesDrawerOpen} onClose={() => setIsCommandesDrawerOpen(false)}>
+        <div className="p-4 w-[600px] h-full flex flex-col">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-bold">
+              Commandes du trajet
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => setIsCommandesDrawerOpen(false)}
+            >
+              <X className="h-5 w-5" />
+            </Button>
+          </div>
+          
+          <div className="mb-4">
+            <h3 className="font-semibold">Trajet: {annonce?.source} → {annonce?.destination}</h3>
+            <p className="text-sm text-muted-foreground">
+              {annonce?.statut} • {formatDate(annonce?.date_depart)} - {formatDate(annonce?.date_arrive)}
+            </p>
+          </div>
+
+          <ScrollArea className="flex-1 pr-4">
+            {annonceCommandes.length > 0 ? (
+              <div className="space-y-4">
+                {annonceCommandes.map((item) => (
+                 <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <CardHeader className="pb-3 px-3 pt-3">
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-base font-semibold flex items-center gap-2">
+                <span className="text-foreground text-green-700 font-extrabold text-lg">#{item.id}</span>
+                <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                  {item.detail_commande?.type || "Standard"}
+                </span>
+              </CardTitle>
+              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                item.validation_status 
+                  ? "bg-green-100 text-green-700" 
+                  : "bg-amber-100 text-amber-700"
+              }`}>
+                {item.validation_status ? "✓ Validé" : "⏳ En attente"}
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent className="px-3 pb-4 space-y-3">
+            {/* Client info compacte */}
+            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-foreground">
+                  {item.client?.prenom} {item.client?.nom}
+                </span>
+                <span className="text-xs text-muted-foreground">
+                  {item.client?.Tel}
+                </span>
+              </div>
+            </div>
+
+            {/* Date compacte */}
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Créé le</span>
+              <span className="font-medium">
+                {new Date(item.created_at).toLocaleDateString('fr-FR', {
+                  day: '2-digit',
+                  month: 'short',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </span>
+            </div>
+          </CardContent>
+
+          <CardFooter className="px-2 pb-4 pt-0">
+            <div className="w-full flex justify-end items-end space-y-2">
+              <Button onClick={() => handleNavigation(item.id)} className="w-fit h-8 font-bold">Voir Détails</Button>  
+            </div>
+          </CardFooter>
+        </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12">
+                <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900">Aucune commande</h3>
+                <p className="mt-1 text-sm text-gray-500">
+                  Aucune commande n'a été passée pour ce trajet.
+                </p>
+              </div>
+            )}
+          </ScrollArea>
+        </div>
+      </Drawer>
     </>
   );
 } 
