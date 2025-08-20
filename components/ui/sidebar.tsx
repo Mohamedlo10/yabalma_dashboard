@@ -21,6 +21,7 @@ import {
   X,
   CheckCircle,
   Plane,
+  LogIn,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -431,7 +432,10 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
       />
     </div>
   ) : (
-    <div></div>
+    <div className="flex flex-col h-1/2 items-center justify-center gap-2 w-full text-white font-bold rounded-md px-2 py-1.5 text-base transition-all ">
+      <span>Session </span>
+      <span>expiree</span>
+    </div>
   );
 }
 

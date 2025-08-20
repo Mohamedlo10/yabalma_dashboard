@@ -1,8 +1,15 @@
 import { createClient } from "@/lib/supabaseClient";
-
+import { getSupabaseSession } from "@/lib/authMnager";
 const supabase = createClient();
 
 export const getallcommandes = async () => {
+
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -28,6 +35,12 @@ export const getallcommandes = async () => {
 };
 
 export const getCommandesWithShop = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -73,6 +86,12 @@ export const getCommandesWithShop = async () => {
 };
 
 export const getCommandesStats = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { count: totalCommandes, error: totalError } = await supabase
       .from("commande")
@@ -96,6 +115,12 @@ export const getCommandesStats = async () => {
   }
 };
 export const getcommandesById = async (id: number) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -123,6 +148,12 @@ export const modifierCommande = async (
   id_commande: any,
   commandeData: Record<string, any>
 ) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -140,6 +171,12 @@ export const validerCommande = async (
   id_commande: number,
   mail_valideur?: string
 ) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data: commandeExistante, error: erreurRecherche } = await supabase
       .from("commande")
@@ -184,17 +221,50 @@ export const updateValidationStatus = async (
   validationPending: boolean,
   mail_valideur: string | null
 ) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
+    // D'abord, récupérer l'état actuel de la commande
+    const { data: commande, error: fetchError } = await supabase
+      .from("commande")
+      .select("validationPending, mail_valideur")
+      .eq("id", id_commande)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Vérifier si la commande est déjà en cours de validation par quelqu'un d'autre
+    if (commande.validationPending && commande.mail_valideur !== mail_valideur) {
+      return { 
+        error: `Cette commande est déjà en cours de traitement par ${commande.mail_valideur}`,
+        isBlocked: true,
+        blockedBy: commande.mail_valideur
+      };
+    }
+
+    // Mettre à jour le statut de validation
     const { data, error } = await supabase
       .from("commande")
       .update({
         validationPending: validationPending,
-        mail_valideur: mail_valideur,
+        mail_valideur: validationPending ? mail_valideur : null, // Ne pas conserver le mail si on débloque
+        updated_at: new Date().toISOString()
       })
       .eq("id", id_commande);
 
     if (error) throw error;
-    return { message: "Statut de validation mis à jour", data };
+    
+    return { 
+      message: validationPending 
+        ? "Commande verrouillée pour validation" 
+        : "Commande déverrouillée",
+      data,
+      isBlocked: validationPending
+    };
   } catch (err) {
     console.error(
       "Erreur lors de la mise à jour du statut de validation:",
@@ -205,6 +275,12 @@ export const updateValidationStatus = async (
 };
 
 export const supprimerCommande = async (id_commande: any) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -219,6 +295,12 @@ export const supprimerCommande = async (id_commande: any) => {
 };
 
 export const getCommandesClient = async (id: any) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -243,6 +325,12 @@ export const getCommandesClient = async (id: any) => {
   }
 };
 export const getCommandesGp = async (id: any) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -268,6 +356,12 @@ export const getCommandesGp = async (id: any) => {
 };
 
 export const getCommandesByIdAnnonce = async (id: any) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from("commande")
@@ -293,6 +387,12 @@ export const getCommandesByIdAnnonce = async (id: any) => {
 };
 
 export const getCommandesForCurrentMonthCount = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { count, error } = await supabase
       .from("commande")
@@ -316,6 +416,12 @@ export const getCommandesForCurrentMonthCount = async () => {
 };
 
 export const getcommandesCountByMonth = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase.rpc("get_commandes_count_by_month");
 
@@ -328,6 +434,12 @@ export const getcommandesCountByMonth = async () => {
 };
 
 export const getcommandeAnnonceCount = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase.rpc(
       "get_commandes_and_annonces_by_date"

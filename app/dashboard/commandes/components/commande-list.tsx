@@ -239,12 +239,38 @@ const [refundCurrency, setRefundCurrency] = useState<string>('XOF');
     setDrawerOpen(true);
   }, [setActiveItem, setDrawerOpen]);
 
+  const handleRefund = useCallback(async () => {
+    try {
+      // Ici, vous devriez appeler votre API pour effectuer le remboursement
+      // Par exemple :
+      // await processRefund({
+      //   commandeId: activeItem?.id,
+      //   articleIds: selectedRefundArticles,
+      //   amount: refundAmount * 0.95, // 95% du montant
+      //   currency: refundCurrency,
+      //   paymentMethod: refundPaymentMethod
+      // });
+      
+      // Afficher un message de succès
+      setShowRefundSuccess(true);
+      
+      // Mettre à jour l'état local si nécessaire
+      // ...
+      
+      return true;
+    } catch (error) {
+      console.error("Erreur lors du remboursement :", error);
+      // Afficher une erreur à l'utilisateur
+      // ...
+      return false;
+    }
+  }, [activeItem?.id, refundAmount, refundCurrency, refundPaymentMethod, selectedRefundArticles]);
+
   const handleCloseDrawer = useCallback(() => {
     setDrawerOpen(false);
-    // Reset active item after animation completes
-    setTimeout(() => {
-      setActiveItem(null);
-    }, 300);
+    setActiveItem(null);
+    setIsRefundMode(false);
+    setSelectedRefundArticles([]);
   }, []);
 
   const handleConfirmValidation = useCallback(async (confirmed: boolean) => {
@@ -401,31 +427,37 @@ const [refundCurrency, setRefundCurrency] = useState<string>('XOF');
 
           <CardFooter className="px-4 pb-4 pt-0">
             <div className="w-full space-y-2">
-              {!item.validation_status ? (
-               
-               <div>
-                  {!item.validationPending || currentUser?.email === item.mail_valideur ? (
+              <div className="flex flex-col gap-2">
+                {!item.validation_status && (
+                  <div>
+                    {!item.validationPending || currentUser?.email === item.mail_valideur ? (
+                      <button 
+                        onClick={() => handleOpenDrawer(item)} 
+                        className={`w-full ${currentUser?.email === item.mail_valideur ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-[#0E7D0A] hover:bg-[#0E7D0A]/80'} text-primary-foreground px-4 py-2 rounded-md text-sm font-bold transition-colors`}
+                      >
+                        {currentUser?.email === item.mail_valideur ? 'Traiter la commande' : 'Valider la commande'}
+                      </button>
+                    ) : (
+                      <div className="w-full bg-black/10 text-center text-foreground px-4 py-2 rounded-md text-sm mb-2">
+                        <span className="font-bold">En cours de traitement par {item.mail_valideur}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
+                
                 <button 
                   onClick={() => handleOpenDrawer(item)} 
-                  className={`w-full ${currentUser?.email === item.mail_valideur ? 'bg-yellow-600 hover:bg-yellow-700' : 'bg-[#0E7D0A] hover:bg-[#0E7D0A]/80'} text-primary-foreground px-4 py-2 rounded-md text-sm font-bold transition-colors`}
+                  className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md text-sm font-bold transition-colors"
                 >
-                  {currentUser?.email === item.mail_valideur ? 'Traiter la commande' : 'Valider la commande'}
-                </button>
-                ):(<div className="w-full bg-black opacity-60 text-center font-bold text-primary-foreground  px-4 py-2 rounded-md text-sm ">
-                  Bloque par {item.mail_valideur}
-                </div>)
-                }
-               </div>
-               
-                
-              ) : (
-                <button onClick={() => handleOpenDrawer(item)} className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md text-sm font-bold transition-colors">
                   Voir les détails
                 </button>
-              )}
-              {currentUser?.email === item.mail_valideur &&(
-                <span className="text-xs text-muted-foreground font-bold">Bloqué par vous {item.mail_valideur}</span>
-              )}
+                
+                {currentUser?.email === item.mail_valideur && (
+                  <span className="text-xs text-muted-foreground font-bold text-center">
+                    {item.validationPending ? 'Bloqué par vous' : ''}
+                  </span>
+                )}
+              </div>
             </div>
           </CardFooter>
         </Card>
@@ -673,10 +705,25 @@ return `${total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFract
                   </div>
                   
                   {isRefundMode && (
-                    <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100">
+                    <div className="mb-4 p-3 bg-blue-50 rounded-md border border-blue-100 flex justify-between items-center">
                       <p className="text-sm text-blue-800">
                         Sélectionnez les articles à rembourser
                       </p>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="ml-2 text-blue-600 border-blue-300 hover:bg-blue-100"
+                        onClick={() => {
+                          const allArticleIds = activeItem?.detail_commande?.articles?.map(art => art.id) || [];
+                          setSelectedRefundArticles(prev => 
+                            prev.length === allArticleIds.length ? [] : allArticleIds
+                          );
+                        }}
+                      >
+                        {selectedRefundArticles.length === (activeItem?.detail_commande?.articles?.length || 0) 
+                          ? 'Tout désélectionner' 
+                          : 'Tout sélectionner'}
+                      </Button>
                     </div>
                   )}
                   
@@ -755,13 +802,31 @@ return `${total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFract
           <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
           </svg>
-          <span className="font-medium text-green-900">Montant à rembourser</span>
+          <span className="font-medium text-green-900">Détails du remboursement</span>
         </div>
-        <div className="text-2xl font-bold text-green-800">
-          {refundAmount.toLocaleString('fr-FR', { 
-            style: 'currency', 
-            currency: refundCurrency 
-          })}
+        <div className="space-y-2">
+          <div className="flex justify-between">
+            <span className="text-gray-600">Montant total sélectionné :</span>
+            <span className="font-medium">
+              {refundAmount.toLocaleString('fr-FR', { 
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} {refundCurrency}
+            </span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-gray-600">Montant remboursé (95%) :</span>
+            <span className="font-bold text-green-700">
+              {(refundAmount * 0.95).toLocaleString('fr-FR', {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+              })} {refundCurrency}
+            </span>
+          </div>
+          <div className="pt-2 mt-2 border-t border-green-100 text-sm text-green-700">
+            <p>Le client recevra 95% du montant total sélectionné.</p>
+            <p className="text-xs text-green-600 mt-1">(5% sont retenus pour les frais de service)</p>
+          </div>
         </div>
       </div>
 
@@ -873,26 +938,25 @@ return `${total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFract
   </MuiDialogContent>
 
   <MuiDialogActions className="px-6 py-4 bg-gray-50 rounded-b-2xl">
-    <div className="flex gap-3 w-full">
+    <Button 
+      variant="outline" 
+      onClick={() => setOpenRefundDialog(false)}
+      className="border-gray-300 text-gray-700 hover:bg-gray-100"
+    >
+      Annuler
+    </Button>
+    <div className="flex flex-col items-end">
+      <div className="text-sm text-gray-500 mb-1">
+        Montant à envoyer: <span className="font-semibold">
+          {(refundAmount * 0.95).toLocaleString('fr-FR', {
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+          })} {refundCurrency}
+        </span>
+      </div>
       <Button 
-        variant="outline" 
-        onClick={() => setOpenRefundDialog(false)}
-        className="flex-1 py-3 border-gray-300 text-gray-700 hover:bg-gray-100"
-      >
-        <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-        </svg>
-        Annuler
-      </Button>
-      
-      <Button
-        className={`flex-1 py-3 text-white font-medium transition-all duration-200 ${
-          !refundPaymentMethod 
-            ? 'bg-gray-400 cursor-not-allowed' 
-            : 'bg-green-600 hover:bg-green-700 hover:shadow-lg transform hover:-translate-y-0.5'
-        }`}
-        disabled={!refundPaymentMethod}
         onClick={() => {
+          handleRefund();
           setOpenRefundDialog(false);
           setShowRefundSuccess(true);
           // Réinitialiser la sélection après traitement
@@ -900,6 +964,8 @@ return `${total.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFract
           setIsRefundMode(false);
           setRefundPaymentMethod("");
         }}
+        disabled={!refundPaymentMethod}
+        className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />

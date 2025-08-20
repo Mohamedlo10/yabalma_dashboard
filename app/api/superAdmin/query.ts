@@ -1,3 +1,4 @@
+import { getSupabaseSession } from "@/lib/authMnager";
 import { supabase } from "@/lib/supabaseAdmin";
 
 /* export const getAllUsersAdmin = async () => {
@@ -17,6 +18,12 @@ import { supabase } from "@/lib/supabaseAdmin";
   } */
 
   export const getAllUsersAdmin = async () => {
+    const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
+
     try {
       const { data: { users }, error } = await supabase.auth.admin.listUsers();
   
@@ -38,6 +45,12 @@ import { supabase } from "@/lib/supabaseAdmin";
   
 
   export const creerCompte = async (compte: Record<string, any>,myposte:any) => {
+    const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
+
     try{
       const { data, error } = await supabase.auth.admin.createUser({
         email: compte.email,
@@ -61,6 +74,12 @@ import { supabase } from "@/lib/supabaseAdmin";
 
 
       export const signUpCompte = async (compte: Record<string, any>,myposte:any) => {
+    const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
+
         try{
           const { data, error } = await supabase.auth.signUp({
             email: compte.email,
@@ -87,7 +106,12 @@ import { supabase } from "@/lib/supabaseAdmin";
     
 
       export const getCompteById = async (idCompte:any) => {
-        try {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
+       try {
           const { data, error } = await supabase.auth.admin.getUserById(idCompte)
         
         if (error) {
@@ -100,6 +124,11 @@ import { supabase } from "@/lib/supabaseAdmin";
       }
 
       export const DeleteCompteById = async (idCompte:any) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
         try {
           const { data, error } = await supabase.auth.admin.deleteUser(idCompte)
         
@@ -119,7 +148,13 @@ import { supabase } from "@/lib/supabaseAdmin";
  */
 
 export const modifierCompte = async (idCompte:any,emailUP?:any,posteUP?:any,nom?:any,prenom?:any) => {
-  try {
+    const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
+
+    try {
     const { data: user, error } = await supabase.auth.admin.updateUserById(idCompte,
       { email: emailUP ,user_metadata: { poste: posteUP,nom: nom ,prenom:prenom}},  
     )

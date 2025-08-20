@@ -1,9 +1,59 @@
+"use client"
 import Image from "next/image";
+import { CSSProperties, useState } from "react";
+import { Role } from "@/app/dashboard/settings/schema";
+import { useEffect } from "react";
+import { getSupabaseSession } from "@/lib/authMnager";
+import BeatLoader from "react-spinners/BeatLoader";
+import { LogIn, User } from "lucide-react";
+import Link from "next/link";
+
 interface NavbarProps {
   toggleSidebar: () => void;
 }
 
+const override: CSSProperties = {
+  display: "block",
+  margin: "0 auto",
+  borderColor: "red",
+};
+
 function Navbar({ toggleSidebar }: NavbarProps) {
+    const [isLoading, setIsLoading] = useState(false);
+    const [role, setRole] = useState<Role>();
+    let [color, setColor] = useState("#ffffff");
+
+    useEffect(() => {
+      async function fetchData() {
+        setIsLoading(true);
+        try {
+          setRole(getSupabaseSession());
+        } catch (error) {
+          console.error("Error fetching user details:", error);
+        } finally {
+          setIsLoading(false);
+        }
+      }
+      fetchData();
+    }, []);
+
+    if (isLoading) {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
+          <div className="sweet-loading">
+            <BeatLoader
+              color={color}
+              loading={isLoading}
+              cssOverride={override}
+              size={15}
+              aria-label="Loading Spinner"
+              data-testid="loader"
+            />
+          </div>
+        </div>
+      );
+    }
+
   return (
     <div className="flex flex-col">
       <header className="flex items-center md:items-center gap-4 border-b bg-white px-10 h-[8vh] md:h-[5vh]">
@@ -29,10 +79,32 @@ function Navbar({ toggleSidebar }: NavbarProps) {
           </svg>
         </button>
 
+      
         <div className="w-full">
-          <form>
-            <div className="relative"></div>
-          </form>
+            <div className="relative">
+            {!role ? (
+              <Link
+            href="/"
+            className={`flex items-center gap-2 w-1/3 rounded-md px-2 py-1.5 font-medium text-base transition-all text-red-700 hover:bg-red-700 hover:text-white`}
+          >
+            <LogIn className="h-5 w-5 flex-shrink-0" />
+            <span
+              className={`transition-opacity duration-300`}
+            >
+                        Veuillez Vous Connectez
+            </span>
+          </Link>
+            ) : (
+              <div className="flex items-center gap-2 w-1/3 rounded-md px-2 py-1.5 font-medium text-base transition-all text-red-700 hover:bg-red-700 hover:text-white">
+                <User className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300`}
+                >
+                  {role.nom}
+                </span>
+              </div>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-8 items-center gap-8 h-22 w-60">

@@ -1,9 +1,15 @@
 import { createClient } from "@/lib/supabaseClient"
+import { getSupabaseSession } from "@/lib/authMnager"
 
 
 const supabase =createClient()
 
 export const getallclient =async()=>{
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
 
  try {
   const { data, error } = await supabase.rpc('get_clients_with_annonces')
@@ -17,6 +23,11 @@ export const getallclient =async()=>{
 }
 
 export const creerClient = async (clientData: Record<string, any>) => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('client')
@@ -31,6 +42,11 @@ export const creerClient = async (clientData: Record<string, any>) => {
 
 
 export const modifierClient = async (id_client: any, clientData: Record<string, any>) => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('client')
@@ -45,6 +61,11 @@ export const modifierClient = async (id_client: any, clientData: Record<string, 
 };
 
 export const supprimerClient = async (id_client: any) => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('client')
@@ -61,6 +82,11 @@ export const supprimerClient = async (id_client: any) => {
 
 
 export const uploadFile = async (fileName:string,uploadFile:File) => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const {  error } = await supabase.storage
     .from('yabalma/images') // Assurez-vous que ce chemin est correct
@@ -75,6 +101,11 @@ export const uploadFile = async (fileName:string,uploadFile:File) => {
 };
 
 export const replaceFile = async (fileName: string, uploadFile: File) => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     // Supprimer l'image existante
     const { error: deleteError } = await supabase.storage
@@ -110,6 +141,11 @@ export const replaceFile = async (fileName: string, uploadFile: File) => {
 
 export const getclientPays =async()=>{
 
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
   .rpc('client_count_by_country')
@@ -125,6 +161,11 @@ export const getclientPays =async()=>{
 
  export const getclientById =async(id:string | null)=>{
 
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase.from('client').select('*').eq("id_client",id).eq("is_gp",false)
   
@@ -138,6 +179,11 @@ export const getclientPays =async()=>{
  }
 
  export const getClientCount = async () => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { count, error } = await supabase
       .from('client')
@@ -153,6 +199,11 @@ export const getclientPays =async()=>{
 
 
  export const geTopClient = async () => {
+  const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
     .rpc('get_top_client')

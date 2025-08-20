@@ -32,9 +32,9 @@ const updateStatsAtom = atom(
       set(configAtom, {
         ...get(configAtom),
         stats: {
-          totalCommandes: data.totalCommandes,
-          commandesValidees: data.commandesValidees,
-          commandesNonValidees: data.commandesNonValidees,
+          totalCommandes: data.totalCommandes || 0,
+          commandesValidees: data.commandesValidees || 0,
+          commandesNonValidees: data.commandesNonValidees || 0,
         },
       });
     } catch (error) {

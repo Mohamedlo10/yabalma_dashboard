@@ -1,9 +1,15 @@
+import { getSupabaseSession } from "@/lib/authMnager";
 import { createClient } from "@/lib/supabaseClient";
 
 
 const supabase =createClient()
 
 export const creerRole = async (roleData: Record<string, any>) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('role')
@@ -18,7 +24,11 @@ export const creerRole = async (roleData: Record<string, any>) => {
 
 
 export const getAllRole =async()=>{
+    const role = getSupabaseSession();
 
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
    const { data, error } = await supabase.from('role').select('*').order('created_at', { ascending: false }) 
  
@@ -33,6 +43,11 @@ export const getAllRole =async()=>{
 
 
  export const supprimerRole = async (id: any) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('role')
@@ -48,6 +63,11 @@ export const getAllRole =async()=>{
 
 
 export const modifierRole = async (id: any, roleData: Record<string, any>) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('role')

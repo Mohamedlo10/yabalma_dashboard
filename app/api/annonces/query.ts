@@ -1,9 +1,16 @@
 import { createClient } from "@/lib/supabaseClient";
 import { v4 as uuidv4 } from 'uuid';
+import { getSupabaseSession } from "@/lib/authMnager";
 
 const supabase =createClient()
 
 export const creerAnnonce = async (annonceData: Record<string, any>) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     // Générer un UUID pour l'annonce
     const id_annonce = uuidv4();
@@ -27,6 +34,12 @@ export const creerAnnonce = async (annonceData: Record<string, any>) => {
 
 export const getallannonces =async()=>{
 
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from('annonce')
@@ -47,6 +60,12 @@ export const getallannonces =async()=>{
 
 
 export const supprimerAnnonce = async (id_annonce: any) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from('annonce')
@@ -61,6 +80,12 @@ export const supprimerAnnonce = async (id_annonce: any) => {
 };
 
 export const modifierAnnonce = async (id_annonce: any, annonceData: Record<string, any>) => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
   try {
     const { data, error } = await supabase
       .from('annonce')
@@ -76,7 +101,14 @@ export const modifierAnnonce = async (id_annonce: any, annonceData: Record<strin
 
 export const getAnnonceById =async(id:any)=>{
 
-  try {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
+
+    try {
     const { data, error } = await supabase
       .from('annonce')
       .select(`
@@ -97,6 +129,13 @@ export const getAnnonceById =async(id:any)=>{
 
 export const getAnnoncesClient =async(id:any)=>{
 
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
+
   try {
     const { data, error } = await supabase
       .from('annonce')
@@ -112,12 +151,18 @@ export const getAnnoncesClient =async(id:any)=>{
   } catch (err) {
     throw err;
   }
-  
 
 }
 
 
 export const getAnnoncesCountByMonth = async () => {
+  const role = getSupabaseSession();
+
+  if (!role){
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
+
   try {
     const { data, error } = await supabase
     .rpc('get_annonces_count_by_month')
