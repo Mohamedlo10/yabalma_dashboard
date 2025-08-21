@@ -5,11 +5,6 @@ import Cookies from "js-cookie";
 const supabase = createClient();
 
 export const userConnection = async (email: string, password: string) => {
-   const role = getSupabaseSession();
-  
-    if (!role){
-      return { error: "Non autorisé - Session invalide", redirect: "/" };
-    }
   try {
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
@@ -37,11 +32,7 @@ export const userConnection = async (email: string, password: string) => {
 };
 
 export const userDeConnection = async () => {
-  const role = getSupabaseSession();
-
-    if (!role){
-      return { error: "Non autorisé - Session invalide", redirect: "/" };
-    }
+  
   try {
     const { error } = await supabase.auth.signOut();
     if (!error) {
@@ -60,11 +51,6 @@ export const userDeConnection = async () => {
 };
 
 export const userInfo = async () => {
-  const role = getSupabaseSession();
-
-    if (!role){
-      return { error: "Non autorisé - Session invalide", redirect: "/" };
-    }
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
@@ -84,11 +70,6 @@ export const userInfo = async () => {
 };
 
 export const getRole = async () => {
-  const role = getSupabaseSession();
-
-    if (!role){
-      return { error: "Non autorisé - Session invalide", redirect: "/" };
-    }
   try {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
@@ -108,11 +89,6 @@ export const getRole = async () => {
 };
 
 export const getAllUserInfo = async () => {
-  const role = getSupabaseSession();
-
-    if (!role){
-      return { error: "Non autorisé - Session invalide", redirect: "/" };
-    }
     try {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
