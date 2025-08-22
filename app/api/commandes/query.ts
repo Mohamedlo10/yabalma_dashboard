@@ -3,10 +3,9 @@ import { getSupabaseSession } from "@/lib/authMnager";
 const supabase = createClient();
 
 export const getallcommandes = async () => {
-
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -37,7 +36,7 @@ export const getallcommandes = async () => {
 export const getCommandesWithShop = async () => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -88,7 +87,7 @@ export const getCommandesWithShop = async () => {
 export const getCommandesStats = async () => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -117,7 +116,7 @@ export const getCommandesStats = async () => {
 export const getcommandesById = async (id: number) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -150,7 +149,7 @@ export const modifierCommande = async (
 ) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -173,7 +172,7 @@ export const validerCommande = async (
 ) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -223,7 +222,7 @@ export const updateValidationStatus = async (
 ) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -238,11 +237,29 @@ export const updateValidationStatus = async (
     if (fetchError) throw fetchError;
 
     // Vérifier si la commande est déjà en cours de validation par quelqu'un d'autre
-    if (commande.validationPending && commande.mail_valideur !== mail_valideur) {
-      return { 
+    if (
+      commande.validationPending &&
+      validationPending &&
+      commande.mail_valideur !== mail_valideur
+    ) {
+      return {
         error: `Cette commande est déjà en cours de traitement par ${commande.mail_valideur}`,
         isBlocked: true,
-        blockedBy: commande.mail_valideur
+        blockedBy: commande.mail_valideur,
+      };
+    }
+
+    // Pour le déblocage, vérifier que c'est la même personne qui a bloqué
+    if (
+      !validationPending &&
+      commande.validationPending &&
+      commande.mail_valideur &&
+      commande.mail_valideur.toLowerCase() !== mail_valideur?.toLowerCase()
+    ) {
+      return {
+        error: `Seul ${commande.mail_valideur} peut débloquer cette commande`,
+        isBlocked: true,
+        blockedBy: commande.mail_valideur,
       };
     }
 
@@ -252,18 +269,19 @@ export const updateValidationStatus = async (
       .update({
         validationPending: validationPending,
         mail_valideur: validationPending ? mail_valideur : null, // Ne pas conserver le mail si on débloque
-        updated_at: new Date().toISOString()
+        updated_at: new Date().toISOString(),
       })
       .eq("id", id_commande);
+    console.log(data);
 
     if (error) throw error;
-    
-    return { 
-      message: validationPending 
-        ? "Commande verrouillée pour validation" 
+
+    return {
+      message: validationPending
+        ? "Commande verrouillée pour validation"
         : "Commande déverrouillée",
       data,
-      isBlocked: validationPending
+      isBlocked: validationPending,
     };
   } catch (err) {
     console.error(
@@ -274,10 +292,82 @@ export const updateValidationStatus = async (
   }
 };
 
+// Nouvelle fonction spécifique pour le déblocage
+export const unblockValidationStatus = async (
+  id_commande: number,
+  userEmail: string
+) => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
+  try {
+    // D'abord, récupérer l'état actuel de la commande
+    const { data: commande, error: fetchError } = await supabase
+      .from("commande")
+      .select("validationPending, mail_valideur, validation_status")
+      .eq("id", id_commande)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    // Vérifier que la commande est bien bloquée
+    if (!commande.validationPending) {
+      return {
+        error: "Cette commande n'est pas bloquée",
+        success: false,
+      };
+    }
+
+    // Vérifier que c'est bien la personne qui a bloqué qui essaie de débloquer
+    if (
+      !commande.mail_valideur ||
+      commande.mail_valideur.toLowerCase() !== userEmail.toLowerCase()
+    ) {
+      return {
+        error: `Seul ${commande.mail_valideur} peut débloquer cette commande`,
+        success: false,
+        blockedBy: commande.mail_valideur,
+      };
+    }
+
+    // Vérifier que la commande n'est pas déjà validée
+    if (commande.validation_status) {
+      return {
+        error: "Cette commande est déjà validée et ne peut pas être débloquée",
+        success: false,
+      };
+    }
+
+    // Débloquer la commande
+    const { data, error } = await supabase
+      .from("commande")
+      .update({
+        validationPending: false,
+        mail_valideur: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id_commande);
+
+    if (error) throw error;
+
+    return {
+      message: "Commande débloquée avec succès",
+      success: true,
+      data,
+    };
+  } catch (err) {
+    console.error("Erreur lors du déblocage de la commande:", err);
+    throw err;
+  }
+};
+
 export const supprimerCommande = async (id_commande: any) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -297,7 +387,7 @@ export const supprimerCommande = async (id_commande: any) => {
 export const getCommandesClient = async (id: any) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -327,7 +417,7 @@ export const getCommandesClient = async (id: any) => {
 export const getCommandesGp = async (id: any) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -358,7 +448,7 @@ export const getCommandesGp = async (id: any) => {
 export const getCommandesByIdAnnonce = async (id: any) => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -389,7 +479,7 @@ export const getCommandesByIdAnnonce = async (id: any) => {
 export const getCommandesForCurrentMonthCount = async () => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -418,7 +508,7 @@ export const getCommandesForCurrentMonthCount = async () => {
 export const getcommandesCountByMonth = async () => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 
@@ -436,7 +526,7 @@ export const getcommandesCountByMonth = async () => {
 export const getcommandeAnnonceCount = async () => {
   const role = getSupabaseSession();
 
-  if (!role){
+  if (!role) {
     return { error: "Non autorisé - Session invalide", redirect: "/" };
   }
 

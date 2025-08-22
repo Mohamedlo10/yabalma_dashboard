@@ -1,379 +1,484 @@
-'use client';
-import Image from "next/image";
-
+"use client";
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Calendar } from "@/components/ui/calendar";
+import { Upload, RefreshCw, Eye } from "lucide-react";
+import { format } from "date-fns";
+import { fr } from "date-fns/locale";
+import { DateRange } from "react-day-picker";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs";
-import { getSupabaseSession } from "@/lib/authMnager";
-import { useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
-import BeatLoader from "react-spinners/BeatLoader";
-import { CalendarDateRangePicker } from "./components/date-range-picker";
-import { Overview } from "./components/overview";
-import { RecentSales } from "./components/recent-sales";
-import TransactionBoost from "./transactioBoost/transaction";
-import Transaction from "./transaction/transaction";
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
+import { toast } from "sonner";
+import { getPayments, updatePaymentStatus, getFinancialStats, uploadProofFile } from "@/app/api/finance/query";
 
-const override: CSSProperties = {
-  display: "block",
-  margin: "0 auto",
-  borderColor: "red",
+const statusVariant: Record<string, string> = {
+  pending: "bg-yellow-100 text-yellow-800",
+  completed: "bg-green-100 text-green-800",
+  failed: "bg-red-100 text-red-800",
 };
 
+const operationLabels: Record<string, string> = {
+  payment: "Paiement",
+  remboursement: "Remboursement",
+  validation: "Validation",
+};
 
-export default function Page() {
-  const [isLoading, setIsLoading] = useState(true);
-  let [color, setColor] = useState("#ffffff");
-  const router = useRouter();
+export default function FinancePage() {
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
-    async function fetchData() {
-      setIsLoading(true)
-      try {
-      
-        const data3= getSupabaseSession()
-        if (data3 != null) {
-          if(data3.access_groups?.finance)
-            {
-              console.log("autoriser...")
-            }
-            else
-            {
-              router.push(`/dashboard`);
-            }
-            
-        
-      }
-        
-      } catch (error) {
-        console.error("Error fetching room details:", error)
-      } finally {
-        setIsLoading(false)
-      }
+    setIsMounted(true);
+  }, []);
+
+  const [date, setDate] = useState<DateRange | undefined>({
+    from: new Date(new Date().setMonth(0, 2)),
+    to: new Date(),
+  });
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const [operationFilter, setOperationFilter] = useState<string>("all");
+  const [typeFilter, setTypeFilter] = useState<string>("all");
+  const [page, setPage] = useState(1);
+  const [payments, setPayments] = useState<any[]>([]);
+  const [stats, setStats] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isUpdating, setIsUpdating] = useState<Record<number, boolean>>({});
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedPayment, setSelectedPayment] = useState<number | null>(null);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
+  const pageSize = 10;
+
+  const fetchData = async () => {
+    try {
+      setIsLoading(true);
+      const { data, count } = await getPayments({
+        startDate: date?.from?.toISOString().split('T')[0],
+        endDate: date?.to?.toISOString().split('T')[0],
+        status: statusFilter !== 'all' ? statusFilter : undefined,
+        operation: operationFilter !== 'all' ? operationFilter : undefined,
+        type: typeFilter !== 'all' ? typeFilter : undefined,
+        page,
+        pageSize,
+      });
+
+      const statsData = await getFinancialStats({
+        startDate: date?.from?.toISOString().split('T')[0],
+        endDate: date?.to?.toISOString().split('T')[0],
+      });
+
+      setPayments(data || []);
+      setStats(statsData);
+      setTotalPages(Math.ceil((count || 1) / pageSize));
+    } catch (error) {
+      console.error("Error fetching data:", error);
+      toast.error("Erreur lors du chargement des données");
+    } finally {
+      setIsLoading(false);
     }
-    fetchData()
-  }, [])
+  };
 
+  useEffect(() => {
+    fetchData();
+  }, [date, statusFilter, operationFilter, typeFilter, page]);
 
-   
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-        <div className="sweet-loading">
-          <BeatLoader
-            color={color}
-            loading={isLoading}
-            cssOverride={override}
-            size={15}
-            aria-label="Loading Spinner"
-            data-testid="loader"
-          />
-        </div>
-      </div>
-    );
-  }
+  const handleStatusChange = async (paymentId: number, newStatus: string) => {
+    try {
+      setIsUpdating(prev => ({ ...prev, [paymentId]: true }));
+      
+      if (newStatus === 'completed') {
+        setSelectedPayment(paymentId);
+        return;
+      }
+
+      await updatePaymentStatus(paymentId, newStatus);
+      toast.success("Statut mis à jour avec succès");
+      fetchData();
+    } catch (error) {
+      console.error("Error updating status:", error);
+      toast.error("Erreur lors de la mise à jour du statut");
+    } finally {
+      setIsUpdating(prev => ({ ...prev, [paymentId]: false }));
+    }
+  };
+
+  const handleFileUpload = async () => {
+    if (!selectedFile || selectedPayment === null) return;
+
+    try {
+      const proofUrl = await uploadProofFile(selectedFile);
+      await updatePaymentStatus(selectedPayment, 'completed', proofUrl);
+      toast.success("Preuve téléversée et statut mis à jour");
+      setSelectedPayment(null);
+      setSelectedFile(null);
+      fetchData();
+    } catch (error) {
+      console.error("Error uploading file:", error);
+      toast.error("Erreur lors du téléversement du fichier");
+    }
+  };
+
+  const formatAmount = (amount: number) => {
+    return new Intl.NumberFormat('fr-FR', { 
+      style: 'currency', 
+      currency: 'XOF',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
+
+  // Filtrer les transactions en fonction des critères de recherche et des filtres
+  const filteredPayments = payments.filter(payment => {
+    const searchLower = searchTerm.toLowerCase();
+    const orderIdStr = payment.order_id?.toString() || '';
+    const matchesSearch = !searchTerm || 
+      payment.transaction_id?.toLowerCase().includes(searchLower) ||
+      orderIdStr.toLowerCase().includes(searchLower) ||
+      payment.amount?.toString().includes(searchTerm);
+      
+    const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
+    const matchesType = typeFilter === 'all' || payment.type === typeFilter;
+    const matchesOperation = operationFilter === 'all' || payment.operation === operationFilter;
+    
+    return matchesSearch && matchesStatus && matchesType && matchesOperation;
+  });
+
   return (
-    <>
-      <div className="md:hidden">
-        <Image
-          src="/examples/dashboard-light.png"
-          width={1280}
-          height={866}
-          alt="Dashboard"
-          className="block dark:hidden"
-        />
-        <Image
-          src="/examples/dashboard-dark.png"
-          width={1280}
-          height={866}
-          alt="Dashboard"
-          className="hidden dark:block"
-        />
-      </div>
-      <div className="hidden flex-col max-h-[90vh] overflow-y-auto  md:flex">
-        <div className="border-b">
-         {/*  <div className="flex h-16 items-center px-4">
-            <TeamSwitcher />
-            <MainNav className="mx-6" />
-            <div className="ml-auto flex items-center space-x-4">
-              <Search />
-              <UserNav />
-            </div>
-          </div> */}
+    <div className="container mx-auto p-4 space-y-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+        <h1 className="text-2xl font-bold">Tableau de bord financier</h1>
+        <div className="flex items-center gap-2">
+          <Button variant="outline" onClick={fetchData} disabled={isLoading}>
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Actualiser
+          </Button>
         </div>
-        <div className="flex-1 md:space-y-4 space-y-4 p-8 pt-6">
-          <div className="flex items-center justify-between space-y-2">
-            <h2 className="text-3xl font-bold tracking-tight">Finance</h2>
-            <div className="flex items-center space-x-2">
-              <CalendarDateRangePicker />
-              <Button className="bg-red-600 font-bold">Download</Button>
+      </div>
+
+    
+
+      {/* Filtres */}
+      <Card>
+        <CardContent className="mt-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        {/* Cartes de statistiques */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total crédits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">
+              {stats ? formatAmount(stats.totalCredit) : '...'}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Total débits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-red-600">
+              {stats ? formatAmount(stats.totalDebit) : '...'}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Solde net</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${
+              stats?.netAmount >= 0 ? 'text-green-600' : 'text-red-600'
+            }`}>
+              {stats ? formatAmount(stats.netAmount) : '...'}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex justify-between">
+              <div>
+                <div className="text-sm text-muted-foreground">Confirmées</div>
+                <div className="font-medium">{stats?.totalCompleted || 0}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">En attente</div>
+                <div className="font-medium">{stats?.totalPending || 0}</div>
+              </div>
+              <div>
+                <div className="text-sm text-muted-foreground">Échouées</div>
+                <div className="font-medium">{stats?.totalFailed || 0}</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+            <div className="space-y-2 ">
+              <Label>Période</Label>
+              <div className="flex items-center gap-2">
+                {isMounted && (
+                  <Calendar
+                    mode="range"
+                    selected={date}
+                    onSelect={setDate}
+                    className="w-full"
+                    locale={fr}
+                    numberOfMonths={2}
+                    defaultMonth={date?.from}
+                  />
+                )}
+              </div>
+            </div>
+
+
+
+          </div>
+
+  
+          
+        </CardContent>
+      </Card>
+
+      {/* Tableau des transactions */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Transactions</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="rounded-md flex flex-col border">
+             <div className="p-2 grid grid-cols-9 gap-4">
+              <div className="space-y-2 col-span-3">
+                <Label>Rechercher</Label>
+                <Input
+                  placeholder="ID de transaction ou montant..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full h-9"
+                />
+              </div>
+          <div className="space-y-2 col-span-2">
+              <Label>Type</Label>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Crédit/Débit" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="credit">Crédit</SelectItem>
+                  <SelectItem value="debit">Débit</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+             
+            <div className="space-y-2 col-span-2">
+              <Label>Opération</Label>
+              <Select value={operationFilter} onValueChange={setOperationFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les types" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="payment">Paiement</SelectItem>
+                  <SelectItem value="remboursement">Remboursement</SelectItem>
+                  <SelectItem value="validation">Validation</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+
+             <div className="space-y-2 col-span-2">
+              <Label>Statut</Label>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Tous les statuts" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Tous</SelectItem>
+                  <SelectItem value="pending">En attente</SelectItem>
+                  <SelectItem value="completed">Confirmé</SelectItem>
+                  <SelectItem value="failed">Échoué</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            </div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>ID Transaction</TableHead>
+                  <TableHead>Commande</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Opération</TableHead>
+                  <TableHead>Montant</TableHead>
+                  <TableHead>Statut</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {isLoading ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      Chargement...
+                    </TableCell>
+                  </TableRow>
+                ) : filteredPayments.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8">
+                      Aucune transaction trouvée
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  filteredPayments.map((payment) => (
+                    <TableRow key={payment.id}>
+                      <TableCell>
+                        {new Date(payment.created_at).toLocaleDateString('fr-FR')}
+                      </TableCell>
+                      <TableCell className="font-medium text-xs">#{payment.transaction_id}</TableCell>
+                      <TableCell className="text-xs">
+                        {payment.order_id ? `#${payment.order_id}` : '-'}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={payment.type === 'credit' ? 'default' : 'secondary'}>
+                          {payment.type === 'credit' ? 'Crédit' : 'Débit'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {operationLabels[payment.operation as keyof typeof operationLabels] || payment.operation}
+                      </TableCell>
+                      <TableCell className={payment.type === 'credit' ? 'text-green-600' : 'text-red-600'}>
+                        {payment.type === 'credit' ? '+' : '-'} {formatAmount(payment.amount || 0)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge className={statusVariant[payment.status as keyof typeof statusVariant]}>
+                          {payment.status === 'pending' ? 'En attente' : 
+                           payment.status === 'completed' ? 'Confirmé' : 'Échoué'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={payment.status}
+                            onValueChange={(value) => handleStatusChange(payment.id, value)}
+                            disabled={isUpdating[payment.id]}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="pending">En attente</SelectItem>
+                              <SelectItem value="completed">Confirmer</SelectItem>
+                              <SelectItem value="failed">Échec</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {payment.proof_url && (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              onClick={() => window.open(payment.proof_url, '_blank')}
+                            >
+                              <Eye className="h-4 w-4" />
+                            </Button>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+
+          {/* Pagination */}
+          <div className="flex items-center justify-between mt-4">
+            <div className="text-sm text-muted-foreground">
+              {filteredPayments.length} résultats • Page {page} sur {Math.ceil(filteredPayments.length / pageSize)}
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => Math.max(1, p - 1))}
+                disabled={page === 1}
+              >
+                Précédent
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPage(p => p + 1)}
+                disabled={page >= totalPages}
+              >
+                Suivant
+              </Button>
             </div>
           </div>
-          <Tabs defaultValue="overview" className="pb-4">
-            <TabsList>
-              <TabsTrigger value="overview">Vue d'ensemble</TabsTrigger>
-              <TabsTrigger value="Transactions" >
-                Transactions par commande
-              </TabsTrigger>
-              <TabsTrigger value="TransactionsBoost" >
-                Transactions par boost
-              </TabsTrigger>
-            </TabsList>
-            <TabsContent value="overview" className="space-y-4">
-              <div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-4">
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                    Total généré par les boosts
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-gray-900 font-bold">450.569 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +2.1% depuis le mois dernier
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                    Total généré par les boosts sur ce mois
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-gray-900 font-bold">100.569 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +4.1% par rapport au dernier mois
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">Nombres de Transactions</CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <rect width="20" height="14" x="2" y="5" rx="2" />
-                      <path d="M2 10h20" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-black font-bold">13</div>
-                    <p className="text-xs text-muted-foreground">
-                      +0% depuis le mois dernier
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                    Nombres de Transactions du mois
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <rect width="20" height="14" x="2" y="5" rx="2" />
-                      <path d="M2 10h20" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-black font-bold">0</div>
-                    <p className="text-xs text-muted-foreground">
-                    -100% par rapport au dernier mois
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                      Total Encaissement
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-green-600 font-bold">1.250.569 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +2.1% depuis le mois dernier
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                      Encaissement du mois
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-green-600 font-bold">300.569 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +4.1% par rapport au dernier mois
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                      Total decaissement
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-red-600 font-bold">800.000 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +2.1% depuis le mois dernier
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-bold">
-                      Decaissement du mois
-                    </CardTitle>
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      className="h-4 w-4 text-muted-foreground"
-                    >
-                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                    </svg>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl text-red-600 font-bold">100.000 FCFA</div>
-                    <p className="text-xs text-muted-foreground">
-                      +4.1% par rapport au dernier mois
-                    </p>
-                  </CardContent>
-                </Card>
+        </CardContent>
+      </Card>
+
+      {/* Modal d'upload de preuve */}
+      {selectedPayment !== null && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Ajouter une preuve</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="proof">Téléverser une preuve</Label>
+                <Input
+                  id="proof"
+                  type="file"
+                  accept="image/*,.pdf"
+                  onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+                />
+                {selectedFile && (
+                  <div className="mt-2 text-sm text-muted-foreground">
+                    Fichier sélectionné: {selectedFile.name}
+                  </div>
+                )}
               </div>
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-                <Card className="col-span-4">
-                  <CardHeader>
-                    <CardTitle>Overview</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pl-2">
-                    <Overview />
-                  </CardContent>
-                </Card>
-                <Card className="col-span-3">
-                  <CardHeader>
-                    <CardTitle>Dernieres Transaction</CardTitle>
-                    <CardDescription>
-                      73 Transactions sur ce mois
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <RecentSales />
-                  </CardContent>
-                </Card>
+              <div className="flex justify-end gap-2">
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedPayment(null);
+                    setSelectedFile(null);
+                  }}
+                >
+                  Annuler
+                </Button>
+                <Button
+                  onClick={handleFileUpload}
+                  disabled={!selectedFile}
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  Envoyer
+                </Button>
               </div>
-            </TabsContent>
-
-
-
-
-
-
-
-
-
-            <TabsContent value="Transactions" className="space-y-4">
-                    <Transaction />            
-            </TabsContent>
-
-            <TabsContent value="TransactionsBoost" className="space-y-4">
-                    <TransactionBoost />            
-            </TabsContent>
-          </Tabs>
+            </CardContent>
+          </Card>
         </div>
-      </div>
-    </>
-  )
+      )}
+    </div>
+  );
 }
