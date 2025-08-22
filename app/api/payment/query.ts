@@ -421,7 +421,7 @@ export const updateTransactionWithProof = async (
       .update({
         preuve_url: preuveUrl,
         status: "completed",
-        payment_date: new Date().toTimeString().split(' ')[0] + '+00',
+        payment_date: new Date().toTimeString().split(" ")[0] + "+00",
       })
       .eq("transaction_id", transactionId)
       .select()
