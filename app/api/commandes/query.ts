@@ -1,5 +1,11 @@
 import { createClient } from "@/lib/supabaseClient";
 import { getSupabaseSession } from "@/lib/authMnager";
+import {
+  processValidationPayment,
+  extractCurrencyFromCommande,
+  extractAmountFromCommande,
+} from "@/app/api/payment/query";
+import { getOrCreateUserWallet } from "@/app/api/wallets/query";
 const supabase = createClient();
 
 export const getallcommandes = async () => {
@@ -168,7 +174,8 @@ export const modifierCommande = async (
 
 export const validerCommande = async (
   id_commande: number,
-  mail_valideur?: string
+  mail_valideur?: string,
+  userId?: string
 ) => {
   const role = getSupabaseSession();
 
@@ -177,9 +184,15 @@ export const validerCommande = async (
   }
 
   try {
+    // Récupérer les détails complets de la commande
     const { data: commandeExistante, error: erreurRecherche } = await supabase
       .from("commande")
-      .select("validation_status")
+      .select(
+        `
+        *,
+        detail_commande
+      `
+      )
       .eq("id", id_commande)
       .single();
 
@@ -196,6 +209,49 @@ export const validerCommande = async (
       };
     }
 
+    // Récupérer ou créer le portefeuille du validateur
+    let validatorWallet = null;
+    let paymentResult = null;
+
+    if (userId) {
+      try {
+        console.log(
+          `💼 Récupération du portefeuille pour l'utilisateur ${userId}`
+        );
+        validatorWallet = await getOrCreateUserWallet(userId);
+
+        // Extraire le montant et la devise de la commande avec les fonctions utilitaires
+        const commandeAmount = extractAmountFromCommande(commandeExistante);
+        const commandeCurrency = extractCurrencyFromCommande(commandeExistante);
+
+        console.log(
+          `💰 Montant à débiter: ${commandeAmount} ${commandeCurrency}`
+        );
+
+        // Traiter le paiement de validation si le montant est valide
+        if (commandeAmount > 0) {
+          paymentResult = await processValidationPayment(
+            id_commande,
+            userId,
+            validatorWallet.id,
+            commandeAmount,
+            commandeCurrency
+          );
+          console.log(`✅ Paiement de validation traité avec succès`);
+        } else {
+          console.warn(
+            `⚠️ Montant de commande invalide (${commandeAmount}), paiement ignoré`
+          );
+        }
+      } catch (paymentError) {
+        console.error("Erreur lors du traitement du paiement:", paymentError);
+        // Ne pas faire échouer la validation pour des erreurs de paiement
+        // mais logger l'erreur pour investigation
+        console.warn("La validation continue malgré l'erreur de paiement");
+      }
+    }
+
+    // Mettre à jour le statut de validation
     const { data, error: erreurUpdate } = await supabase
       .from("commande")
       .update({
@@ -207,7 +263,12 @@ export const validerCommande = async (
 
     if (erreurUpdate) throw erreurUpdate;
 
-    return { message: "Commande validée avec succès", data };
+    return {
+      message: "Commande validée avec succès",
+      data,
+      paymentProcessed: paymentResult !== null,
+      walletBalance: validatorWallet?.balance || null,
+    };
   } catch (err) {
     console.error("Erreur lors de la validation de la commande:", err);
     throw err;

@@ -33,6 +33,7 @@ import {
   updateValidationStatus,
   unblockValidationStatus,
 } from "@/app/api/commandes/query";
+import { getWalletByUserId } from "@/app/api/wallets/query";
 import { fr } from "date-fns/locale";
 import {
   AlertCircle,
@@ -91,6 +92,7 @@ export function CommandeList({
   const [isBlocking, setIsBlocking] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [walletBalance, setWalletBalance] = useState<string | null>(null);
 
   // Mettre à jour les items quand initialItems change, en préservant les modifications locales
   useEffect(() => {
@@ -127,10 +129,24 @@ export function CommandeList({
     });
   }, [initialItems]);
 
-  // Récupérer l'utilisateur connecté
+  // Récupérer l'utilisateur connecté et son solde
   useEffect(() => {
     const user = getSupabaseUser();
     setCurrentUser(user);
+
+    // Récupérer le solde du portefeuille si l'utilisateur est connecté
+    if (user?.id) {
+      getWalletByUserId(user.id)
+        .then((wallet) => {
+          if (wallet) {
+            setWalletBalance(wallet.balance);
+            console.log(`💰 Solde du portefeuille: ${wallet.balance}`);
+          }
+        })
+        .catch((error) => {
+          console.warn("Erreur lors de la récupération du solde:", error);
+        });
+    }
   }, []);
 
   // Fonction pour bloquer un bouton (mettre validationPending à true)
@@ -490,11 +506,27 @@ export function CommandeList({
         // Appel de validerCommande avec les bons paramètres
         const result = await validerCommande(
           activeItem.id,
-          currentUser?.email || undefined
+          currentUser?.email || undefined,
+          currentUser?.id || undefined
         );
 
         if (result.message === "La commande est déjà validée") {
           console.log("La commande était déjà validée");
+        }
+
+        // Afficher des informations sur le paiement si traité
+        if (result.paymentProcessed) {
+          console.log("💳 Paiement de validation traité avec succès");
+          if (result.walletBalance !== null) {
+            setWalletBalance(result.walletBalance); // Mettre à jour le solde local
+            console.log(
+              `💰 Nouveau solde du portefeuille: ${result.walletBalance}`
+            );
+            // Optionnel: Afficher une notification à l'utilisateur
+            // alert(`Paiement traité avec succès. Nouveau solde: ${result.walletBalance}`);
+          }
+        } else {
+          console.log("ℹ️ Aucun paiement traité pour cette validation");
         }
 
         // Créer la commande mise à jour avec les propriétés valides
@@ -532,6 +564,35 @@ export function CommandeList({
         }, 1000);
       } catch (error) {
         console.error("Erreur lors de la validation de la commande:", error);
+
+        // Gestion d'erreurs spécifiques pour les problèmes de paiement
+        const errorMessage =
+          (error as any)?.message ||
+          (typeof error === "object"
+            ? JSON.stringify(error)
+            : error?.toString()) ||
+          "Erreur inconnue";
+
+        if (errorMessage.includes("Solde insuffisant")) {
+          alert(
+            "❌ Solde insuffisant dans votre portefeuille pour valider cette commande. Veuillez recharger votre compte."
+          );
+        } else if (errorMessage.includes("Portefeuille non trouvé")) {
+          alert(
+            "❌ Erreur de portefeuille. Veuillez contacter l'administrateur."
+          );
+        } else if (
+          errorMessage.includes("conversion") ||
+          errorMessage.includes("devise")
+        ) {
+          alert(
+            "❌ Erreur de conversion de devise. La validation sera tentée avec le montant original."
+          );
+        } else {
+          alert(
+            "❌ Erreur lors de la validation de la commande. Veuillez réessayer."
+          );
+        }
       } finally {
         setIsLoading(false);
       }
@@ -651,7 +712,8 @@ export function CommandeList({
                               : "bg-[#0E7D0A] hover:bg-[#0E7D0A]/80"
                           } text-primary-foreground px-4 py-2 rounded-md text-sm font-bold transition-colors`}
                         >
-                          {currentUser?.email === item.mail_valideur
+                          {currentUser?.email === item.mail_valideur &&
+                          item.validationPending
                             ? "Traiter la commande"
                             : "Valider la commande"}
                         </button>

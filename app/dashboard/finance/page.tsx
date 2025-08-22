@@ -26,7 +26,12 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { getPayments, updatePaymentStatus, getFinancialStats, uploadProofFile } from "@/app/api/finance/query";
+import {
+  getPayments,
+  updatePaymentStatus,
+  getFinancialStats,
+  uploadProofFile,
+} from "@/app/api/finance/query";
 
 const statusVariant: Record<string, string> = {
   pending: "bg-yellow-100 text-yellow-800",
@@ -69,18 +74,18 @@ export default function FinancePage() {
     try {
       setIsLoading(true);
       const { data, count } = await getPayments({
-        startDate: date?.from?.toISOString().split('T')[0],
-        endDate: date?.to?.toISOString().split('T')[0],
-        status: statusFilter !== 'all' ? statusFilter : undefined,
-        operation: operationFilter !== 'all' ? operationFilter : undefined,
-        type: typeFilter !== 'all' ? typeFilter : undefined,
+        startDate: date?.from?.toISOString().split("T")[0],
+        endDate: date?.to?.toISOString().split("T")[0],
+        status: statusFilter !== "all" ? statusFilter : undefined,
+        operation: operationFilter !== "all" ? operationFilter : undefined,
+        type: typeFilter !== "all" ? typeFilter : undefined,
         page,
         pageSize,
       });
 
       const statsData = await getFinancialStats({
-        startDate: date?.from?.toISOString().split('T')[0],
-        endDate: date?.to?.toISOString().split('T')[0],
+        startDate: date?.from?.toISOString().split("T")[0],
+        endDate: date?.to?.toISOString().split("T")[0],
       });
 
       setPayments(data || []);
@@ -100,9 +105,9 @@ export default function FinancePage() {
 
   const handleStatusChange = async (paymentId: number, newStatus: string) => {
     try {
-      setIsUpdating(prev => ({ ...prev, [paymentId]: true }));
-      
-      if (newStatus === 'completed') {
+      setIsUpdating((prev) => ({ ...prev, [paymentId]: true }));
+
+      if (newStatus === "completed") {
         setSelectedPayment(paymentId);
         return;
       }
@@ -114,7 +119,7 @@ export default function FinancePage() {
       console.error("Error updating status:", error);
       toast.error("Erreur lors de la mise à jour du statut");
     } finally {
-      setIsUpdating(prev => ({ ...prev, [paymentId]: false }));
+      setIsUpdating((prev) => ({ ...prev, [paymentId]: false }));
     }
   };
 
@@ -123,7 +128,7 @@ export default function FinancePage() {
 
     try {
       const proofUrl = await uploadProofFile(selectedFile);
-      await updatePaymentStatus(selectedPayment, 'completed', proofUrl);
+      await updatePaymentStatus(selectedPayment, "completed", proofUrl);
       toast.success("Preuve téléversée et statut mis à jour");
       setSelectedPayment(null);
       setSelectedFile(null);
@@ -135,27 +140,30 @@ export default function FinancePage() {
   };
 
   const formatAmount = (amount: number) => {
-    return new Intl.NumberFormat('fr-FR', { 
-      style: 'currency', 
-      currency: 'XOF',
+    return new Intl.NumberFormat("fr-FR", {
+      style: "currency",
+      currency: "XOF",
       minimumFractionDigits: 0,
-      maximumFractionDigits: 0
+      maximumFractionDigits: 0,
     }).format(amount);
   };
 
   // Filtrer les transactions en fonction des critères de recherche et des filtres
-  const filteredPayments = payments.filter(payment => {
+  const filteredPayments = payments.filter((payment) => {
     const searchLower = searchTerm.toLowerCase();
-    const orderIdStr = payment.order_id?.toString() || '';
-    const matchesSearch = !searchTerm || 
+    const orderIdStr = payment.order_id?.toString() || "";
+    const matchesSearch =
+      !searchTerm ||
       payment.transaction_id?.toLowerCase().includes(searchLower) ||
       orderIdStr.toLowerCase().includes(searchLower) ||
       payment.amount?.toString().includes(searchTerm);
-      
-    const matchesStatus = statusFilter === 'all' || payment.status === statusFilter;
-    const matchesType = typeFilter === 'all' || payment.type === typeFilter;
-    const matchesOperation = operationFilter === 'all' || payment.operation === operationFilter;
-    
+
+    const matchesStatus =
+      statusFilter === "all" || payment.status === statusFilter;
+    const matchesType = typeFilter === "all" || payment.type === typeFilter;
+    const matchesOperation =
+      operationFilter === "all" || payment.operation === operationFilter;
+
     return matchesSearch && matchesStatus && matchesType && matchesOperation;
   });
 
@@ -165,74 +173,96 @@ export default function FinancePage() {
         <h1 className="text-2xl font-bold">Tableau de bord financier</h1>
         <div className="flex items-center gap-2">
           <Button variant="outline" onClick={fetchData} disabled={isLoading}>
-            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            <RefreshCw
+              className={`h-4 w-4 mr-2 ${isLoading ? "animate-spin" : ""}`}
+            />
             Actualiser
           </Button>
         </div>
       </div>
 
-    
-
       {/* Filtres */}
       <Card>
         <CardContent className="mt-5">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                        {/* Cartes de statistiques */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total crédits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-green-600">
-              {stats ? formatAmount(stats.totalCredit) : '...'}
+            {/* Cartes de statistiques */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total crédits
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">
+                    {stats ? formatAmount(stats.totalCredit) : "..."}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Total débits
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">
+                    {stats ? formatAmount(stats.totalDebit) : "..."}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Solde net
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className={`text-2xl font-bold ${
+                      stats?.netAmount >= 0 ? "text-green-600" : "text-red-600"
+                    }`}
+                  >
+                    {stats ? formatAmount(stats.netAmount) : "..."}
+                  </div>
+                </CardContent>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    Transactions
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex justify-between">
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        Confirmées
+                      </div>
+                      <div className="font-medium">
+                        {stats?.totalCompleted || 0}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        En attente
+                      </div>
+                      <div className="font-medium">
+                        {stats?.totalPending || 0}
+                      </div>
+                    </div>
+                    <div>
+                      <div className="text-sm text-muted-foreground">
+                        Échouées
+                      </div>
+                      <div className="font-medium">
+                        {stats?.totalFailed || 0}
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Total débits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-red-600">
-              {stats ? formatAmount(stats.totalDebit) : '...'}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Solde net</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className={`text-2xl font-bold ${
-              stats?.netAmount >= 0 ? 'text-green-600' : 'text-red-600'
-            }`}>
-              {stats ? formatAmount(stats.netAmount) : '...'}
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium">Transactions</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="flex justify-between">
-              <div>
-                <div className="text-sm text-muted-foreground">Confirmées</div>
-                <div className="font-medium">{stats?.totalCompleted || 0}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">En attente</div>
-                <div className="font-medium">{stats?.totalPending || 0}</div>
-              </div>
-              <div>
-                <div className="text-sm text-muted-foreground">Échouées</div>
-                <div className="font-medium">{stats?.totalFailed || 0}</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
             <div className="space-y-2 ">
               <Label>Période</Label>
               <div className="flex items-center gap-2">
@@ -249,13 +279,7 @@ export default function FinancePage() {
                 )}
               </div>
             </div>
-
-
-
           </div>
-
-  
-          
         </CardContent>
       </Card>
 
@@ -266,7 +290,7 @@ export default function FinancePage() {
         </CardHeader>
         <CardContent>
           <div className="rounded-md flex flex-col border">
-             <div className="p-2 grid grid-cols-9 gap-4">
+            <div className="p-2 grid grid-cols-9 gap-4">
               <div className="space-y-2 col-span-3">
                 <Label>Rechercher</Label>
                 <Input
@@ -276,50 +300,52 @@ export default function FinancePage() {
                   className="w-full h-9"
                 />
               </div>
-          <div className="space-y-2 col-span-2">
-              <Label>Type</Label>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Crédit/Débit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="credit">Crédit</SelectItem>
-                  <SelectItem value="debit">Débit</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-             
-            <div className="space-y-2 col-span-2">
-              <Label>Opération</Label>
-              <Select value={operationFilter} onValueChange={setOperationFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tous les types" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="payment">Paiement</SelectItem>
-                  <SelectItem value="remboursement">Remboursement</SelectItem>
-                  <SelectItem value="validation">Validation</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
+              <div className="space-y-2 col-span-2">
+                <Label>Type</Label>
+                <Select value={typeFilter} onValueChange={setTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Crédit/Débit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="credit">Crédit</SelectItem>
+                    <SelectItem value="debit">Débit</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-             <div className="space-y-2 col-span-2">
-              <Label>Statut</Label>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Tous les statuts" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Tous</SelectItem>
-                  <SelectItem value="pending">En attente</SelectItem>
-                  <SelectItem value="completed">Confirmé</SelectItem>
-                  <SelectItem value="failed">Échoué</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+              <div className="space-y-2 col-span-2">
+                <Label>Opération</Label>
+                <Select
+                  value={operationFilter}
+                  onValueChange={setOperationFilter}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="payment">Paiement</SelectItem>
+                    <SelectItem value="remboursement">Remboursement</SelectItem>
+                    <SelectItem value="validation">Validation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2 col-span-2">
+                <Label>Statut</Label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Tous</SelectItem>
+                    <SelectItem value="pending">En attente</SelectItem>
+                    <SelectItem value="completed">Confirmé</SelectItem>
+                    <SelectItem value="failed">Échoué</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             <Table>
               <TableHeader>
@@ -351,42 +377,74 @@ export default function FinancePage() {
                   filteredPayments.map((payment) => (
                     <TableRow key={payment.id}>
                       <TableCell>
-                        {new Date(payment.created_at).toLocaleDateString('fr-FR')}
+                        {new Date(payment.created_at).toLocaleDateString(
+                          "fr-FR"
+                        )}
                       </TableCell>
-                      <TableCell className="font-medium text-xs">#{payment.transaction_id}</TableCell>
+                      <TableCell className="font-medium text-xs">
+                        #{payment.transaction_id}
+                      </TableCell>
                       <TableCell className="text-xs">
-                        {payment.order_id ? `#${payment.order_id}` : '-'}
+                        {payment.order_id ? `#${payment.order_id}` : "-"}
                       </TableCell>
                       <TableCell>
-                        <Badge variant={payment.type === 'credit' ? 'default' : 'secondary'}>
-                          {payment.type === 'credit' ? 'Crédit' : 'Débit'}
+                        <Badge
+                          variant={
+                            payment.type === "credit" ? "default" : "secondary"
+                          }
+                        >
+                          {payment.type === "credit" ? "Crédit" : "Débit"}
                         </Badge>
                       </TableCell>
                       <TableCell>
-                        {operationLabels[payment.operation as keyof typeof operationLabels] || payment.operation}
+                        {operationLabels[
+                          payment.operation as keyof typeof operationLabels
+                        ] || payment.operation}
                       </TableCell>
-                      <TableCell className={payment.type === 'credit' ? 'text-green-600' : 'text-red-600'}>
-                        {payment.type === 'credit' ? '+' : '-'} {formatAmount(payment.amount || 0)}
+                      <TableCell
+                        className={
+                          payment.type === "credit"
+                            ? "text-green-600"
+                            : "text-red-600"
+                        }
+                      >
+                        {payment.type === "credit" ? "+" : "-"}{" "}
+                        {formatAmount(payment.amount || 0)}
                       </TableCell>
                       <TableCell>
-                        <Badge className={statusVariant[payment.status as keyof typeof statusVariant]}>
-                          {payment.status === 'pending' ? 'En attente' : 
-                           payment.status === 'completed' ? 'Confirmé' : 'Échoué'}
+                        <Badge
+                          className={
+                            statusVariant[
+                              payment.status as keyof typeof statusVariant
+                            ]
+                          }
+                        >
+                          {payment.status === "pending"
+                            ? "En attente"
+                            : payment.status === "completed"
+                            ? "Confirmé"
+                            : "Échoué"}
                         </Badge>
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <Select
                             value={payment.status}
-                            onValueChange={(value) => handleStatusChange(payment.id, value)}
+                            onValueChange={(value) =>
+                              handleStatusChange(payment.id, value)
+                            }
                             disabled={isUpdating[payment.id]}
                           >
                             <SelectTrigger className="w-32">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="pending">En attente</SelectItem>
-                              <SelectItem value="completed">Confirmer</SelectItem>
+                              <SelectItem value="pending">
+                                En attente
+                              </SelectItem>
+                              <SelectItem value="completed">
+                                Confirmer
+                              </SelectItem>
                               <SelectItem value="failed">Échec</SelectItem>
                             </SelectContent>
                           </Select>
@@ -394,7 +452,9 @@ export default function FinancePage() {
                             <Button
                               variant="ghost"
                               size="icon"
-                              onClick={() => window.open(payment.proof_url, '_blank')}
+                              onClick={() =>
+                                window.open(payment.proof_url, "_blank")
+                              }
                             >
                               <Eye className="h-4 w-4" />
                             </Button>
@@ -411,13 +471,14 @@ export default function FinancePage() {
           {/* Pagination */}
           <div className="flex items-center justify-between mt-4">
             <div className="text-sm text-muted-foreground">
-              {filteredPayments.length} résultats • Page {page} sur {Math.ceil(filteredPayments.length / pageSize)}
+              {filteredPayments.length} résultats • Page {page} sur{" "}
+              {Math.ceil(filteredPayments.length / pageSize)}
             </div>
             <div className="flex gap-2">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(p => Math.max(1, p - 1))}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
               >
                 Précédent
@@ -425,7 +486,7 @@ export default function FinancePage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setPage(p => p + 1)}
+                onClick={() => setPage((p) => p + 1)}
                 disabled={page >= totalPages}
               >
                 Suivant
@@ -467,10 +528,7 @@ export default function FinancePage() {
                 >
                   Annuler
                 </Button>
-                <Button
-                  onClick={handleFileUpload}
-                  disabled={!selectedFile}
-                >
+                <Button onClick={handleFileUpload} disabled={!selectedFile}>
                   <Upload className="h-4 w-4 mr-2" />
                   Envoyer
                 </Button>
