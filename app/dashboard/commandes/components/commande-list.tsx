@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation";
 import { CSSProperties, useCallback, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
+import { triggerWalletRefresh } from "@/hooks/use-wallet-refresh";
 
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Commande } from "../schema";
@@ -33,7 +34,6 @@ import {
   updateValidationStatus,
   unblockValidationStatus,
 } from "@/app/api/commandes/query";
-import { getWalletByUserId } from "@/app/api/wallets/query";
 import { fr } from "date-fns/locale";
 import {
   AlertCircle,
@@ -92,7 +92,6 @@ export function CommandeList({
   const [isBlocking, setIsBlocking] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [walletBalance, setWalletBalance] = useState<string | null>(null);
 
   // Mettre à jour les items quand initialItems change, en préservant les modifications locales
   useEffect(() => {
@@ -134,19 +133,7 @@ export function CommandeList({
     const user = getSupabaseUser();
     setCurrentUser(user);
 
-    // Récupérer le solde du portefeuille si l'utilisateur est connecté
-    if (user?.id) {
-      getWalletByUserId(user.id)
-        .then((wallet) => {
-          if (wallet) {
-            setWalletBalance(wallet.balance);
-            console.log(`💰 Solde du portefeuille: ${wallet.balance}`);
-          }
-        })
-        .catch((error) => {
-          console.warn("Erreur lors de la récupération du solde:", error);
-        });
-    }
+    console.log(`👤 Utilisateur connecté: ${user?.email || "Aucun"}`);
   }, []);
 
   // Fonction pour bloquer un bouton (mettre validationPending à true)
@@ -492,10 +479,10 @@ export function CommandeList({
   }, []);
 
   const handleConfirmValidation = useCallback(
-    async (confirmed: boolean) => {
+    async (completed: boolean) => {
       if (!activeItem) return;
 
-      if (!confirmed) {
+      if (!completed) {
         setConfirmDialogOpen(false);
         return;
       }
@@ -518,12 +505,15 @@ export function CommandeList({
         if (result.paymentProcessed) {
           console.log("💳 Paiement de validation traité avec succès");
           if (result.walletBalance !== null) {
-            setWalletBalance(result.walletBalance); // Mettre à jour le solde local
+            // Déclencher la mise à jour du solde dans la navbar
+            triggerWalletRefresh(currentUser?.id || "", result.walletBalance);
             console.log(
               `💰 Nouveau solde du portefeuille: ${result.walletBalance}`
             );
-            // Optionnel: Afficher une notification à l'utilisateur
-            // alert(`Paiement traité avec succès. Nouveau solde: ${result.walletBalance}`);
+            // Notification à l'utilisateur
+            alert(
+              `✅ Paiement traité avec succès. Nouveau solde: ${result.walletBalance} XOF`
+            );
           }
         } else {
           console.log("ℹ️ Aucun paiement traité pour cette validation");
@@ -707,7 +697,8 @@ export function CommandeList({
                         <button
                           onClick={() => handleOpenDrawer(item)}
                           className={`w-full ${
-                            currentUser?.email === item.mail_valideur
+                            currentUser?.email === item.mail_valideur &&
+                            item.validationPending
                               ? "bg-yellow-600 hover:bg-yellow-700"
                               : "bg-[#0E7D0A] hover:bg-[#0E7D0A]/80"
                           } text-primary-foreground px-4 py-2 rounded-md text-sm font-bold transition-colors`}
@@ -1449,12 +1440,67 @@ export function CommandeList({
             open={confirmDialogOpen}
             onClose={() => setConfirmDialogOpen(false)}
           >
-            <MuiDialogTitle>Confirmation de validation</MuiDialogTitle>
+            {/* <MuiDialogTitle className="text-lg font-semibold">
+              Confirmation de validation
+            </MuiDialogTitle> */}
             <MuiDialogContent>
-              <MuiDialogContentText>
-                Avez-vous validé la commande #{activeItem?.id} sur le site
-                externe ?
-              </MuiDialogContentText>
+              <div className="space-y-4">
+                <p className="font-semibold text-gray-800">
+                  Avez-vous validé la commande #{activeItem?.id} sur le site
+                  externe ?
+                </p>
+
+                <div className="bg-green-50 p-4 rounded-lg border-l-4 border-green-400">
+                  <h4 className="font-semibold text-green-800 mb-2">
+                    💰 Montant à débiter :
+                  </h4>
+                  <p className="text-sm font-semibold text-green-700">
+                    {activeItem?.total_price?.slice(0, 8)}{" "}
+                    {activeItem?.detail_commande?.articles[0]?.currency}
+                    {activeItem?.detail_commande?.articles[0]?.currency !==
+                      "XOF" && " (converti automatiquement en XOF)"}
+                  </p>
+                </div>
+                {/* <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
+                  <h4 className="font-semibold text-blue-800 mb-2">
+                    📋 Processus de validation :
+                  </h4>
+                  <ul className="text-sm text-blue-700 space-y-1">
+                    <li>• Validation de la commande sur le site externe</li>
+                    <li>• Débit automatique de votre portefeuille</li>
+                    <li>
+                      • Création d'une transaction en attente (status: pending)
+                    </li>
+                  </ul>
+                </div> */}
+
+                <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
+                  <h4 className="font-semibold text-orange-800 mb-2">
+                    ⚠️ Étapes suivantes :
+                  </h4>
+                  <ol className="text-sm text-orange-700 space-y-1">
+                    <li>
+                      1. Rendez-vous dans la section <strong>Finance</strong>
+                    </li>
+                    <li>2. Trouvez votre transaction (status: En attente)</li>
+                    <li>
+                      3. Uploadez la preuve de paiement (photo/capture d'écran)
+                    </li>
+                    <li>
+                      4. La transaction passera au status{" "}
+                      <strong>Confirmé</strong>
+                    </li>
+                  </ol>
+                </div>
+
+                <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
+                  <p className="text-sm text-red-700">
+                    <strong>Important :</strong> Cette action débitera
+                    immédiatement votre portefeuille. La transaction sera en
+                    attente jusqu'à l'upload de la preuve de paiement.
+                  </p>
+                </div>
+              </div>
             </MuiDialogContent>
             <MuiDialogActions>
               <Button

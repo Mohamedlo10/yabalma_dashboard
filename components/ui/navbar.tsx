@@ -3,9 +3,10 @@ import Image from "next/image";
 import { CSSProperties, useState } from "react";
 import { Role } from "@/app/dashboard/settings/schema";
 import { useEffect } from "react";
-import { getSupabaseSession } from "@/lib/authMnager";
+import { getSupabaseSession, getSupabaseUser } from "@/lib/authMnager";
 import { getAllUserInfo } from "@/app/api/auth/query";
-import { getWalletByUserId } from "@/app/api/wallets/query";
+import { getOrCreateUserWallet } from "@/app/api/wallets/query";
+import { useWalletRefresh } from "@/hooks/use-wallet-refresh";
 import BeatLoader from "react-spinners/BeatLoader";
 import { LogIn, User, Wallet } from "lucide-react";
 import Link from "next/link";
@@ -20,6 +21,68 @@ const override: CSSProperties = {
   borderColor: "red",
 };
 
+// Fonctions de cache pour les données utilisateur
+const CACHE_KEYS = {
+  WALLET_BALANCE: "yabalma_wallet_balance",
+  USER_INFO: "yabalma_user_info",
+  LAST_WALLET_UPDATE: "yabalma_wallet_update",
+};
+
+const getCachedWalletBalance = (userId: string): number | null => {
+  try {
+    const cached = localStorage.getItem(
+      `${CACHE_KEYS.WALLET_BALANCE}_${userId}`
+    );
+    const lastUpdate = localStorage.getItem(
+      `${CACHE_KEYS.LAST_WALLET_UPDATE}_${userId}`
+    );
+
+    if (cached && lastUpdate) {
+      const updateTime = parseInt(lastUpdate);
+      const now = Date.now();
+      // Cache valide pendant 30 secondes
+      if (now - updateTime < 30000) {
+        return parseFloat(cached);
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedWalletBalance = (userId: string, balance: number): void => {
+  try {
+    localStorage.setItem(
+      `${CACHE_KEYS.WALLET_BALANCE}_${userId}`,
+      balance.toString()
+    );
+    localStorage.setItem(
+      `${CACHE_KEYS.LAST_WALLET_UPDATE}_${userId}`,
+      Date.now().toString()
+    );
+  } catch (error) {
+    console.warn("Erreur lors du cache du wallet:", error);
+  }
+};
+
+const getCachedUserInfo = (): any | null => {
+  try {
+    const cached = localStorage.getItem(CACHE_KEYS.USER_INFO);
+    return cached ? JSON.parse(cached) : null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedUserInfo = (userInfo: any): void => {
+  try {
+    localStorage.setItem(CACHE_KEYS.USER_INFO, JSON.stringify(userInfo));
+  } catch (error) {
+    console.warn("Erreur lors du cache des infos utilisateur:", error);
+  }
+};
+
 function Navbar({ toggleSidebar }: NavbarProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [role, setRole] = useState<Role>();
@@ -27,15 +90,49 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   const [walletBalance, setWalletBalance] = useState<number>(0);
   let [color, setColor] = useState("#ffffff");
 
-  // Function to refresh wallet balance
-  const refreshWalletBalance = async () => {
+  // Hook pour écouter les mises à jour de wallet
+  useWalletRefresh((newBalance: number) => {
+    setWalletBalance(newBalance);
     if (userInfo?.id) {
-      try {
-        const wallet = await getWalletByUserId(userInfo.id);
-        setWalletBalance(wallet?.balance || 0);
-      } catch (error) {
-        console.error("Error refreshing wallet balance:", error);
+      setCachedWalletBalance(userInfo.id, newBalance);
+    }
+  });
+
+  // Function to refresh wallet balance
+  const refreshWalletBalance = async (forceRefresh: boolean = false) => {
+    if (!userInfo?.id) {
+      console.log("❌ Pas d'ID utilisateur disponible pour récupérer le solde");
+      return;
+    }
+
+    console.log(`🔍 Récupération du solde pour l'utilisateur: ${userInfo.id}`);
+
+    try {
+      // Vérifier le cache d'abord si pas de refresh forcé
+      if (!forceRefresh) {
+        const cachedBalance = getCachedWalletBalance(userInfo.id);
+        if (cachedBalance !== null) {
+          console.log(
+            `📦 Solde récupéré depuis le cache: ${cachedBalance} XOF`
+          );
+          setWalletBalance(cachedBalance);
+          return;
+        }
       }
+
+      console.log("🌐 Récupération du solde depuis l'API...");
+      // Récupérer depuis l'API (ou créer le wallet s'il n'existe pas)
+      const wallet = await getOrCreateUserWallet(userInfo.id);
+      console.log("📊 Réponse de l'API wallet:", wallet);
+
+      const newBalance = wallet?.balance || 0;
+
+      setWalletBalance(newBalance);
+      setCachedWalletBalance(userInfo.id, newBalance);
+
+      console.log(`💰 Solde mis à jour: ${newBalance} XOF`);
+    } catch (error) {
+      console.error("❌ Error refreshing wallet balance:", error);
     }
   };
 
@@ -43,23 +140,33 @@ function Navbar({ toggleSidebar }: NavbarProps) {
     async function fetchData() {
       setIsLoading(true);
       try {
+        // Récupérer les données de session depuis les cookies
         const sessionRole = getSupabaseSession();
+        const sessionUser = getSupabaseUser();
+
         setRole(sessionRole);
 
         if (sessionRole) {
-          // Get full user info
-          const userDetails = await getAllUserInfo();
-          setUserInfo(userDetails);
+          let userDetails = sessionUser;
 
-          // Get wallet balance
-          if (userDetails?.id) {
+          // Si pas d'infos utilisateur en cookies, les récupérer de l'API
+          if (!userDetails) {
             try {
-              const wallet = await getWalletByUserId(userDetails.id);
-              setWalletBalance(wallet?.balance || 0);
-            } catch (walletError) {
-              console.error("Error fetching wallet:", walletError);
-              setWalletBalance(0);
+              userDetails = await getAllUserInfo();
+              console.log("🔄 Infos utilisateur récupérées depuis l'API");
+            } catch (apiError) {
+              console.error(
+                "Erreur API lors de la récupération des infos utilisateur:",
+                apiError
+              );
             }
+          } else {
+            console.log("✅ Infos utilisateur récupérées depuis les cookies");
+          }
+
+          if (userDetails?.id) {
+            setUserInfo(userDetails);
+            setCachedUserInfo(userDetails);
           }
         }
       } catch (error) {
@@ -70,6 +177,16 @@ function Navbar({ toggleSidebar }: NavbarProps) {
     }
     fetchData();
   }, []);
+
+  // Effet séparé pour rafraîchir le solde quand userInfo est disponible
+  useEffect(() => {
+    if (userInfo?.id) {
+      console.log(
+        `🔄 Récupération du solde pour l'utilisateur: ${userInfo.id}`
+      );
+      refreshWalletBalance(false); // false = utiliser le cache si disponible
+    }
+  }, [userInfo]);
 
   if (isLoading) {
     return (

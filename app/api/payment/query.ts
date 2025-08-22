@@ -32,7 +32,7 @@ export const extractCurrencyFromCommande = (commande: any): string => {
       currency === "USD" ||
       currency === "DOLLAR"
     ) {
-      currency = "Dollar"; // Si vous en avez un dans votre base
+      currency = "USD"; // Utiliser USD comme clé dans la base de données
     }
 
     console.log(
@@ -111,6 +111,8 @@ export const convertCurrency = async (
 
   try {
     // Récupérer le taux de change depuis la table settings
+    console.log(`🔍 Recherche du taux de change pour: ${fromCurrency}`);
+
     const { data: currencyData, error } = await supabase
       .from("settings")
       .select("value")
@@ -119,24 +121,52 @@ export const convertCurrency = async (
 
     if (error) {
       console.warn(
-        `Taux de change non trouvé pour ${fromCurrency}, utilisation du montant original`
+        `❌ Taux de change non trouvé pour ${fromCurrency}:`,
+        error.message
+      );
+      console.log(`🔍 Tentative avec d'autres variantes de ${fromCurrency}...`);
+
+      // Essayer avec des variantes pour l'USD
+      if (fromCurrency === "USD") {
+        const variants = ["Dollar", "DOLLAR", "$"];
+        for (const variant of variants) {
+          console.log(`🔍 Essai avec: ${variant}`);
+          const { data: variantData, error: variantError } = await supabase
+            .from("settings")
+            .select("value")
+            .eq("currency", variant)
+            .single();
+
+          if (!variantError && variantData?.value) {
+            console.log(
+              `✅ Taux trouvé avec la variante: ${variant} = ${variantData.value}`
+            );
+            const rate = parseFloat(variantData.value);
+            const convertedAmount = amount * rate;
+            console.log(
+              `💱 Conversion USD: ${amount} ${fromCurrency} × ${rate} = ${convertedAmount} XOF`
+            );
+            return Math.round(convertedAmount);
+          }
+        }
+      }
+
+      console.warn(
+        `⚠️ Aucune variante trouvée pour ${fromCurrency}, utilisation du montant original`
       );
       return amount; // Si pas de taux trouvé, retourner le montant original
     }
 
     if (!currencyData || !currencyData.value) {
       console.warn(
-        `Valeur de taux invalide pour ${fromCurrency}, utilisation du montant original`
+        `❌ Valeur de taux invalide pour ${fromCurrency}:`,
+        currencyData
       );
       return amount;
     }
 
     const exchangeRate = parseFloat(currencyData.value);
-
-    // La logique de conversion dépend de comment les taux sont stockés
-    // Si le taux représente : 1 unité de fromCurrency = X XOF
-    // Alors : montant_xof = montant_devise * taux
-    let convertedAmount;
+    console.log(`📊 Taux trouvé pour ${fromCurrency}: ${exchangeRate}`);
 
     // Vérification de la cohérence du taux (éviter les taux aberrants)
     if (exchangeRate <= 0) {
@@ -146,25 +176,94 @@ export const convertCurrency = async (
       return amount;
     }
 
-    // Pour Euro, selon votre configuration actuelle (value: 100)
-    // Note: 100 semble bas pour EUR->XOF, mais on utilise votre configuration
-    if (fromCurrency === "Euro" && exchangeRate < 50) {
-      console.warn(
-        `⚠️ Taux Euro très bas: ${exchangeRate}. Vérifiez la configuration.`
-      );
+    // Validation spécifique selon la devise
+    if (fromCurrency === "USD" || fromCurrency === "Dollar") {
+      // Pour USD, un taux raisonnable serait entre 500-700 XOF (approximativement)
+      if (exchangeRate < 400 || exchangeRate > 800) {
+        console.warn(
+          `⚠️ Taux USD suspect: ${exchangeRate}. Vérifiez la configuration.`
+        );
+      }
+    } else if (fromCurrency === "Euro") {
+      // Pour Euro, selon votre configuration actuelle
+      if (exchangeRate < 600 || exchangeRate > 700) {
+        console.warn(
+          `⚠️ Taux Euro suspect: ${exchangeRate}. Vérifiez la configuration.`
+        );
+      }
     }
 
     // Conversion : montant en devise étrangère × taux = montant en XOF
-    convertedAmount = amount * exchangeRate;
+    const convertedAmount = amount * exchangeRate;
 
     console.log(
-      `💱 Conversion: ${amount} ${fromCurrency} × ${exchangeRate} = ${convertedAmount} XOF`
+      `💱 Conversion finale: ${amount} ${fromCurrency} × ${exchangeRate} = ${convertedAmount} XOF`
     );
 
     return Math.round(convertedAmount); // Arrondir au centime le plus proche
   } catch (err) {
     console.error("Erreur lors de la conversion de devise:", err);
     return amount; // En cas d'erreur, retourner le montant original
+  }
+};
+
+// Fonction utilitaire pour diagnostiquer les taux de change disponibles
+export const debugCurrencyRates = async (): Promise<void> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    console.error("Non autorisé - Session invalide");
+    return;
+  }
+
+  try {
+    console.log("🔍 Diagnostic des taux de change disponibles:");
+
+    const { data: allRates, error } = await supabase
+      .from("settings")
+      .select("currency, value")
+      .not("currency", "is", null);
+
+    if (error) {
+      console.error("❌ Erreur lors de la récupération des taux:", error);
+      return;
+    }
+
+    if (!allRates || allRates.length === 0) {
+      console.warn("⚠️ Aucun taux de change trouvé dans la table settings");
+      return;
+    }
+
+    console.log("📊 Taux de change disponibles:");
+    allRates.forEach((rate) => {
+      console.log(`  ${rate.currency}: ${rate.value}`);
+    });
+
+    // Vérifications spécifiques pour USD et EUR
+    const usdVariants = ["USD", "Dollar", "DOLLAR", "$"];
+    const eurVariants = ["EUR", "Euro", "EURO", "€"];
+
+    console.log("\n🔍 Recherche des variantes USD:");
+    for (const variant of usdVariants) {
+      const found = allRates.find((r) => r.currency === variant);
+      if (found) {
+        console.log(`  ✅ ${variant}: ${found.value}`);
+      } else {
+        console.log(`  ❌ ${variant}: non trouvé`);
+      }
+    }
+
+    console.log("\n🔍 Recherche des variantes EUR:");
+    for (const variant of eurVariants) {
+      const found = allRates.find((r) => r.currency === variant);
+      if (found) {
+        console.log(`  ✅ ${variant}: ${found.value}`);
+      } else {
+        console.log(`  ❌ ${variant}: non trouvé`);
+      }
+    }
+  } catch (err) {
+    console.error("❌ Erreur lors du diagnostic des devises:", err);
   }
 };
 
@@ -300,6 +399,104 @@ export const createValidationTransaction = async (
   }
 };
 
+// Fonction pour mettre à jour une transaction avec la preuve de paiement
+export const updateTransactionWithProof = async (
+  transactionId: string,
+  preuveUrl: string
+): Promise<any> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    console.log(
+      `📸 Mise à jour de la transaction ${transactionId} avec preuve:`,
+      preuveUrl
+    );
+
+    const { data: transaction, error: updateError } = await supabase
+      .from("payment_info")
+      .update({
+        preuve_url: preuveUrl,
+        status: "completed",
+        payment_date: new Date().toTimeString().split(' ')[0] + '+00',
+      })
+      .eq("transaction_id", transactionId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    console.log(`✅ Transaction confirmée avec preuve:`, transaction);
+    return transaction;
+  } catch (err) {
+    console.error("Erreur lors de la mise à jour de la transaction:", err);
+    throw err;
+  }
+};
+
+// Fonction pour récupérer toutes les transactions en attente
+export const getPendingTransactions = async (
+  userId?: string
+): Promise<any[]> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    let query = supabase
+      .from("payment_info")
+      .select(
+        `
+        *,
+        commande:order_id (
+          id,
+          total_price,
+          detail_commande,
+          client:id_client (
+            nom,
+            prenom
+          ),
+          annonce:id_annonce (
+            source,
+            destination
+          )
+        ),
+        wallets:wallet_id (
+          id,
+          balance,
+          user_id
+        )
+      `
+      )
+      .eq("status", "pending")
+      .order("payment_date", { ascending: false });
+
+    if (userId) {
+      query = query.eq("user_id_perform", userId);
+    }
+
+    const { data: transactions, error } = await query;
+
+    if (error) throw error;
+
+    console.log(
+      `📋 ${transactions?.length || 0} transactions en attente trouvées`
+    );
+    return transactions || [];
+  } catch (err) {
+    console.error(
+      "Erreur lors de la récupération des transactions en attente:",
+      err
+    );
+    throw err;
+  }
+};
+
 // Fonction pour débiter le portefeuille du validateur
 export const debitValidatorWallet = async (
   walletId: string,
@@ -352,7 +549,13 @@ export const debitValidatorWallet = async (
     console.log(
       `✅ Portefeuille débité. Nouveau solde: ${newBalance.toString()}`
     );
-    return updatedWallet;
+
+    // Retourner les infos avec le nouveau solde pour déclencher la mise à jour UI
+    return {
+      ...updatedWallet,
+      balance: parseFloat(newBalance.toString()), // Convertir en number pour l'UI
+      user_id: wallet.user_id,
+    };
   } catch (err) {
     console.error("Erreur lors du débit du portefeuille:", err);
     throw err;
@@ -382,10 +585,21 @@ export const processValidationPayment = async (
       commandeCurrency,
     });
 
+    // Diagnostic des taux de change disponibles (utile pour le débogage)
+    await debugCurrencyRates();
+
     // 1. Convertir le montant si nécessaire
     let convertedAmount = commandeAmount;
     if (commandeCurrency && commandeCurrency !== "XOF") {
+      console.log(
+        `💱 Conversion nécessaire: ${commandeAmount} ${commandeCurrency} → XOF`
+      );
       convertedAmount = await convertCurrency(commandeAmount, commandeCurrency);
+      console.log(`💱 Montant après conversion: ${convertedAmount} XOF`);
+    } else {
+      console.log(
+        `💱 Pas de conversion nécessaire, montant en XOF: ${commandeAmount}`
+      );
     }
 
     // Convertir en bigint pour les calculs précis
@@ -403,7 +617,7 @@ export const processValidationPayment = async (
     // 3. Débiter le portefeuille
     const updatedWallet = await debitValidatorWallet(walletId, amountBigInt);
 
-    // 4. Mettre à jour le statut de la transaction à 'confirmed'
+    // 4. Mettre à jour le statut de la transaction à 'completed'
     const { error: updateTransactionError } = await supabase
       .from("payment_info")
       .update({ status: "completed" })
@@ -426,5 +640,35 @@ export const processValidationPayment = async (
   } catch (err) {
     console.error("Erreur lors du traitement du paiement de validation:", err);
     throw err;
+  }
+};
+
+// Fonction de test pour vérifier la conversion USD
+export const testUSDConversion = async (
+  amount: number = 100
+): Promise<void> => {
+  console.log(`🧪 Test de conversion USD: ${amount} $ → XOF`);
+
+  try {
+    // Test avec différentes variantes
+    const variants = ["$", "USD", "Dollar"];
+
+    for (const variant of variants) {
+      console.log(`\n🔍 Test avec la variante: ${variant}`);
+
+      // Test de l'extraction de devise
+      const normalizedCurrency =
+        variant === "$" ? "USD" : variant === "Dollar" ? "USD" : variant;
+      console.log(`📝 Devise normalisée: ${normalizedCurrency}`);
+
+      // Test de conversion
+      const converted = await convertCurrency(amount, normalizedCurrency);
+      console.log(`💱 Résultat: ${amount} ${variant} = ${converted} XOF`);
+    }
+
+    // Diagnostic des taux disponibles
+    await debugCurrencyRates();
+  } catch (error) {
+    console.error("❌ Erreur lors du test USD:", error);
   }
 };

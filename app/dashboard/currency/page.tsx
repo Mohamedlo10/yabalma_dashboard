@@ -7,7 +7,13 @@ import {
   supprimerCurrency,
 } from "@/app/api/currency/query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import ConfirmDialog from "@/components/ui/dialogConfirm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,7 +34,9 @@ const override: CSSProperties = {
 export default function CurrencyPage() {
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(null);
+  const [selectedCurrency, setSelectedCurrency] = useState<Currency | null>(
+    null
+  );
   const [selectedCurrencyId, setSelectedCurrencyId] = useState<any>(null);
   const [selectedCurrencyName, setSelectedCurrencyName] = useState<any>(null);
   const [isAddingCurrency, setIsAddingCurrency] = useState(false);
@@ -71,9 +79,9 @@ export default function CurrencyPage() {
 
   const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setCurrency({ 
-      ...currency, 
-      [name]: name === 'value' ? parseFloat(value) || 0 : value 
+    setCurrency({
+      ...currency,
+      [name]: name === "value" ? parseFloat(value) || 0 : value,
     });
   };
 
@@ -183,7 +191,10 @@ export default function CurrencyPage() {
               </h2>
               <form className="w-full" onSubmit={handleSubmit}>
                 <div className="mb-4">
-                  <Label htmlFor="currency" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="currency"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Devise
                   </Label>
                   <Input
@@ -198,7 +209,10 @@ export default function CurrencyPage() {
                   />
                 </div>
                 <div className="mb-4">
-                  <Label htmlFor="value" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="value"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Valeur en CFA
                   </Label>
                   <Input
@@ -228,7 +242,10 @@ export default function CurrencyPage() {
               <h2 className="mb-8 text-2xl font-bold">Modifier la devise</h2>
               <form onSubmit={handleSubmitEdit} className="w-full py-4">
                 <div className="py-4">
-                  <Label htmlFor="currency-edit" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="currency-edit"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Devise
                   </Label>
                   <Input
@@ -243,7 +260,10 @@ export default function CurrencyPage() {
                   />
                 </div>
                 <div className="py-4">
-                  <Label htmlFor="value-edit" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="value-edit"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Valeur
                   </Label>
                   <Input
@@ -259,7 +279,7 @@ export default function CurrencyPage() {
                     required
                   />
                 </div>
-                
+
                 <div className="ml-auto pt-8 w-full items-center justify-center flex font-medium">
                   <Button type="submit" className="font-bold gap-2">
                     <Save />
@@ -269,7 +289,8 @@ export default function CurrencyPage() {
               </form>
               <Button
                 onClick={closeDrawer}
-                className="font-bold bg-white hover:text-slate-900 hover:bg-slate-100 text-slate-600">
+                className="font-bold bg-white hover:text-slate-900 hover:bg-slate-100 text-slate-600"
+              >
                 <X />
                 Annuler
               </Button>
@@ -288,7 +309,8 @@ export default function CurrencyPage() {
             <Button
               type="button"
               className="w-fit h-fit font-bold bg-red-600"
-              onClick={handleAddCurrencyClick}>
+              onClick={handleAddCurrencyClick}
+            >
               <Plus className="mr-2 h-4 w-4" /> Ajouter une Devise
             </Button>
           </div>
@@ -313,7 +335,10 @@ export default function CurrencyPage() {
 
           <div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {currencies.map((currencyItem) => (
-              <Card key={currencyItem.id} className="hover:shadow-lg transition-shadow">
+              <Card
+                key={currencyItem.id}
+                className="hover:shadow-lg transition-shadow"
+              >
                 <CardHeader className="pb-2">
                   <CardTitle className="flex items-center gap-2">
                     <DollarSign className="h-5 w-5 text-green-600" />
@@ -323,16 +348,19 @@ export default function CurrencyPage() {
                 <CardContent className="pb-2">
                   <div className="space-y-2">
                     <div className="text-2xl font-bold text-green-600">
-                      {currencyItem.value.toLocaleString('fr-FR', { 
-                        minimumFractionDigits: 2, 
-                        maximumFractionDigits: 2 
-                      })}
+                      {currencyItem.value.toLocaleString("fr-FR", {
+                        minimumFractionDigits: 2,
+                        maximumFractionDigits: 2,
+                      })}{" "}
+                      FCFA
                     </div>
                     <div className="text-sm text-gray-500">
-                      Créée le: {currencyItem.created_at ? 
-                        new Date(currencyItem.created_at).toLocaleDateString('fr-FR') : 
-                        'N/A'
-                      }
+                      Créée le:{" "}
+                      {currencyItem.created_at
+                        ? new Date(currencyItem.created_at).toLocaleDateString(
+                            "fr-FR"
+                          )
+                        : "N/A"}
                     </div>
                   </div>
                 </CardContent>
@@ -342,14 +370,16 @@ export default function CurrencyPage() {
                       onClick={() => handleDeleteClick(currencyItem)}
                       variant="destructive"
                       size="sm"
-                      className="font-bold gap-1">
+                      className="font-bold gap-1"
+                    >
                       <Trash2 className="h-4 w-4" />
                       Supprimer
                     </Button>
                     <Button
                       onClick={() => handleCurrencyClick(currencyItem)}
                       size="sm"
-                      className="font-bold gap-1">
+                      className="font-bold gap-1"
+                    >
                       <Edit className="h-4 w-4" />
                       Modifier
                     </Button>
@@ -362,7 +392,9 @@ export default function CurrencyPage() {
           {currencies.length === 0 && (
             <div className="text-center py-12">
               <DollarSign className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune devise</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                Aucune devise
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
                 Commencez par ajouter une nouvelle devise.
               </p>
@@ -370,7 +402,8 @@ export default function CurrencyPage() {
                 <Button
                   type="button"
                   className="font-bold bg-red-600"
-                  onClick={handleAddCurrencyClick}>
+                  onClick={handleAddCurrencyClick}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Ajouter une Devise
                 </Button>
@@ -381,4 +414,4 @@ export default function CurrencyPage() {
       </div>
     </>
   );
-} 
+}
