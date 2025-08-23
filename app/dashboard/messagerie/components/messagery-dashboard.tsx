@@ -129,12 +129,12 @@ export default function MessageryDashboard() {
     }
   };
 
-  // Actualisation automatique toutes les 30 secondes
+  // Actualisation automatique toutes les 3 secondes
   useEffect(() => {
     // Démarrer l'intervalle d'actualisation
     intervalRef.current = setInterval(() => {
       refreshData();
-    }, 30 * 1000); // 30 secondes en millisecondes
+    }, 3 * 1000); // 3 secondes en millisecondes
 
     // Nettoyer l'intervalle lors du démontage du composant
     return () => {
@@ -220,7 +220,7 @@ export default function MessageryDashboard() {
             <p className="text-xs text-gray-500 text-center">
               {refreshing
                 ? "Actualisation en cours..."
-                : "Actualisation automatique toutes les 30 secondes - 1 minute"}
+                : "Actualisation automatique toutes les 3 secondes - 5 secondes"}
             </p>
           </div>
         </div>
