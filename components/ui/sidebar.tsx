@@ -255,24 +255,25 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
               </Link>
 
               {/* Messagerie */}
-              <Link
-                href="/dashboard/messagerie"
-                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
-                  pathname === "/dashboard/messagerie"
-                    ? "bg-white text-red-700 shadow-sm"
-                    : "text-white hover:bg-white hover:text-red-700"
-                }`}
-              >
-                <MessageCircle className="h-5 w-5 flex-shrink-0" />
-                <span
-                  className={`transition-opacity duration-300 ${
-                    isHovered ? "block" : "lg:hidden"
+              {
+                <Link
+                  href="/dashboard/messagerie"
+                  className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                    pathname === "/dashboard/messagerie"
+                      ? "bg-white text-red-700 shadow-sm"
+                      : "text-white hover:bg-white hover:text-red-700"
                   }`}
                 >
-                  Messagerie
-                </span>
-              </Link>
-
+                  <MessageCircle className="h-5 w-5 flex-shrink-0" />
+                  <span
+                    className={`transition-opacity duration-300 ${
+                      isHovered ? "block" : "lg:hidden"
+                    }`}
+                  >
+                    Messagerie
+                  </span>
+                </Link>
+              }
               {/*      <Link
                 href="/dashboard/validation"
                 className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${

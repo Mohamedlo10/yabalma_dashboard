@@ -216,13 +216,13 @@ export default function MessageryDashboard() {
           </div>
 
           {/* Indicateur d'actualisation automatique */}
-          <div className="mt-2">
+          {/*    <div className="mt-2">
             <p className="text-xs text-gray-500 text-center">
               {refreshing
                 ? "Actualisation en cours..."
                 : "Actualisation automatique toutes les 3 secondes - 5 secondes"}
             </p>
-          </div>
+          </div> */}
         </div>
 
         {/* Liste des discussions */}
