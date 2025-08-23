@@ -12,6 +12,7 @@ import {
   LineChart,
   LogOut,
   Menu,
+  MessageCircle,
   Package2,
   Settings,
   ShoppingCart,
@@ -39,6 +40,7 @@ export const paths = [
   "utilisateurs",
   "trajets",
   "commandes",
+  "messagerie",
   "commentaires",
   "finance",
   "settings",
@@ -188,26 +190,24 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
           {/* Utilisateurs */}
           {role?.access_groups.utilisateurs && (
             <div>
-              
-
               <Link
-              href="/dashboard/utilisateurs"
-              className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                href="/dashboard/utilisateurs"
+                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/utilisateurs" ||
-                  pathname === "/dashboard/utilisateurs/Clients" 
-                  ? "bg-white text-red-700 shadow-sm"
-                  : "text-white hover:bg-white hover:text-red-700"
-              }`}
-            >
-                  <Users className="h-5 w-5 flex-shrink-0" />
-              <span
-                className={`transition-opacity duration-300 ${
-                  isHovered ? "block" : "lg:hidden"
+                  pathname === "/dashboard/utilisateurs/Clients"
+                    ? "bg-white text-red-700 shadow-sm"
+                    : "text-white hover:bg-white hover:text-red-700"
                 }`}
               >
-                Utilisateurs
-              </span>
-            </Link>
+                <Users className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "lg:hidden"
+                  }`}
+                >
+                  Utilisateurs
+                </span>
+              </Link>
             </div>
           )}
 
@@ -254,7 +254,26 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 </span>
               </Link>
 
-         {/*      <Link
+              {/* Messagerie */}
+              <Link
+                href="/dashboard/messagerie"
+                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                  pathname === "/dashboard/messagerie"
+                    ? "bg-white text-red-700 shadow-sm"
+                    : "text-white hover:bg-white hover:text-red-700"
+                }`}
+              >
+                <MessageCircle className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "lg:hidden"
+                  }`}
+                >
+                  Messagerie
+                </span>
+              </Link>
+
+              {/*      <Link
                 href="/dashboard/validation"
                 className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
                   pathname === "/dashboard/validation" ||

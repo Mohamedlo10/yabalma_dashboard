@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { clientSchema } from "../utilisateurs/schema";
+import { DEFAULT_SENDER_ID } from "@/lib/constants";
 
 export const annonceSchema = z.object({
   id: z.number().optional(),
@@ -13,7 +14,7 @@ export const annonceSchema = z.object({
     .positive("Le poids maximum doit être positif")
     .nullable(),
   stock_annonce: z.number().positive("Le stock doit être positif").nullable(),
-  id_client: z.string().default("d04cda0e-0fa8-4fbc-bc3d-50e446e4ac79"),
+  id_client: z.string().default(DEFAULT_SENDER_ID),
   client: clientSchema.optional(),
 
   statut: z.string().default("Entrepot"),

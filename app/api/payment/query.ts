@@ -127,7 +127,12 @@ export const convertCurrency = async (
       console.log(`🔍 Tentative avec d'autres variantes de ${fromCurrency}...`);
 
       // Essayer avec des variantes pour l'USD
-      if (fromCurrency === "USD") {
+      if (
+        fromCurrency === "USD" ||
+        fromCurrency === "Dollar" ||
+        fromCurrency === "DOLLAR" ||
+        fromCurrency === "$"
+      ) {
         const variants = ["Dollar", "DOLLAR", "$"];
         for (const variant of variants) {
           console.log(`🔍 Essai avec: ${variant}`);
@@ -145,6 +150,36 @@ export const convertCurrency = async (
             const convertedAmount = amount * rate;
             console.log(
               `💱 Conversion USD: ${amount} ${fromCurrency} × ${rate} = ${convertedAmount} XOF`
+            );
+            return Math.round(convertedAmount);
+          }
+        }
+      }
+
+      // Essayer avec des variantes pour l'EUR
+      if (
+        fromCurrency === "EUR" ||
+        fromCurrency === "€" ||
+        fromCurrency === "EURO" ||
+        fromCurrency === "Euro"
+      ) {
+        const variants = ["Euro", "EURO", "EUR", "€"];
+        for (const variant of variants) {
+          console.log(`🔍 Essai avec: ${variant}`);
+          const { data: variantData, error: variantError } = await supabase
+            .from("settings")
+            .select("value")
+            .eq("currency", variant)
+            .single();
+
+          if (!variantError && variantData?.value) {
+            console.log(
+              `✅ Taux trouvé avec la variante: ${variant} = ${variantData.value}`
+            );
+            const rate = parseFloat(variantData.value);
+            const convertedAmount = amount * rate;
+            console.log(
+              `💱 Conversion EUR: ${amount} ${fromCurrency} × ${rate} = ${convertedAmount} XOF`
             );
             return Math.round(convertedAmount);
           }
@@ -670,5 +705,186 @@ export const testUSDConversion = async (
     await debugCurrencyRates();
   } catch (error) {
     console.error("❌ Erreur lors du test USD:", error);
+  }
+};
+
+// Fonction pour créer une transaction de remboursement
+export const createRefundTransaction = async (
+  orderId: number,
+  userId: string,
+  walletId: string | null,
+  amount: bigint,
+  refundedArticles: any[],
+  refundCurrency?: string
+): Promise<any> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const transactionId = generateTransactionId();
+
+    console.log(`💰 Création transaction de remboursement:`, {
+      orderId,
+      userId,
+      walletId,
+      amount: amount.toString(),
+      transactionId,
+      refundCurrency,
+      refundedArticles,
+    });
+
+    // Créer la transaction dans payment_info
+    const { data: transaction, error: transactionError } = await supabase
+      .from("payment_info")
+      .insert([
+        {
+          order_id: orderId,
+          method: "wallet",
+          amount: amount.toString(), // Stocker comme string pour les gros nombres
+          transaction_id: transactionId,
+          status: "pending",
+          bulk_payment: false,
+          wallet_id: walletId,
+          user_id_perform: userId,
+          details: {
+            refunded_articles: refundedArticles,
+            refund_currency: refundCurrency || "XOF",
+            created_at: new Date().toISOString(),
+            refund_reason: "Article refund",
+          },
+          preuve_url: null,
+          operation: "remboursement",
+          type: "debit", // Débit pour le remboursement
+        },
+      ])
+      .select()
+      .single();
+
+    if (transactionError) throw transactionError;
+
+    console.log(
+      `✅ Transaction de remboursement créée avec succès:`,
+      transaction
+    );
+    return transaction;
+  } catch (err) {
+    console.error(
+      "Erreur lors de la création de la transaction de remboursement:",
+      err
+    );
+    throw err;
+  }
+};
+
+// Fonction pour traiter un remboursement complet
+export const processRefund = async (
+  orderId: number,
+  userId: string,
+  walletId: string | null,
+  refundedArticles: any[],
+  refundAmount: number,
+  refundCurrency: string = "XOF"
+): Promise<{ transaction: any }> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    console.log(`🔄 Traitement du remboursement pour la commande ${orderId}`);
+
+    // Normaliser la devise avant conversion
+    let normalizedCurrency = refundCurrency;
+    if (
+      refundCurrency === "€" ||
+      refundCurrency === "EUR" ||
+      refundCurrency === "EURO"
+    ) {
+      normalizedCurrency = "Euro"; // Correspond à votre table settings
+    } else if (
+      refundCurrency === "$" ||
+      refundCurrency === "USD" ||
+      refundCurrency === "DOLLAR"
+    ) {
+      normalizedCurrency = "USD";
+    }
+
+    console.log(
+      `💱 Devise normalisée: ${refundCurrency} → ${normalizedCurrency}`
+    );
+
+    // Convertir le montant en XOF si nécessaire
+    const convertedAmount = await convertCurrency(
+      refundAmount,
+      normalizedCurrency
+    );
+    const amountBigInt = BigInt(Math.round(convertedAmount));
+
+    console.log(
+      `💱 Montant du remboursement: ${refundAmount} ${refundCurrency} = ${convertedAmount} XOF`
+    );
+
+    // Créer la transaction de remboursement
+    const transaction = await createRefundTransaction(
+      orderId,
+      userId,
+      walletId,
+      amountBigInt,
+      refundedArticles,
+      normalizedCurrency // Utiliser la devise normalisée
+    );
+
+    console.log(`✅ Remboursement traité avec succès`, {
+      transactionId: transaction.transaction_id,
+      amount: convertedAmount,
+      articlesCount: refundedArticles.length,
+    });
+
+    return { transaction };
+  } catch (err) {
+    console.error("Erreur lors du traitement du remboursement:", err);
+    throw err;
+  }
+};
+
+// Fonction pour confirmer un remboursement avec preuve
+export const confirmRefundWithProof = async (
+  transactionId: string,
+  preuveUrl: string
+): Promise<any> => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    console.log(
+      `📸 Confirmation du remboursement ${transactionId} avec preuve:`,
+      preuveUrl
+    );
+
+    const { data: transaction, error: updateError } = await supabase
+      .from("payment_info")
+      .update({
+        preuve_url: preuveUrl,
+        status: "completed",
+        payment_date: new Date().toTimeString().split(" ")[0] + "+00",
+      })
+      .eq("transaction_id", transactionId)
+      .select()
+      .single();
+
+    if (updateError) throw updateError;
+
+    console.log(`✅ Remboursement confirmé avec preuve:`, transaction);
+    return transaction;
+  } catch (err) {
+    console.error("Erreur lors de la confirmation du remboursement:", err);
+    throw err;
   }
 };

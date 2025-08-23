@@ -7,16 +7,44 @@ import {
   supprimerAnnonce,
 } from "@/app/api/annonces/query";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import ConfirmDialog from "@/components/ui/dialogConfirm";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { getSupabaseSession } from "@/lib/authMnager";
+import { DEFAULT_SENDER_ID } from "@/lib/constants";
 import Drawer from "@mui/material/Drawer";
-import { Plus, Trash2, Edit, X, Save, Plane, Grid, List, Book, Calendar, MapPin, Package, Truck, ShoppingCart } from "lucide-react";
+import {
+  Plus,
+  Trash2,
+  Edit,
+  X,
+  Save,
+  Plane,
+  Grid,
+  List,
+  Book,
+  Calendar,
+  MapPin,
+  Package,
+  Truck,
+  ShoppingCart,
+} from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
 import { ChangeEvent, CSSProperties, useEffect, useState } from "react";
@@ -41,7 +69,7 @@ export default function AnnonceGestionPage() {
   const [isAddingAnnonce, setIsAddingAnnonce] = useState(false);
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
+  const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [isCommandesDrawerOpen, setIsCommandesDrawerOpen] = useState(false);
   const [annonceCommandes, setAnnonceCommandes] = useState<any[]>([]);
   let [color, setColor] = useState("#ffffff");
@@ -49,7 +77,7 @@ export default function AnnonceGestionPage() {
     type_transport: "economy",
     poids_max: null,
     stock_annonce: null,
-    id_client: "d04cda0e-0fa8-4fbc-bc3d-50e446e4ac79",
+    id_client: DEFAULT_SENDER_ID,
     statut: "Entrepot",
     is_boost: false,
     destination: "",
@@ -96,23 +124,29 @@ export default function AnnonceGestionPage() {
     console.log("Annonce state changed:", annonce);
   }, [annonce]);
 
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const handleInputChange = (
+    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+  ) => {
     const { name, value } = e.target;
-    setAnnonce({ 
-      ...annonce, 
-      [name]: name === 'poids_max' || name === 'stock_annonce' 
-        ? parseFloat(value) || null 
-        : value 
+    setAnnonce({
+      ...annonce,
+      [name]:
+        name === "poids_max" || name === "stock_annonce"
+          ? parseFloat(value) || null
+          : value,
     });
   };
 
-
-const handleNavigation = (idCommande:number) => {
-  router.push(`/dashboard/commandes/profile/${idCommande}`);
-};
+  const handleNavigation = (idCommande: number) => {
+    router.push(`/dashboard/commandes/profile/${idCommande}`);
+  };
   const handleSelectChange = (name: string, value: string) => {
-    console.log(`Changing ${name} from ${annonce[name as keyof typeof annonce]} to ${value}`);
-    setAnnonce(prev => ({ ...prev, [name]: value }));
+    console.log(
+      `Changing ${name} from ${
+        annonce[name as keyof typeof annonce]
+      } to ${value}`
+    );
+    setAnnonce((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSwitchChange = (name: string, checked: boolean) => {
@@ -140,7 +174,7 @@ const handleNavigation = (idCommande:number) => {
         type_transport: "economy",
         poids_max: null,
         stock_annonce: null,
-        id_client: "d04cda0e-0fa8-4fbc-bc3d-50e446e4ac79",
+        id_client: DEFAULT_SENDER_ID,
         statut: "Entrepot",
         is_boost: false,
         destination: "",
@@ -175,11 +209,10 @@ const handleNavigation = (idCommande:number) => {
       setAnnonce(annonce);
       const data = await getCommandesByIdAnnonce(annonce.id_annonce);
       if (data && data.length > 0) {
-      setAnnonceCommandes(data);
+        setAnnonceCommandes(data);
       }
-      
     } catch (error) {
-      console.error('Erreur:', error);
+      console.error("Erreur:", error);
       // Gérer l'erreur (afficher une notification, etc.)
     }
   };
@@ -189,7 +222,7 @@ const handleNavigation = (idCommande:number) => {
       type_transport: "economy",
       poids_max: null,
       stock_annonce: null,
-      id_client: "d04cda0e-0fa8-4fbc-bc3d-50e446e4ac79",
+      id_client: DEFAULT_SENDER_ID,
       statut: "Entrepot",
       is_boost: false,
       destination: "",
@@ -217,7 +250,7 @@ const handleNavigation = (idCommande:number) => {
         type_transport: "economy",
         poids_max: null,
         stock_annonce: null,
-        id_client: "d04cda0e-0fa8-4fbc-bc3d-50e446e4ac79",
+        id_client: DEFAULT_SENDER_ID,
         statut: "Entrepot",
         is_boost: false,
         destination: "",
@@ -246,21 +279,28 @@ const handleNavigation = (idCommande:number) => {
 
   const handleDeleteClick = (annonceItem: Annonce) => {
     setSelectedAnnonceId(annonceItem.id_annonce);
-    setSelectedAnnonceTitle(`${annonceItem.source} → ${annonceItem.destination}`);
+    setSelectedAnnonceTitle(
+      `${annonceItem.source} → ${annonceItem.destination}`
+    );
     setDialogOpen(true);
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('fr-FR');
+    return new Date(dateString).toLocaleDateString("fr-FR");
   };
 
   const getStatusColor = (statut: string) => {
     switch (statut) {
-      case 'Entrepot': return 'bg-blue-100 text-blue-800';
-      case 'En cours': return 'bg-yellow-100 text-yellow-800';
-      case 'Terminé': return 'bg-green-100 text-green-800';
-      case 'Annulé': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
+      case "Entrepot":
+        return "bg-blue-100 text-blue-800";
+      case "En cours":
+        return "bg-yellow-100 text-yellow-800";
+      case "Terminé":
+        return "bg-green-100 text-green-800";
+      case "Annulé":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
     }
   };
 
@@ -293,14 +333,19 @@ const handleNavigation = (idCommande:number) => {
               <form className="w-full space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="type_transport" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="type_transport"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Type de Transport
                     </Label>
                     <select
                       id="type_transport"
                       name="type_transport"
                       value={annonce.type_transport}
-                      onChange={(e) => handleSelectChange("type_transport", e.target.value)}
+                      onChange={(e) =>
+                        handleSelectChange("type_transport", e.target.value)
+                      }
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="economy">Economy</option>
@@ -309,14 +354,19 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="devise_prix" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="devise_prix"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Devise
                     </Label>
                     <select
                       id="devise_prix"
                       name="devise_prix"
                       value={annonce.devise_prix}
-                      onChange={(e) => handleSelectChange("devise_prix", e.target.value)}
+                      onChange={(e) =>
+                        handleSelectChange("devise_prix", e.target.value)
+                      }
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="FCFA">FCFA</option>
@@ -328,7 +378,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="source" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="source"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Source
                     </Label>
                     <Input
@@ -343,7 +396,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="destination" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="destination"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Destination
                     </Label>
                     <Input
@@ -359,14 +415,17 @@ const handleNavigation = (idCommande:number) => {
                 </div>
 
                 <div>
-                  <Label htmlFor="lieu_depot" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="lieu_depot"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Lieu de Dépôt
                   </Label>
                   <Input
                     type="text"
                     id="lieu_depot"
                     name="lieu_depot"
-                    value={annonce.lieu_depot || ''}
+                    value={annonce.lieu_depot || ""}
                     onChange={handleInputChange}
                     placeholder="Adresse du lieu de dépôt"
                     required
@@ -375,7 +434,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="poids_max" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="poids_max"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Tarif par kilo
                     </Label>
                     <Input
@@ -391,7 +453,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="stock_annonce" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="stock_annonce"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Poids Max (kg)
                     </Label>
                     <Input
@@ -409,7 +474,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="date_depart" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="date_depart"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Date de Départ
                     </Label>
                     <Input
@@ -423,7 +491,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="date_arrive" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="date_arrive"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Date d'Arrivée
                     </Label>
                     <Input
@@ -439,7 +510,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="sourceAddress" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="sourceAddress"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Adresse Source (optionnel)
                     </Label>
                     <Textarea
@@ -453,7 +527,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="destinationAddress" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="destinationAddress"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Adresse Destination (optionnel)
                     </Label>
                     <Textarea
@@ -469,12 +546,17 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="statut" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="statut"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Statut
                     </Label>
                     <Select
                       value={annonce.statut}
-                      onValueChange={(value) => handleSelectChange("statut", value)}
+                      onValueChange={(value) =>
+                        handleSelectChange("statut", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner le statut" />
@@ -493,7 +575,9 @@ const handleNavigation = (idCommande:number) => {
                       <Switch
                         id="is_boost"
                         checked={annonce.is_boost}
-                        onCheckedChange={(checked) => handleSwitchChange("is_boost", checked)}
+                        onCheckedChange={(checked) =>
+                          handleSwitchChange("is_boost", checked)
+                        }
                       />
                       <Label htmlFor="is_boost" className="text-sm font-medium">
                         Annonce boostée
@@ -517,14 +601,19 @@ const handleNavigation = (idCommande:number) => {
                 {/* Même formulaire que pour l'ajout, mais avec les valeurs pré-remplies */}
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="type_transport-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="type_transport-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Type de Transport
                     </Label>
                     <select
                       id="type_transport-edit"
                       name="type_transport"
                       value={annonce.type_transport}
-                      onChange={(e) => handleSelectChange("type_transport", e.target.value)}
+                      onChange={(e) =>
+                        handleSelectChange("type_transport", e.target.value)
+                      }
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="economy">Economy</option>
@@ -533,14 +622,19 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="devise_prix-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="devise_prix-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Devise
                     </Label>
                     <select
                       id="devise_prix-edit"
                       name="devise_prix"
                       value={annonce.devise_prix}
-                      onChange={(e) => handleSelectChange("devise_prix", e.target.value)}
+                      onChange={(e) =>
+                        handleSelectChange("devise_prix", e.target.value)
+                      }
                       className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <option value="FCFA">FCFA</option>
@@ -552,7 +646,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="source-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="source-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Source
                     </Label>
                     <Input
@@ -567,7 +664,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="destination-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="destination-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Destination
                     </Label>
                     <Input
@@ -583,14 +683,17 @@ const handleNavigation = (idCommande:number) => {
                 </div>
 
                 <div>
-                  <Label htmlFor="lieu_depot-edit" className="block text-sm font-bold mb-2">
+                  <Label
+                    htmlFor="lieu_depot-edit"
+                    className="block text-sm font-bold mb-2"
+                  >
                     Lieu de Dépôt
                   </Label>
                   <Input
                     type="text"
                     id="lieu_depot-edit"
                     name="lieu_depot"
-                    value={annonce.lieu_depot || ''}
+                    value={annonce.lieu_depot || ""}
                     onChange={handleInputChange}
                     placeholder="Adresse du lieu de dépôt"
                     required
@@ -599,7 +702,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="poids_max-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="poids_max-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Prix du Transport
                     </Label>
                     <Input
@@ -615,7 +721,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="stock_annonce-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="stock_annonce-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Poids Max (kg)
                     </Label>
                     <Input
@@ -633,7 +742,10 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="date_depart-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="date_depart-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Date de Départ
                     </Label>
                     <Input
@@ -647,7 +759,10 @@ const handleNavigation = (idCommande:number) => {
                   </div>
 
                   <div>
-                    <Label htmlFor="date_arrive-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="date_arrive-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Date d'Arrivée
                     </Label>
                     <Input
@@ -663,12 +778,17 @@ const handleNavigation = (idCommande:number) => {
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label htmlFor="statut-edit" className="block text-sm font-bold mb-2">
+                    <Label
+                      htmlFor="statut-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
                       Statut
                     </Label>
                     <Select
                       value={annonce.statut}
-                      onValueChange={(value) => handleSelectChange("statut", value)}
+                      onValueChange={(value) =>
+                        handleSelectChange("statut", value)
+                      }
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Sélectionner le statut" />
@@ -687,15 +807,20 @@ const handleNavigation = (idCommande:number) => {
                       <Switch
                         id="is_boost-edit"
                         checked={annonce.is_boost}
-                        onCheckedChange={(checked) => handleSwitchChange("is_boost", checked)}
+                        onCheckedChange={(checked) =>
+                          handleSwitchChange("is_boost", checked)
+                        }
                       />
-                      <Label htmlFor="is_boost-edit" className="text-sm font-medium">
+                      <Label
+                        htmlFor="is_boost-edit"
+                        className="text-sm font-medium"
+                      >
                         Annonce boostée
                       </Label>
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="pt-4 w-full flex justify-center space-x-4">
                   <Button type="submit" className="font-bold gap-2">
                     <Save />
@@ -705,7 +830,8 @@ const handleNavigation = (idCommande:number) => {
                     type="button"
                     onClick={closeDrawer}
                     variant="outline"
-                    className="font-bold">
+                    className="font-bold"
+                  >
                     <X />
                     Annuler
                   </Button>
@@ -726,18 +852,18 @@ const handleNavigation = (idCommande:number) => {
             <div className="flex items-center gap-4">
               <div className="flex items-center border rounded-lg">
                 <Button
-                  variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                  variant={viewMode === "cards" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setViewMode('cards')}
+                  onClick={() => setViewMode("cards")}
                   className="rounded-r-none"
                 >
                   <Grid className="h-4 w-4 mr-2" />
                   Cartes
                 </Button>
                 <Button
-                  variant={viewMode === 'table' ? 'default' : 'ghost'}
+                  variant={viewMode === "table" ? "default" : "ghost"}
                   size="sm"
-                  onClick={() => setViewMode('table')}
+                  onClick={() => setViewMode("table")}
                   className="rounded-l-none"
                 >
                   <List className="h-4 w-4 mr-2" />
@@ -747,7 +873,8 @@ const handleNavigation = (idCommande:number) => {
               <Button
                 type="button"
                 className="w-fit h-fit font-bold bg-red-600"
-                onClick={handleAddAnnonceClick}>
+                onClick={handleAddAnnonceClick}
+              >
                 <Plus className="mr-2 h-4 w-4" /> Ajouter un trajet
               </Button>
             </div>
@@ -771,106 +898,132 @@ const handleNavigation = (idCommande:number) => {
             }}
           />
 
-          {viewMode === 'table' ? (
-            <DataTable 
-              columns={createColumns({ 
-                onEdit: handleAnnonceClick, 
-                onDelete: handleDeleteClick 
-              })} 
-              data={annonces} 
+          {viewMode === "table" ? (
+            <DataTable
+              columns={createColumns({
+                onEdit: handleAnnonceClick,
+                onDelete: handleDeleteClick,
+              })}
+              data={annonces}
             />
           ) : (
             <div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-3">
               {annonces.map((annonceItem) => (
-              <Card key={annonceItem.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader className="pb-2">
-                  <CardTitle className="flex items-center justify-between">
+                <Card
+                  key={annonceItem.id}
+                  className="hover:shadow-lg transition-shadow"
+                >
+                  <CardHeader className="pb-2">
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Truck
+                          className={`h-5 w-5 ${
+                            annonceItem.type_transport === "express"
+                              ? "text-red-600"
+                              : "text-blue-600"
+                          }`}
+                        />
+                        <span className="text-sm font-medium">
+                          {annonceItem.type_transport === "express"
+                            ? "Express"
+                            : "Economy"}
+                        </span>
+                      </div>
+                      {annonceItem.is_boost && (
+                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                          Boostée
+                        </span>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-3">
                     <div className="flex items-center gap-2">
-                      <Truck className={`h-5 w-5 ${annonceItem.type_transport === 'express' ? 'text-red-600' : 'text-blue-600'}`} />
+                      <MapPin className="h-4 w-4 text-gray-500" />
                       <span className="text-sm font-medium">
-                        {annonceItem.type_transport === 'express' ? 'Express' : 'Economy'}
+                        {annonceItem.source} → {annonceItem.destination}
                       </span>
                     </div>
-                    {annonceItem.is_boost && (
-                      <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                        Boostée
+
+                    <div className="flex items-center gap-2">
+                      <Package className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">
+                        {annonceItem.stock_annonce
+                          ? `${annonceItem.stock_annonce}kg max`
+                          : "Poids non spécifié"}
                       </span>
-                    )}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm font-medium">
-                      {annonceItem.source} → {annonceItem.destination}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">
-                      {annonceItem.stock_annonce ? `${annonceItem.stock_annonce}kg max` : 'Poids non spécifié'}
-                    </span>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">
-                      Tarif par kilo: {annonceItem.poids_max ? `${annonceItem.poids_max} ${annonceItem.devise_prix}` : 'Non spécifié'}
-                    </span>
-                  </div>
+                    </div>
 
-                  <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-gray-500" />
-                    <span className="text-sm">
-                      {formatDate(annonceItem.date_depart)} → {formatDate(annonceItem.date_arrive)}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">
+                        Tarif par kilo:{" "}
+                        {annonceItem.poids_max
+                          ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
+                          : "Non spécifié"}
+                      </span>
+                    </div>
 
-                  <div className="flex items-center justify-between">
-                    <span className="text-lg font-bold text-green-600">
-                      {annonceItem.poids_max ? `${annonceItem.poids_max} ${annonceItem.devise_prix}` : 'Prix non spécifié'}
-                    </span>
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(annonceItem.statut)}`}>
-                      {annonceItem.statut}
-                    </span>
-                  </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm">
+                        {formatDate(annonceItem.date_depart)} →{" "}
+                        {formatDate(annonceItem.date_arrive)}
+                      </span>
+                    </div>
 
-                  <div className="text-xs text-gray-500">
-                    Dépôt: {annonceItem.lieu_depot}
-                  </div>
-                  
-                  <div className="text-xs text-gray-500">
-                    ID: {annonceItem.id_annonce}
-                  </div>
-                </CardContent>
-                <CardFooter className="pt-2">
-                  <div className="w-full grid grid-cols-3 gap-2">
-                    <Button
-                      onClick={() => handleDeleteClick(annonceItem)}
-                      variant="destructive"
-                      size="sm"
-                      className="font-bold gap-1">
-                      <Trash2 className="h-4 w-4" />
-                      Supprimer
-                    </Button>
-                    <Button
-                      onClick={() => handleAnnonceClick(annonceItem)}
-                      size="sm"
-                      variant="outline"
-                      className="font-bold gap-1">
-                      <Edit className="h-4 w-4" />
-                      Modifier
-                    </Button>
-                    <Button
-                      onClick={() => handleOpenCommandes(annonceItem)}
-                      size="sm"
-                      variant="secondary"
-                      className="font-bold gap-1">
-                      <ShoppingCart className="h-4 w-4" />
-                      Commandes
-                    </Button>
-                  </div>
-                </CardFooter>
+                    <div className="flex items-center justify-between">
+                      <span className="text-lg font-bold text-green-600">
+                        {annonceItem.poids_max
+                          ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
+                          : "Prix non spécifié"}
+                      </span>
+                      <span
+                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          annonceItem.statut
+                        )}`}
+                      >
+                        {annonceItem.statut}
+                      </span>
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      Dépôt: {annonceItem.lieu_depot}
+                    </div>
+
+                    <div className="text-xs text-gray-500">
+                      ID: {annonceItem.id_annonce}
+                    </div>
+                  </CardContent>
+                  <CardFooter className="pt-2">
+                    <div className="w-full grid grid-cols-3 gap-2">
+                      <Button
+                        onClick={() => handleDeleteClick(annonceItem)}
+                        variant="destructive"
+                        size="sm"
+                        className="font-bold gap-1"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                        Supprimer
+                      </Button>
+                      <Button
+                        onClick={() => handleAnnonceClick(annonceItem)}
+                        size="sm"
+                        variant="outline"
+                        className="font-bold gap-1"
+                      >
+                        <Edit className="h-4 w-4" />
+                        Modifier
+                      </Button>
+                      <Button
+                        onClick={() => handleOpenCommandes(annonceItem)}
+                        size="sm"
+                        variant="secondary"
+                        className="font-bold gap-1"
+                      >
+                        <ShoppingCart className="h-4 w-4" />
+                        Commandes
+                      </Button>
+                    </div>
+                  </CardFooter>
                 </Card>
               ))}
             </div>
@@ -879,7 +1032,9 @@ const handleNavigation = (idCommande:number) => {
           {annonces.length === 0 && (
             <div className="text-center py-12">
               <Book className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">Aucun trajet</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">
+                Aucun trajet
+              </h3>
               <p className="mt-1 text-sm text-gray-500">
                 Commencez par ajouter un nouveau trajet.
               </p>
@@ -887,7 +1042,8 @@ const handleNavigation = (idCommande:number) => {
                 <Button
                   type="button"
                   className="font-bold bg-red-600"
-                  onClick={handleAddAnnonceClick}>
+                  onClick={handleAddAnnonceClick}
+                >
                   <Plus className="mr-2 h-4 w-4" />
                   Ajouter un trajet
                 </Button>
@@ -898,12 +1054,14 @@ const handleNavigation = (idCommande:number) => {
       </div>
 
       {/* Drawer des commandes de l'annonce */}
-      <Drawer anchor="right" open={isCommandesDrawerOpen} onClose={() => setIsCommandesDrawerOpen(false)}>
+      <Drawer
+        anchor="right"
+        open={isCommandesDrawerOpen}
+        onClose={() => setIsCommandesDrawerOpen(false)}
+      >
         <div className="p-4 w-[600px] h-full flex flex-col">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">
-              Commandes du trajet
-            </h2>
+            <h2 className="text-2xl font-bold">Commandes du trajet</h2>
             <Button
               variant="ghost"
               size="icon"
@@ -912,11 +1070,14 @@ const handleNavigation = (idCommande:number) => {
               <X className="h-5 w-5" />
             </Button>
           </div>
-          
+
           <div className="mb-4">
-            <h3 className="font-semibold">Trajet: {annonce?.source} → {annonce?.destination}</h3>
+            <h3 className="font-semibold">
+              Trajet: {annonce?.source} → {annonce?.destination}
+            </h3>
             <p className="text-sm text-muted-foreground">
-              {annonce?.statut} • {formatDate(annonce?.date_depart)} - {formatDate(annonce?.date_arrive)}
+              {annonce?.statut} • {formatDate(annonce?.date_depart)} -{" "}
+              {formatDate(annonce?.date_arrive)}
             </p>
           </div>
 
@@ -924,64 +1085,80 @@ const handleNavigation = (idCommande:number) => {
             {annonceCommandes.length > 0 ? (
               <div className="space-y-4">
                 {annonceCommandes.map((item) => (
-                 <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
-          <CardHeader className="pb-3 px-3 pt-3">
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-base font-semibold flex items-center gap-2">
-                <span className="text-foreground text-green-700 font-extrabold text-lg">#{item.id}</span>
-                <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                  {item.detail_commande?.type || "Standard"}
-                </span>
-              </CardTitle>
-              <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                item.validation_status 
-                  ? "bg-green-100 text-green-700" 
-                  : "bg-amber-100 text-amber-700"
-              }`}>
-                {item.validation_status ? "✓ Validé" : "⏳ En attente"}
-              </div>
-            </div>
-          </CardHeader>
+                  <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <CardHeader className="pb-3 px-3 pt-3">
+                      <div className="flex items-center justify-between">
+                        <CardTitle className="text-base font-semibold flex items-center gap-2">
+                          <span className="text-foreground text-green-700 font-extrabold text-lg">
+                            #{item.id}
+                          </span>
+                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
+                            {item.detail_commande?.type || "Standard"}
+                          </span>
+                        </CardTitle>
+                        <div
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            item.validation_status
+                              ? "bg-green-100 text-green-700"
+                              : "bg-amber-100 text-amber-700"
+                          }`}
+                        >
+                          {item.validation_status
+                            ? "✓ Validé"
+                            : "⏳ En attente"}
+                        </div>
+                      </div>
+                    </CardHeader>
 
-          <CardContent className="px-3 pb-4 space-y-3">
-            {/* Client info compacte */}
-            <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="text-sm font-medium text-foreground">
-                  {item.client?.prenom} {item.client?.nom}
-                </span>
-                <span className="text-xs text-muted-foreground">
-                  {item.client?.Tel}
-                </span>
-              </div>
-            </div>
+                    <CardContent className="px-3 pb-4 space-y-3">
+                      {/* Client info compacte */}
+                      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-foreground">
+                            {item.client?.prenom} {item.client?.nom}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {item.client?.Tel}
+                          </span>
+                        </div>
+                      </div>
 
-            {/* Date compacte */}
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-muted-foreground">Créé le</span>
-              <span className="font-medium">
-                {new Date(item.created_at).toLocaleDateString('fr-FR', {
-                  day: '2-digit',
-                  month: 'short',
-                  hour: '2-digit',
-                  minute: '2-digit'
-                })}
-              </span>
-            </div>
-          </CardContent>
+                      {/* Date compacte */}
+                      <div className="flex items-center justify-between text-sm">
+                        <span className="text-muted-foreground">Créé le</span>
+                        <span className="font-medium">
+                          {new Date(item.created_at).toLocaleDateString(
+                            "fr-FR",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            }
+                          )}
+                        </span>
+                      </div>
+                    </CardContent>
 
-          <CardFooter className="px-2 pb-4 pt-0">
-            <div className="w-full flex justify-end items-end space-y-2">
-              <Button onClick={() => handleNavigation(item.id)} className="w-fit h-8 font-bold">Voir Détails</Button>  
-            </div>
-          </CardFooter>
-        </Card>
+                    <CardFooter className="px-2 pb-4 pt-0">
+                      <div className="w-full flex justify-end items-end space-y-2">
+                        <Button
+                          onClick={() => handleNavigation(item.id)}
+                          className="w-fit h-8 font-bold"
+                        >
+                          Voir Détails
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
                 ))}
               </div>
             ) : (
               <div className="text-center py-12">
                 <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">Aucune commande</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  Aucune commande
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
                   Aucune commande n'a été passée pour ce trajet.
                 </p>
@@ -992,4 +1169,4 @@ const handleNavigation = (idCommande:number) => {
       </Drawer>
     </>
   );
-} 
+}

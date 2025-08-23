@@ -34,6 +34,9 @@ import {
   updateValidationStatus,
   unblockValidationStatus,
 } from "@/app/api/commandes/query";
+import { processRefund } from "@/app/api/payment/query";
+import { extractCurrencyFromCommande } from "@/app/api/payment/query";
+import { getWalletByUserId } from "@/app/api/wallets/query";
 import { fr } from "date-fns/locale";
 import {
   AlertCircle,
@@ -439,36 +442,94 @@ export function CommandeList({
   );
 
   const handleRefund = useCallback(async () => {
-    try {
-      // Ici, vous devriez appeler votre API pour effectuer le remboursement
-      // Par exemple :
-      // await processRefund({
-      //   commandeId: activeItem?.id,
-      //   articleIds: selectedRefundArticles,
-      //   amount: refundAmount * 0.95, // 95% du montant
-      //   currency: refundCurrency,
-      //   paymentMethod: refundPaymentMethod
-      // });
+    if (!activeItem || !currentUser) {
+      console.error("Aucune commande active ou utilisateur non connecté");
+      return false;
+    }
 
-      // Afficher un message de succès
+    if (selectedRefundArticles.length === 0) {
+      alert("Veuillez sélectionner au moins un article à rembourser");
+      return false;
+    }
+
+    try {
+      console.log("🔄 Début du processus de remboursement", {
+        commandeId: activeItem.id,
+        selectedArticles: selectedRefundArticles.length,
+        refundAmount,
+        refundCurrency,
+        paymentMethod: refundPaymentMethod,
+      });
+
+      // 1. Récupérer les articles à rembourser
+      const articlesToRefund =
+        activeItem.detail_commande?.articles?.filter((article) =>
+          selectedRefundArticles.includes(article.id)
+        ) || [];
+
+      // 2. Calculer le montant réel à rembourser (95% du montant sélectionné)
+      const actualRefundAmount = refundAmount * 0.95;
+
+      // 3. Récupérer le wallet du client
+      if (!activeItem.id_client) {
+        throw new Error("ID du client non trouvé dans la commande");
+      }
+
+      // 4. Extraire la devise de la commande
+      const commandeCurrency = extractCurrencyFromCommande(activeItem);
+
+      // 5. Appeler la fonction de remboursement
+      const result = await processRefund(
+        activeItem.id, // orderId
+        currentUser.id, // userId (celui qui traite le remboursement)
+        null, // walletId du client
+        articlesToRefund, // articles remboursés
+        actualRefundAmount, // montant (95% du total)
+        commandeCurrency // devise
+      );
+
+      console.log("✅ Remboursement traité avec succès:", result);
+
+      // 6. Afficher le message de succès
       setShowRefundSuccess(true);
 
-      // Mettre à jour l'état local si nécessaire
-      // ...
+      // 7. Déclencher la mise à jour des stats
+      if (updateStats) {
+        await updateStats();
+      }
+
+      // 8. Déclencher la mise à jour des wallets
+      triggerWalletRefresh(activeItem.id_client);
+
+      // 9. Fermer le dialog après un court délai
+      setTimeout(() => {
+        setShowRefundSuccess(false);
+      }, 3000);
 
       return true;
     } catch (error) {
-      console.error("Erreur lors du remboursement :", error);
-      // Afficher une erreur à l'utilisateur
-      // ...
+      console.error("❌ Erreur lors du remboursement:", error);
+
+      // Afficher une erreur spécifique à l'utilisateur
+      const errorMessage = (error as any)?.message || "Erreur inconnue";
+      if (errorMessage.includes("conversion")) {
+        alert("❌ Erreur de conversion de devise. Veuillez réessayer.");
+      } else if (errorMessage.includes("Session invalide")) {
+        alert("❌ Session expirée. Veuillez vous reconnecter.");
+      } else {
+        alert(`❌ Erreur lors du remboursement: ${errorMessage}`);
+      }
+
       return false;
     }
   }, [
-    activeItem?.id,
+    activeItem,
+    currentUser,
     refundAmount,
     refundCurrency,
     refundPaymentMethod,
     selectedRefundArticles,
+    updateStats,
   ]);
 
   const handleCloseDrawer = useCallback(() => {
@@ -979,7 +1040,7 @@ export function CommandeList({
                         </div>
                       </div>
                     )}
-                    <Button
+                    {/* <Button
                       size="sm"
                       variant={isRefundMode ? "default" : "outline"}
                       onClick={() => {
@@ -1003,7 +1064,7 @@ export function CommandeList({
                           Rembourser des articles
                         </>
                       )}
-                    </Button>
+                    </Button> */}
                   </div>
 
                   {isRefundMode && (
@@ -1353,54 +1414,52 @@ export function CommandeList({
               </div>
             </MuiDialogContent>
 
-            <MuiDialogActions className="px-6 py-4 bg-gray-50 rounded-b-2xl">
+            <MuiDialogActions className="grid grid-cols-1 px-6 py-4 bg-gray-50 rounded-b-2xl">
+              <div className="text-sm text-gray-500 mb-1">
+                Montant à envoyer:{" "}
+                <span className="font-semibold">
+                  {(refundAmount * 0.95).toLocaleString("fr-FR", {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                  })}{" "}
+                  {refundCurrency}
+                </span>
+              </div>
               <Button
                 variant="outline"
                 onClick={() => setOpenRefundDialog(false)}
-                className="border-gray-300 text-gray-700 hover:bg-gray-100"
+                className="border-gray-300 flex items-center justify-center text-gray-700 hover:bg-gray-100"
               >
                 Annuler
               </Button>
-              <div className="flex flex-col items-end">
-                <div className="text-sm text-gray-500 mb-1">
-                  Montant à envoyer:{" "}
-                  <span className="font-semibold">
-                    {(refundAmount * 0.95).toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })}{" "}
-                    {refundCurrency}
-                  </span>
-                </div>
-                <Button
-                  onClick={() => {
-                    handleRefund();
-                    setOpenRefundDialog(false);
-                    setShowRefundSuccess(true);
-                    // Réinitialiser la sélection après traitement
-                    setSelectedRefundArticles([]);
-                    setIsRefundMode(false);
-                    setRefundPaymentMethod("");
-                  }}
-                  disabled={!refundPaymentMethod}
-                  className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              <Button
+                onClick={() => {
+                  handleRefund();
+                  setOpenRefundDialog(false);
+                  setShowRefundSuccess(true);
+                  // Réinitialiser la sélection après traitement
+                  setSelectedRefundArticles([]);
+                  setIsRefundMode(false);
+                  setRefundPaymentMethod("");
+                }}
+                disabled={!refundPaymentMethod}
+                className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <svg
+                  className="w-4 h-4 mr-2"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
                 >
-                  <svg
-                    className="w-4 h-4 mr-2"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M5 13l4 4L19 7"
-                    />
-                  </svg>
-                  Confirmer le remboursement
-                </Button>
-              </div>
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+                Confirmer
+              </Button>
             </MuiDialogActions>
           </MuiDialog>
           <Button
@@ -1419,7 +1478,7 @@ export function CommandeList({
             }}
           >
             <CheckCircle className="w-4 h-4 mr-2" />
-            Confirmer le remboursement
+            Valider
           </Button>
           {showRefundSuccess && (
             <div
