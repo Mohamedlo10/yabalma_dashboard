@@ -12,6 +12,7 @@ import {
   Music,
   Download,
   File,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +26,9 @@ import {
   isMessageFromDashboard,
   Discussion,
   Message,
+  uploadFileMessage,
 } from "@/app/api/messages/query";
+import { uploadFile as supabaseUploadFile } from "@/app/api/clients/query";
 import { getSupabaseUser } from "@/lib/authMnager";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
@@ -43,12 +46,43 @@ export default function MessageryDashboard() {
   const [sending, setSending] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [uploadProgress, setUploadProgress] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Fonction pour obtenir l'icône et le type selon l'extension de fichier
-  const getFileIcon = (fileType: string) => {
-    const extension = fileType?.toLowerCase();
+  // Fonction utilitaire pour déterminer le type de fichier à partir de l'extension
+  const getFileTypeFromExtension = (extension: string): string => {
+    const ext = extension?.toLowerCase();
+
+    if (!ext) return ext;
+
+    // Images seulement → "image"
+    if (["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(ext)) {
+      return "image";
+    }
+
+    // Tous les autres types gardent leur extension exacte
+    return ext;
+  };
+
+  // Fonction pour obtenir l'extension à partir d'une URL
+  const getExtensionFromUrl = (url: string): string => {
+    const urlParts = url.split("?")[0]; // Enlever les paramètres de query
+    const fileName = urlParts.split("/").pop() || "";
+    return fileName.split(".").pop()?.toLowerCase() || "";
+  };
+
+  // Fonction pour obtenir l'icône et le type selon l'extension de fichier ou URL
+  const getFileIcon = (fileTypeOrUrl: string) => {
+    // Si c'est une URL, extraire l'extension
+    let extension = fileTypeOrUrl;
+    if (fileTypeOrUrl.includes("http") || fileTypeOrUrl.includes("/")) {
+      extension = getExtensionFromUrl(fileTypeOrUrl);
+    } else {
+      extension = fileTypeOrUrl?.toLowerCase();
+    }
 
     if (!extension)
       return { icon: File, type: "Fichier", color: "text-gray-500" };
@@ -120,13 +154,39 @@ export default function MessageryDashboard() {
 
   // Envoyer un message
   const handleSendMessage = async () => {
-    if (!newMessage.trim() || !selectedDiscussion || sending) return;
+    if ((!newMessage.trim() && !selectedFile) || !selectedDiscussion || sending)
+      return;
 
     try {
       setSending(true);
+      setUploadProgress(0);
 
-      // Tous les messages depuis le dashboard utilisent DEFAULT_SENDER_ID
-      await sendMessage(selectedDiscussion.id_discussion, newMessage.trim());
+      let fileUrl = "";
+      let fileType = "";
+
+      // Si un fichier est sélectionné, l'uploader d'abord
+      if (selectedFile) {
+        try {
+          const uploadResult = await uploadFile(selectedFile);
+          fileUrl = uploadResult.url;
+          fileType = uploadResult.type;
+        } catch (uploadError) {
+          alert(
+            uploadError instanceof Error
+              ? uploadError.message
+              : "Erreur lors de l'upload du fichier"
+          );
+          return;
+        }
+      }
+
+      // Envoyer le message avec ou sans fichier
+      await sendMessage(
+        selectedDiscussion.id_discussion,
+        newMessage.trim() || "",
+        fileType,
+        fileUrl
+      );
 
       // Recharger les messages
       await loadMessages(selectedDiscussion);
@@ -135,11 +195,113 @@ export default function MessageryDashboard() {
       const discussionsData = await getDiscussions();
       setDiscussions(discussionsData);
 
+      // Reset
       setNewMessage("");
+      setSelectedFile(null);
+      setUploadProgress(0);
+      if (fileInputRef.current) {
+        fileInputRef.current.value = "";
+      }
     } catch (error) {
       console.error("Erreur lors de l'envoi du message:", error);
+      alert("Erreur lors de l'envoi du message. Veuillez réessayer.");
     } finally {
       setSending(false);
+      setUploadProgress(0);
+    }
+  };
+
+  // Fonction pour uploader un fichier
+  const uploadFile = async (
+    file: File
+  ): Promise<{ url: string; type: string }> => {
+    try {
+      setUploadProgress(10);
+
+      // Générer un nom de fichier unique avec timestamp
+      const timestamp = Date.now();
+      const fileExtension = file.name.split(".").pop()?.toLowerCase() || "";
+      const fileName = `${timestamp}_${file.name}`;
+
+      setUploadProgress(30);
+
+      // Utiliser la fonction uploadFile de l'API clients
+      const uploadResult = await uploadFileMessage(fileName, file);
+
+      setUploadProgress(80);
+
+      // Vérifier si c'est une erreur
+      if ("error" in uploadResult) {
+        throw new Error(
+          uploadResult.error || "Erreur lors de l'upload du fichier"
+        );
+      }
+
+      // Vérifier si on a bien l'URL publique
+      if (!uploadResult.publicUrl) {
+        throw new Error("URL publique non disponible");
+      }
+
+      setUploadProgress(100);
+
+      // Déterminer le type de fichier basé sur l'extension
+      const fileType = getFileTypeFromExtension(fileExtension);
+
+      return {
+        url: uploadResult.publicUrl,
+        type: fileType,
+      };
+    } catch (error) {
+      console.error("Erreur lors de l'upload:", error);
+      setUploadProgress(0);
+      throw new Error("Impossible d'uploader le fichier. Veuillez réessayer.");
+    }
+  };
+
+  // Gérer la sélection de fichier
+  const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      // Vérifier la taille du fichier (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        alert("Le fichier est trop volumineux. Taille maximum : 10MB");
+        return;
+      }
+
+      // Vérifier le type de fichier
+      const allowedTypes = [
+        "image/jpeg",
+        "image/png",
+        "image/gif",
+        "image/webp",
+        "application/pdf",
+        "video/mp4",
+        "video/avi",
+        "audio/mp3",
+        "audio/wav",
+        "application/msword",
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "text/plain",
+      ];
+
+      if (!allowedTypes.includes(file.type)) {
+        alert(
+          "Type de fichier non autorisé. Types autorisés : images, PDF, vidéos, audio, documents Word, texte"
+        );
+        return;
+      }
+
+      setSelectedFile(file);
+      // Vider le champ de texte car on ne peut pas envoyer fichier + texte
+      setNewMessage("");
+    }
+  };
+
+  // Supprimer le fichier sélectionné
+  const removeSelectedFile = () => {
+    setSelectedFile(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
     }
   };
 
@@ -426,11 +588,15 @@ export default function MessageryDashboard() {
                             <div className="space-y-2">
                               <div className="flex items-center space-x-2">
                                 {(() => {
+                                  // Utiliser l'URL du fichier pour déterminer l'extension exacte
+                                  const extension = getExtensionFromUrl(
+                                    message.file_url
+                                  );
                                   const {
                                     icon: IconComponent,
                                     type,
                                     color,
-                                  } = getFileIcon(message.file_type);
+                                  } = getFileIcon(message.file_url);
                                   return (
                                     <>
                                       <IconComponent
@@ -439,7 +605,7 @@ export default function MessageryDashboard() {
                                         }`}
                                       />
                                       <span className="text-sm font-medium">
-                                        {type} (.{message.file_type})
+                                        {type} (.{extension})
                                       </span>
                                     </>
                                   );
@@ -447,27 +613,39 @@ export default function MessageryDashboard() {
                               </div>
 
                               {/* Prévisualisation pour les images */}
-                              {[
-                                "jpg",
-                                "jpeg",
-                                "png",
-                                "gif",
-                                "webp",
-                                "svg",
-                                "bmp",
-                              ].includes(message.file_type?.toLowerCase()) && (
-                                <div className="mt-2">
-                                  <img
-                                    src={message.file_url}
-                                    alt="Image partagée"
-                                    className="max-w-full h-auto rounded-md cursor-pointer hover:opacity-80 transition-opacity"
-                                    onClick={() =>
-                                      window.open(message.file_url, "_blank")
-                                    }
-                                    style={{ maxHeight: "200px" }}
-                                  />
-                                </div>
-                              )}
+                              {(() => {
+                                const extension = getExtensionFromUrl(
+                                  message.file_url
+                                );
+                                const isImage = [
+                                  "jpg",
+                                  "jpeg",
+                                  "png",
+                                  "gif",
+                                  "webp",
+                                  "svg",
+                                  "bmp",
+                                ].includes(extension.toLowerCase());
+
+                                return (
+                                  isImage && (
+                                    <div className="mt-2">
+                                      <img
+                                        src={message.file_url}
+                                        alt="Image partagée"
+                                        className="max-w-full h-auto rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                                        onClick={() =>
+                                          window.open(
+                                            message.file_url,
+                                            "_blank"
+                                          )
+                                        }
+                                        style={{ maxHeight: "200px" }}
+                                      />
+                                    </div>
+                                  )
+                                );
+                              })()}
 
                               {/* Bouton de téléchargement */}
                               <button
@@ -513,24 +691,104 @@ export default function MessageryDashboard() {
 
             {/* Zone de saisie */}
             <div className="p-4 border-t border-gray-200 bg-white">
+              {/* Prévisualisation du fichier sélectionné */}
+              {selectedFile && (
+                <div className="mb-3 p-3 bg-gray-50 rounded-lg border">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      {(() => {
+                        const fileExtension =
+                          selectedFile.name.split(".").pop()?.toLowerCase() ||
+                          "";
+                        const {
+                          icon: IconComponent,
+                          type,
+                          color,
+                        } = getFileIcon(fileExtension);
+                        return (
+                          <>
+                            <IconComponent className={`w-5 h-5 ${color}`} />
+                            <div>
+                              <p className="text-sm font-medium text-gray-900">
+                                {selectedFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {type} •{" "}
+                                {(selectedFile.size / 1024 / 1024).toFixed(2)}{" "}
+                                MB
+                              </p>
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={removeSelectedFile}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X className="w-4 h-4" />
+                    </Button>
+                  </div>
+
+                  {/* Barre de progression d'upload */}
+                  {sending && uploadProgress > 0 && (
+                    <div className="mt-2">
+                      <div className="w-full bg-gray-200 rounded-full h-2">
+                        <div
+                          className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                          style={{ width: `${uploadProgress}%` }}
+                        ></div>
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">
+                        Upload: {uploadProgress}%
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm">
+                {/* Input de fichier caché */}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  onChange={handleFileSelect}
+                  accept="image/*,application/pdf,video/*,audio/*,.doc,.docx,.txt"
+                  className="hidden"
+                />
+
+                {/* Bouton d'attachment */}
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={sending}
+                  className="hover:bg-gray-100"
+                >
                   <Paperclip className="w-4 h-4" />
                 </Button>
 
                 <Input
                   type="text"
-                  placeholder="Tapez votre message..."
+                  placeholder={
+                    selectedFile
+                      ? "Envoi de fichier uniquement (texte désactivé)"
+                      : "Tapez votre message..."
+                  }
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyPress={(e) => e.key === "Enter" && handleSendMessage()}
                   className="flex-1"
-                  disabled={sending}
+                  disabled={sending || selectedFile !== null}
                 />
 
                 <Button
                   onClick={handleSendMessage}
-                  disabled={!newMessage.trim() || sending}
+                  disabled={
+                    (selectedFile ? false : !newMessage.trim()) || sending
+                  }
                   className="bg-blue-600 hover:bg-blue-700"
                 >
                   {sending ? (
@@ -539,6 +797,14 @@ export default function MessageryDashboard() {
                     <Send className="w-4 h-4" />
                   )}
                 </Button>
+              </div>
+
+              {/* Aide pour les types de fichiers */}
+              <div className="mt-2">
+                <p className="text-xs text-gray-400 text-center">
+                  Formats acceptés : Images, PDF, Vidéos, Audio, Documents Word,
+                  Texte (max 10MB)
+                </p>
               </div>
             </div>
           </>

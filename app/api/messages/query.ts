@@ -80,6 +80,27 @@ export const getDiscussions = async (): Promise<Discussion[]> => {
   }
 };
 
+export const uploadFileMessage = async (fileName: string, uploadFile: File) => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+  try {
+    const { error } = await supabase.storage
+      .from("yabalma/messages") // Assurez-vous que ce chemin est correct
+      .upload(fileName, uploadFile);
+    const { data } = supabase.storage
+      .from("yabalma/messages")
+      .getPublicUrl(fileName);
+    if (error) throw error;
+    console.log(data);
+    return data;
+  } catch (err) {
+    throw err;
+  }
+};
+
 // Récupérer les messages d'une discussion
 export const getMessages = async (discussionId: string): Promise<Message[]> => {
   const session = await getSupabaseSession();
