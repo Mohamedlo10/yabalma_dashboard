@@ -6,6 +6,12 @@ import {
   Phone,
   MoreVertical,
   RefreshCw,
+  FileText,
+  Image,
+  Video,
+  Music,
+  Download,
+  File,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -39,6 +45,41 @@ export default function MessageryDashboard() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Fonction pour obtenir l'icône et le type selon l'extension de fichier
+  const getFileIcon = (fileType: string) => {
+    const extension = fileType?.toLowerCase();
+
+    if (!extension)
+      return { icon: File, type: "Fichier", color: "text-gray-500" };
+
+    // Images
+    if (
+      ["jpg", "jpeg", "png", "gif", "webp", "svg", "bmp"].includes(extension)
+    ) {
+      return { icon: Image, type: "Image", color: "text-green-500" };
+    }
+
+    // Vidéos
+    if (
+      ["mp4", "avi", "mkv", "mov", "wmv", "flv", "webm"].includes(extension)
+    ) {
+      return { icon: Video, type: "Vidéo", color: "text-red-500" };
+    }
+
+    // Audio
+    if (["mp3", "wav", "flac", "aac", "ogg", "m4a"].includes(extension)) {
+      return { icon: Music, type: "Audio", color: "text-purple-500" };
+    }
+
+    // Documents
+    if (["pdf", "doc", "docx", "txt", "rtf", "odt"].includes(extension)) {
+      return { icon: FileText, type: "Document", color: "text-blue-500" };
+    }
+
+    // Par défaut
+    return { icon: File, type: "Fichier", color: "text-gray-500" };
+  };
 
   // Scroll vers le bas automatiquement
   const scrollToBottom = () => {
@@ -376,7 +417,81 @@ export default function MessageryDashboard() {
                               : "bg-gray-100 text-gray-900"
                           }`}
                         >
-                          <p className="text-sm">{message.content}</p>
+                          {/* Affichage du contenu ou du fichier */}
+                          {message.content ? (
+                            // Message texte normal
+                            <p className="text-sm">{message.content}</p>
+                          ) : message.file_type && message.file_url ? (
+                            // Message avec fichier
+                            <div className="space-y-2">
+                              <div className="flex items-center space-x-2">
+                                {(() => {
+                                  const {
+                                    icon: IconComponent,
+                                    type,
+                                    color,
+                                  } = getFileIcon(message.file_type);
+                                  return (
+                                    <>
+                                      <IconComponent
+                                        className={`w-5 h-5 ${
+                                          isMyMessage ? "text-blue-100" : color
+                                        }`}
+                                      />
+                                      <span className="text-sm font-medium">
+                                        {type} (.{message.file_type})
+                                      </span>
+                                    </>
+                                  );
+                                })()}
+                              </div>
+
+                              {/* Prévisualisation pour les images */}
+                              {[
+                                "jpg",
+                                "jpeg",
+                                "png",
+                                "gif",
+                                "webp",
+                                "svg",
+                                "bmp",
+                              ].includes(message.file_type?.toLowerCase()) && (
+                                <div className="mt-2">
+                                  <img
+                                    src={message.file_url}
+                                    alt="Image partagée"
+                                    className="max-w-full h-auto rounded-md cursor-pointer hover:opacity-80 transition-opacity"
+                                    onClick={() =>
+                                      window.open(message.file_url, "_blank")
+                                    }
+                                    style={{ maxHeight: "200px" }}
+                                  />
+                                </div>
+                              )}
+
+                              {/* Bouton de téléchargement */}
+                              <button
+                                onClick={() =>
+                                  window.open(message.file_url, "_blank")
+                                }
+                                className={`flex items-center space-x-1 text-xs hover:underline transition-colors ${
+                                  isMyMessage
+                                    ? "text-blue-100 hover:text-white"
+                                    : "text-blue-600 hover:text-blue-800"
+                                }`}
+                              >
+                                <Download className="w-3 h-3" />
+                                <span>Télécharger</span>
+                              </button>
+                            </div>
+                          ) : (
+                            // Message vide (cas d'erreur)
+                            <p className="text-sm italic opacity-70">
+                              Message sans contenu
+                            </p>
+                          )}
+
+                          {/* Timestamp */}
                           <p
                             className={`text-xs mt-1 ${
                               isMyMessage ? "text-blue-100" : "text-gray-500"
