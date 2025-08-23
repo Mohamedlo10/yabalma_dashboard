@@ -3,6 +3,26 @@ import { getSupabaseSession } from "@/lib/authMnager";
 
 const supabase = createClient();
 
+// Interface pour les données de carte bancaire
+export interface BankCardData {
+  card_number: string;
+  expiry_date: string;
+  cvv: string;
+  cardholder_name: string;
+  card_type: string;
+  issuing_bank?: string;
+  status?: string;
+  credit_limit?: number;
+  pin_code?: string;
+  country_code?: string;
+}
+
+// Interface pour la mise à jour du solde avec devise
+export interface BalanceUpdateData {
+  amount: number;
+  currency: string;
+}
+
 export const getWalletById = async (id: string) => {
   const session = await getSupabaseSession();
 
@@ -59,12 +79,20 @@ export const createWallet = async (
   }
 
   try {
+    // Vérifier si l'utilisateur a déjà un wallet
+    const hasWallet = await checkUserWalletExists(userId);
+    if (hasWallet) {
+      throw new Error(
+        "L'utilisateur possède déjà un portefeuille. Un utilisateur ne peut avoir qu'un seul wallet."
+      );
+    }
+
     const { data, error } = await supabase
       .from("wallets")
       .insert([
         {
           user_id: userId,
-          user_email: userEmail,
+          user_mail: userEmail,
           balance: initialBalance,
         },
       ])
@@ -96,15 +124,13 @@ export const getOrCreateUserWallet = async (userId: string): Promise<any> => {
 
     // Si le portefeuille n'existe pas, le créer
     if (error && error.code === "PGRST116") {
-      console.log(
-        `📝 Création d'un nouveau portefeuille pour l'utilisateur ${userId}`
-      );
-
+      console.log(`📝 pas de portefeuille pour l'utilisateur ${userId}`);
+      /* 
       // Récupérer l'email de l'utilisateur connecté depuis la session
       const userEmail =
         session?.user?.email || `user-${userId.substring(0, 8)}@system`;
 
-      wallet = await createWallet(userId, userEmail, 0);
+      wallet = await createWallet(userId, userEmail, 0); */
     } else if (error) {
       throw error;
     }
@@ -236,6 +262,427 @@ export const getTotalWalletsBalance = async () => {
     };
   } catch (err) {
     console.error("Error calculating total wallets balance:", err);
+    throw err;
+  }
+};
+
+// Fonction utilitaire pour vérifier si un utilisateur a déjà un wallet
+export const checkUserWalletExists = async (
+  userId: string
+): Promise<boolean> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallets")
+      .select("id")
+      .eq("user_id", userId)
+      .single();
+
+    // Si PGRST116 (no rows), l'utilisateur n'a pas de wallet
+    if (error && error.code === "PGRST116") {
+      return false;
+    }
+
+    // Si autre erreur, la relancer
+    if (error) throw error;
+
+    // Si data existe, l'utilisateur a déjà un wallet
+    return !!data;
+  } catch (err) {
+    console.error("Error checking user wallet existence:", err);
+    throw err;
+  }
+};
+
+// Fonction pour compter le nombre de wallets d'un utilisateur
+export const getUserWalletCount = async (userId: string): Promise<number> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { count, error } = await supabase
+      .from("wallets")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    if (error) throw error;
+
+    console.log(`📊 Nombre de wallets pour l'utilisateur ${userId}: ${count}`);
+    return count || 0;
+  } catch (err) {
+    console.error("Error counting user wallets:", err);
+    throw err;
+  }
+};
+
+// Fonction pour convertir une devise en XOF
+export const convertCurrencyToXOF = async (
+  amount: number,
+  fromCurrency: string
+): Promise<number> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  // Si c'est déjà en XOF, pas de conversion nécessaire
+  if (fromCurrency === "XOF" || fromCurrency === "FCFA") {
+    console.log(`💱 Pas de conversion nécessaire: ${amount} ${fromCurrency}`);
+    return amount;
+  }
+
+  try {
+    // Récupérer le taux de change depuis la table settings
+    console.log(`🔍 Recherche du taux de change pour: ${fromCurrency}`);
+
+    const { data: currencyData, error } = await supabase
+      .from("settings")
+      .select("value")
+      .eq("currency", fromCurrency)
+      .single();
+
+    if (error) {
+      console.warn(
+        `⚠️ Taux non trouvé pour ${fromCurrency}, utilisation du montant original`
+      );
+      return amount;
+    }
+
+    if (!currencyData || !currencyData.value) {
+      console.warn(`⚠️ Valeur de taux invalide pour ${fromCurrency}`);
+      return amount;
+    }
+
+    const exchangeRate = parseFloat(currencyData.value);
+    console.log(`📊 Taux trouvé pour ${fromCurrency}: ${exchangeRate}`);
+
+    // Vérification de la cohérence du taux
+    if (exchangeRate <= 0) {
+      console.warn(`⚠️ Taux invalide pour ${fromCurrency}: ${exchangeRate}`);
+      return amount;
+    }
+
+    // Conversion : montant en devise étrangère × taux = montant en XOF
+    const convertedAmount = amount * exchangeRate;
+
+    console.log(
+      `💱 Conversion: ${amount} ${fromCurrency} × ${exchangeRate} = ${convertedAmount} XOF`
+    );
+
+    return Math.round(convertedAmount);
+  } catch (err) {
+    console.error("Erreur lors de la conversion de devise:", err);
+    return amount;
+  }
+};
+
+// Interface pour les données de carte bancaire
+export interface BankCardData {
+  card_number: string;
+  expiry_date: string;
+  cvv: string;
+  cardholder_name: string;
+  card_type: string;
+  issuing_bank?: string;
+  status?: string;
+  credit_limit?: number;
+  pin_code?: string;
+  country_code?: string;
+}
+
+// Interface pour la mise à jour du solde avec devise
+export interface BalanceUpdateData {
+  amount: number;
+  currency: string;
+}
+
+// CREATE - Créer une nouvelle carte bancaire avec solde initial
+export const createBankCard = async (
+  userId: string,
+  userEmail: string,
+  cardData: BankCardData,
+  initialBalance: number = 0,
+  currency: string = "XOF"
+): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    // Vérifier si l'utilisateur a déjà un wallet/carte
+    const hasWallet = await checkUserWalletExists(userId);
+    if (hasWallet) {
+      throw new Error(
+        "L'utilisateur possède déjà un portefeuille/carte. Un utilisateur ne peut avoir qu'un seul wallet."
+      );
+    }
+
+    // Convertir le solde initial en XOF
+    const balanceInXOF = await convertCurrencyToXOF(initialBalance, currency);
+
+    const { data, error } = await supabase
+      .from("wallets")
+      .insert([
+        {
+          user_id: userId,
+          user_mail: userEmail,
+          balance: balanceInXOF,
+          available_balance: balanceInXOF,
+          ...cardData,
+          status: cardData.status || "active",
+          country_code: cardData.country_code || "SN",
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(
+      `💳 Nouvelle carte créée avec solde: ${balanceInXOF} XOF (converti depuis ${initialBalance} ${currency})`
+    );
+    return data;
+  } catch (err) {
+    console.error("Error creating bank card:", err);
+    throw err;
+  }
+};
+
+// READ - Récupérer toutes les cartes d'un utilisateur
+export const getUserBankCards = async (userId: string): Promise<any[]> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallets")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false });
+
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    console.error("Error fetching user bank cards:", err);
+    throw err;
+  }
+};
+
+// READ - Récupérer une carte spécifique
+export const getBankCardById = async (cardId: string): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallets")
+      .select("*")
+      .eq("id", cardId)
+      .single();
+
+    if (error) throw error;
+    return data;
+  } catch (err) {
+    console.error("Error fetching bank card:", err);
+    throw err;
+  }
+};
+
+// UPDATE - Mettre à jour les informations de carte
+export const updateBankCard = async (
+  cardId: string,
+  cardData: Partial<BankCardData>
+): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallets")
+      .update({
+        ...cardData,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(`💳 Carte mise à jour: ${cardId}`);
+    return data;
+  } catch (err) {
+    console.error("Error updating bank card:", err);
+    throw err;
+  }
+};
+
+// UPDATE - Mettre à jour le solde avec conversion de devise
+export const updateCardBalance = async (
+  cardId: string,
+  balanceData: BalanceUpdateData
+): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    // Convertir le montant en XOF
+    const balanceInXOF = await convertCurrencyToXOF(
+      balanceData.amount,
+      balanceData.currency
+    );
+
+    const { data, error } = await supabase
+      .from("wallets")
+      .update({
+        balance: balanceInXOF,
+        available_balance: balanceInXOF,
+        last_used_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(
+      `💰 Solde mis à jour: ${balanceData.amount} ${balanceData.currency} → ${balanceInXOF} XOF`
+    );
+    return data;
+  } catch (err) {
+    console.error("Error updating card balance:", err);
+    throw err;
+  }
+};
+
+// UPDATE - Ajouter des fonds (top-up) avec conversion de devise
+export const topUpCardBalance = async (
+  cardId: string,
+  topUpData: BalanceUpdateData
+): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    // Convertir le montant à ajouter en XOF
+    const amountToAddInXOF = await convertCurrencyToXOF(
+      topUpData.amount,
+      topUpData.currency
+    );
+
+    // Récupérer le solde actuel
+    const { data: currentCard, error: fetchError } = await supabase
+      .from("wallets")
+      .select("balance, available_balance")
+      .eq("id", cardId)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    const currentBalance = Number(currentCard.balance);
+    const newBalance = currentBalance + amountToAddInXOF;
+
+    const { data, error } = await supabase
+      .from("wallets")
+      .update({
+        balance: newBalance,
+        available_balance: newBalance,
+        last_used_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(
+      `💰 Rechargement: +${topUpData.amount} ${topUpData.currency} (${amountToAddInXOF} XOF) → Nouveau solde: ${newBalance} XOF`
+    );
+    return data;
+  } catch (err) {
+    console.error("Error topping up card balance:", err);
+    throw err;
+  }
+};
+
+// UPDATE - Bloquer/Débloquer une carte
+export const updateCardStatus = async (
+  cardId: string,
+  status: "active" | "blocked" | "expired" | "pending"
+): Promise<any> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from("wallets")
+      .update({
+        status: status,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", cardId)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    console.log(`🔒 Statut de carte mis à jour: ${cardId} → ${status}`);
+    return data;
+  } catch (err) {
+    console.error("Error updating card status:", err);
+    throw err;
+  }
+};
+
+// DELETE - Supprimer une carte définitivement
+export const deleteBankCard = async (cardId: string): Promise<void> => {
+  const session = await getSupabaseSession();
+
+  if (!session) {
+    throw new Error("Non autorisé - Session invalide");
+  }
+
+  try {
+    const { error } = await supabase.from("wallets").delete().eq("id", cardId);
+
+    if (error) throw error;
+
+    console.log(`🗑️ Carte supprimée définitivement: ${cardId}`);
+  } catch (err) {
+    console.error("Error deleting bank card:", err);
     throw err;
   }
 };
