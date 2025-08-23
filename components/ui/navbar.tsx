@@ -188,6 +188,15 @@ function Navbar({ toggleSidebar }: NavbarProps) {
     }
   }, [userInfo]);
 
+  // Rafraîchir le solde toutes les 10 secondes depuis la base de données
+  useEffect(() => {
+    if (!userInfo?.id) return;
+    const interval = setInterval(() => {
+      refreshWalletBalance(true); // true = forcer le refresh depuis l'API
+    }, 10000);
+    return () => clearInterval(interval);
+  }, [userInfo]);
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">

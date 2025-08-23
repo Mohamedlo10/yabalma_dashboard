@@ -353,7 +353,7 @@ export function BankCardManager({ userId, userEmail }: BankCardManagerProps) {
                 Ajouter une carte
               </Button>
             </DialogTrigger>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-h-[80vh] overflow-y-auto max-w-md">
               <DialogHeader>
                 <DialogTitle>Créer une nouvelle carte</DialogTitle>
               </DialogHeader>
@@ -750,7 +750,7 @@ export function BankCardManager({ userId, userEmail }: BankCardManagerProps) {
 
       {/* Modal de modification de carte */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-h-[80vh] overflow-y-auto max-w-md">
           <DialogHeader>
             <DialogTitle>Modifier les informations de la carte</DialogTitle>
           </DialogHeader>
