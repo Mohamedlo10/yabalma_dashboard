@@ -116,28 +116,22 @@ export const getOrCreateUserWallet = async (userId: string): Promise<any> => {
 
   try {
     // Essayer de récupérer le portefeuille existant
-    let { data: wallet, error } = await supabase
+    const { data: wallet, error } = await supabase
       .from("wallets")
       .select("*")
       .eq("user_id", userId)
       .single();
 
-    // Si le portefeuille n'existe pas, le créer
+    // Si le portefeuille n'existe pas, renvoyer une erreur pour arrêter l'exécution
     if (error && error.code === "PGRST116") {
-      console.log(`📝 pas de portefeuille pour l'utilisateur ${userId}`);
-      /* 
-      // Récupérer l'email de l'utilisateur connecté depuis la session
-      const userEmail =
-        session?.user?.email || `user-${userId.substring(0, 8)}@system`;
-
-      wallet = await createWallet(userId, userEmail, 0); */
+      throw new Error("L'utilisateur ne possède pas de portefeuille.");
     } else if (error) {
       throw error;
     }
 
     return wallet;
   } catch (err) {
-    console.error("Error getting or creating user wallet:", err);
+    console.error("Error getting user wallet:", err);
     throw err;
   }
 };

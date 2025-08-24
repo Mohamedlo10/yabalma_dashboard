@@ -73,7 +73,7 @@ export const updatePaymentStatus = async (
 
   try {
     const updates: any = { status };
-    if (proofUrl) updates.proof_url = proofUrl;
+    if (proofUrl) updates.preuve_url = proofUrl;
 
     const { data, error } = await supabase
       .from("payment_info")

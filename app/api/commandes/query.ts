@@ -6,6 +6,7 @@ import {
   extractAmountFromCommande,
 } from "@/app/api/payment/query";
 import { getOrCreateUserWallet } from "@/app/api/wallets/query";
+import { error } from "console";
 const supabase = createClient();
 
 export const getallcommandes = async () => {
@@ -245,6 +246,7 @@ export const validerCommande = async (
         }
       } catch (paymentError) {
         console.error("Erreur lors du traitement du paiement:", paymentError);
+        return paymentError;
         // Ne pas faire échouer la validation pour des erreurs de paiement
         // mais logger l'erreur pour investigation
         console.warn("La validation continue malgré l'erreur de paiement");
@@ -601,5 +603,59 @@ export const getcommandeAnnonceCount = async () => {
     return data as any;
   } catch (err) {
     throw err;
+  }
+};
+
+// Fonction pour dévalider une commande (mettre validation_status à false)
+export const invalidateCommande = async (id_commande: number) => {
+  const role = getSupabaseSession();
+
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+
+  try {
+    // Vérifier d'abord que la commande existe et est validée
+    const { data: commande, error: fetchError } = await supabase
+      .from("commande")
+      .select("validation_status, id")
+      .eq("id", id_commande)
+      .single();
+
+    if (fetchError) throw fetchError;
+
+    if (!commande.validation_status) {
+      return {
+        error: "Cette commande n'est pas validée",
+        success: false,
+      };
+    }
+
+    // Mettre à jour le statut de validation à false
+    const { data, error } = await supabase
+      .from("commande")
+      .update({
+        validation_status: false,
+        validationPending: false,
+        mail_valideur: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", id_commande)
+      .select()
+      .single();
+
+    if (error) throw error;
+
+    return {
+      success: true,
+      data: data,
+      message: "Commande dévalidée avec succès",
+    };
+  } catch (err) {
+    console.error("Erreur lors de la dévalidation:", err);
+    return {
+      error: "Erreur lors de la dévalidation de la commande",
+      success: false,
+    };
   }
 };

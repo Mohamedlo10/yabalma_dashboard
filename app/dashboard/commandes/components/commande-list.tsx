@@ -33,6 +33,7 @@ import {
   validerCommande,
   updateValidationStatus,
   unblockValidationStatus,
+  invalidateCommande,
 } from "@/app/api/commandes/query";
 import { processRefund } from "@/app/api/payment/query";
 import { extractCurrencyFromCommande } from "@/app/api/payment/query";
@@ -53,6 +54,13 @@ const override: CSSProperties = {
   margin: "0 auto",
   borderColor: "red",
 };
+
+interface InvalidateResult {
+  success?: boolean;
+  error?: string;
+  data?: any;
+  message?: string;
+}
 
 export function CommandeList({
   items: initialItems,
@@ -95,6 +103,9 @@ export function CommandeList({
   const [isBlocking, setIsBlocking] = useState(false);
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isInvalidating, setIsInvalidating] = useState(false);
+  const [invalidateDialogOpen, setInvalidateDialogOpen] = useState(false);
+  const [walletUser, setWalletUser] = useState<any>(null);
 
   // Mettre à jour les items quand initialItems change, en préservant les modifications locales
   useEffect(() => {
@@ -138,6 +149,19 @@ export function CommandeList({
 
     console.log(`👤 Utilisateur connecté: ${user?.email || "Aucun"}`);
   }, []);
+
+  // Récupérer le wallet de l'utilisateur connecté
+  useEffect(() => {
+    async function fetchWallet() {
+      if (currentUser?.id) {
+        const wallet = await getWalletByUserId(currentUser.id);
+        setWalletUser(wallet);
+      } else {
+        setWalletUser(null);
+      }
+    }
+    fetchWallet();
+  }, [currentUser]);
 
   // Fonction pour bloquer un bouton (mettre validationPending à true)
   const blockButton = async (commandeId: number) => {
@@ -543,6 +567,12 @@ export function CommandeList({
     async (completed: boolean) => {
       if (!activeItem) return;
 
+      // Vérification du wallet utilisateur
+      if (!walletUser || !walletUser.id) {
+        alert("❌ Vous devez avoir un portefeuille pour valider une commande.");
+        return;
+      }
+
       if (!completed) {
         setConfirmDialogOpen(false);
         return;
@@ -552,12 +582,15 @@ export function CommandeList({
         setIsLoading(true);
 
         // Appel de validerCommande avec les bons paramètres
-        const result = await validerCommande(
+        const result = (await validerCommande(
           activeItem.id,
           currentUser?.email || undefined,
           currentUser?.id || undefined
-        );
-
+        )) as any;
+        if (result.error) {
+          alert(`❌ Erreur: ${result.error}`);
+          return;
+        }
         if (result.message === "La commande est déjà validée") {
           console.log("La commande était déjà validée");
         }
@@ -572,9 +605,7 @@ export function CommandeList({
               `💰 Nouveau solde du portefeuille: ${result.walletBalance}`
             );
             // Notification à l'utilisateur
-            alert(
-              `✅ Paiement traité avec succès. Nouveau solde: ${result.walletBalance} XOF`
-            );
+            alert(`✅ Paiement traité avec succès`);
           }
         } else {
           console.log("ℹ️ Aucun paiement traité pour cette validation");
@@ -648,8 +679,68 @@ export function CommandeList({
         setIsLoading(false);
       }
     },
-    [activeItem, onItemUpdate, currentUser, updateStats]
+    [activeItem, onItemUpdate, currentUser, updateStats, walletUser]
   );
+
+  const handleInvalidateCommande = useCallback(async () => {
+    if (!activeItem) return;
+
+    try {
+      setIsInvalidating(true);
+
+      const result = (await invalidateCommande(
+        activeItem.id
+      )) as InvalidateResult;
+
+      if (result.error) {
+        alert(`❌ Erreur: ${result.error}`);
+        return;
+      }
+
+      if (result.success) {
+        // Créer la commande mise à jour avec validation_status à false
+        const updatedItem: Commande = {
+          ...activeItem,
+          validation_status: false,
+          mail_valideur: null,
+          validationPending: false,
+        };
+
+        // Mettre à jour l'état local
+        setItems((prevItems: Commande[]) =>
+          prevItems.map((item) =>
+            item.id === activeItem.id ? updatedItem : item
+          )
+        );
+
+        // Mettre à jour via la prop de callback si fournie
+        if (onItemUpdate) {
+          onItemUpdate(updatedItem);
+        }
+
+        // Mettre à jour les stats
+        if (updateStats) {
+          await updateStats();
+        }
+
+        alert("✅ Commande dévalidée avec succès");
+
+        // Fermer les modals
+        setInvalidateDialogOpen(false);
+
+        // Fermer le drawer après un court délai
+        setTimeout(() => {
+          setDrawerOpen(false);
+          setActiveItem(null);
+        }, 1000);
+      }
+    } catch (error) {
+      console.error("Erreur lors de la dévalidation:", error);
+      alert("❌ Erreur lors de la dévalidation de la commande");
+    } finally {
+      setIsInvalidating(false);
+    }
+  }, [activeItem, onItemUpdate, updateStats]);
 
   const handleNavigation = (idCommande: number) => {
     router.push(`/dashboard/commandes/profile?id=${idCommande}`);
@@ -925,8 +1016,10 @@ export function CommandeList({
                       }`}
                       onClick={() => setConfirmDialogOpen(true)}
                       disabled={
-                        isButtonBlocked(activeItem) &&
-                        !canUnblockButton(activeItem)
+                        (isButtonBlocked(activeItem) &&
+                          !canUnblockButton(activeItem)) ||
+                        !walletUser ||
+                        !walletUser.id
                       }
                     >
                       {isButtonBlocked(activeItem) &&
@@ -938,8 +1031,30 @@ export function CommandeList({
                             {getBlockedByUser(activeItem)?.email}
                           </span>
                         </div>
+                      ) : !walletUser || !walletUser.id ? (
+                        <span>Portefeuille requis</span>
                       ) : (
                         "J'ai validé"
+                      )}
+                    </Button>
+                  )}
+
+                  {activeItem.validation_status && (
+                    <Button
+                      className="w-full md:w-auto bg-red-600 hover:bg-red-700"
+                      onClick={() => setInvalidateDialogOpen(true)}
+                      disabled={isInvalidating}
+                    >
+                      {isInvalidating ? (
+                        <div className="flex items-center gap-2">
+                          <BeatLoader color="#ffffff" size={8} />
+                          <span>Dévalidation...</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <X className="w-4 h-4" />
+                          <span>Dévalider</span>
+                        </div>
                       )}
                     </Button>
                   )}
@@ -1578,6 +1693,39 @@ export function CommandeList({
                 ) : (
                   "Oui, j'ai validé"
                 )}
+              </Button>
+            </MuiDialogActions>
+          </MuiDialog>
+
+          <MuiDialog
+            open={invalidateDialogOpen}
+            onClose={() => setInvalidateDialogOpen(false)}
+          >
+            <MuiDialogTitle className="pb-2 text-red-700">
+              Confirmation de dévalidation
+            </MuiDialogTitle>
+            <MuiDialogContent className="px-6 py-4">
+              <p className="text-base text-gray-700">
+                Êtes-vous sûr de vouloir <b>dévalider</b> cette commande ?<br />
+                Cette action va remettre la commande en statut non validé.
+              </p>
+            </MuiDialogContent>
+            <MuiDialogActions className="grid grid-cols-2 px-6 py-4 bg-gray-50 rounded-b-2xl">
+              <Button
+                variant="outline"
+                onClick={() => setInvalidateDialogOpen(false)}
+                disabled={isInvalidating}
+              >
+                Annuler
+              </Button>
+              <Button
+                className="bg-red-600 hover:bg-red-700 text-white"
+                onClick={handleInvalidateCommande}
+                disabled={isInvalidating}
+              >
+                {isInvalidating
+                  ? "Dévalidation..."
+                  : "Confirmer la dévalidation"}
               </Button>
             </MuiDialogActions>
           </MuiDialog>

@@ -860,12 +860,12 @@ export default function FinancePage() {
                               <SelectItem value="failed">Échec</SelectItem>
                             </SelectContent>
                           </Select>
-                          {payment.proof_url && (
+                          {payment.preuve_url && (
                             <Button
                               variant="ghost"
                               size="icon"
                               onClick={() =>
-                                window.open(payment.proof_url, "_blank")
+                                window.open(payment.preuve_url, "_blank")
                               }
                             >
                               <Eye className="h-4 w-4" />

@@ -655,7 +655,7 @@ export const processValidationPayment = async (
     // 4. Mettre à jour le statut de la transaction à 'completed'
     const { error: updateTransactionError } = await supabase
       .from("payment_info")
-      .update({ status: "completed" })
+      .update({ status: "pending" })
       .eq("id", transaction.id);
 
     if (updateTransactionError) {
