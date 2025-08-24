@@ -12,7 +12,7 @@ export const userConnection = async (email: string, password: string) => {
     });
     const current_access = data.session?.user.user_metadata.poste;
     if (data) {
-      console.log(data);
+      // console.log(data);
       Cookies.set("user_session", JSON.stringify(data.user), { expires: 1 });
       Cookies.set(
         "supabase_session",
@@ -32,7 +32,6 @@ export const userConnection = async (email: string, password: string) => {
 };
 
 export const userDeConnection = async () => {
-  
   try {
     const { error } = await supabase.auth.signOut();
     if (!error) {
@@ -89,7 +88,7 @@ export const getRole = async () => {
 };
 
 export const getAllUserInfo = async () => {
-    try {
+  try {
     const { data, error } = await supabase.auth.getUser();
     if (error) throw error;
 

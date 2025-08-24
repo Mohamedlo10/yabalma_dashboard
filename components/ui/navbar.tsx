@@ -102,36 +102,36 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   // Function to refresh wallet balance
   const refreshWalletBalance = async (forceRefresh: boolean = false) => {
     if (!userInfo?.id) {
-      console.log("❌ Pas d'ID utilisateur disponible pour récupérer le solde");
+      // console.log("❌ Pas d'ID utilisateur disponible pour récupérer le solde");
       return;
     }
 
-    console.log(`🔍 Récupération du solde pour l'utilisateur: ${userInfo.id}`);
+    // console.log(`🔍 Récupération du solde pour l'utilisateur: ${userInfo.id}`);
 
     try {
       // Vérifier le cache d'abord si pas de refresh forcé
       if (!forceRefresh) {
         const cachedBalance = getCachedWalletBalance(userInfo.id);
         if (cachedBalance !== null) {
-          console.log(
+          /* console.log(
             `📦 Solde récupéré depuis le cache: ${cachedBalance} XOF`
-          );
+          ); */
           setWalletBalance(cachedBalance);
           return;
         }
       }
 
-      console.log("🌐 Récupération du solde depuis l'API...");
+      // console.log("🌐 Récupération du solde depuis l'API...");
       // Récupérer depuis l'API (ou créer le wallet s'il n'existe pas)
       const wallet = await getOrCreateUserWallet(userInfo.id);
-      console.log("📊 Réponse de l'API wallet:", wallet);
+      // console.log("📊 Réponse de l'API wallet:", wallet);
 
       const newBalance = wallet?.balance || 0;
 
       setWalletBalance(newBalance);
       setCachedWalletBalance(userInfo.id, newBalance);
 
-      console.log(`💰 Solde mis à jour: ${newBalance} XOF`);
+      // console.log(`💰 Solde mis à jour: ${newBalance} XOF`);
     } catch (error) {
       console.error("❌ Error refreshing wallet balance:", error);
     }
@@ -154,7 +154,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
           if (!userDetails) {
             try {
               userDetails = await getAllUserInfo();
-              console.log("🔄 Infos utilisateur récupérées depuis l'API");
+              // console.log("🔄 Infos utilisateur récupérées depuis l'API");
             } catch (apiError) {
               console.error(
                 "Erreur API lors de la récupération des infos utilisateur:",
@@ -162,7 +162,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
               );
             }
           } else {
-            console.log("✅ Infos utilisateur récupérées depuis les cookies");
+            // console.log("✅ Infos utilisateur récupérées depuis les cookies");
           }
 
           if (userDetails?.id) {
@@ -182,9 +182,9 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   // Effet séparé pour rafraîchir le solde quand userInfo est disponible
   useEffect(() => {
     if (userInfo?.id) {
-      console.log(
+      /* console.log(
         `🔄 Récupération du solde pour l'utilisateur: ${userInfo.id}`
-      );
+      ); */
       refreshWalletBalance(false); // false = utiliser le cache si disponible
     }
   }, [userInfo]);
