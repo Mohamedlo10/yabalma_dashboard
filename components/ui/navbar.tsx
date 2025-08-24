@@ -88,6 +88,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
   const [role, setRole] = useState<Role>();
   const [userInfo, setUserInfo] = useState<any>(null);
   const [walletBalance, setWalletBalance] = useState<number>(0);
+  const [walletUser, setWalletUser] = useState<any>(null);
   let [color, setColor] = useState("#ffffff");
 
   // Hook pour écouter les mises à jour de wallet
@@ -197,6 +198,20 @@ function Navbar({ toggleSidebar }: NavbarProps) {
     return () => clearInterval(interval);
   }, [userInfo]);
 
+  // Récupération du wallet utilisateur
+  useEffect(() => {
+    async function fetchWallet() {
+      if (userInfo?.id) {
+        const wallet = await getOrCreateUserWallet(userInfo.id);
+        setWalletUser(wallet && wallet.id ? wallet : null);
+        setIsLoading(false);
+      } else {
+        setWalletUser(null);
+      }
+    }
+    fetchWallet();
+  }, [userInfo]);
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -263,12 +278,24 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 </div>
 
                 {/* Wallet Balance */}
-                <div className="flex items-center gap-2 font-medium text-base transition-all text-green-700 hover:bg-green-700 hover:text-white rounded-md px-2 py-1">
-                  <Wallet className="h-5 w-5 flex-shrink-0" />
-                  <span className="transition-opacity duration-300">
-                    {walletBalance.toLocaleString()} XOF
-                  </span>
-                </div>
+                {walletUser && walletUser.id ? (
+                  <div className="flex items-center gap-2 font-medium text-base transition-all text-green-700 hover:bg-green-700 hover:text-white rounded-md px-2 py-1">
+                    <Wallet className="h-5 w-5 flex-shrink-0" />
+                    <span className="transition-opacity duration-300">
+                      {walletBalance.toLocaleString()} XOF
+                    </span>
+                  </div>
+                ) : (
+                  <Link
+                    href="/dashboard/profile"
+                    className="flex items-center gap-2 font-medium text-base bg-green-100 text-green-700 hover:bg-green-700 hover:text-white rounded-md px-2 py-1"
+                  >
+                    <Wallet className="h-5 w-5 flex-shrink-0" />
+                    <span className="transition-opacity duration-300">
+                      Créer mon portefeuille
+                    </span>
+                  </Link>
+                )}
               </div>
             )}
           </div>

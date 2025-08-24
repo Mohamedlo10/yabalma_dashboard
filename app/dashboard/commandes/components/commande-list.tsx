@@ -1039,7 +1039,7 @@ export function CommandeList({
                     </Button>
                   )}
 
-                  {activeItem.validation_status && (
+                  {/* {activeItem.validation_status && (
                     <Button
                       className="w-full md:w-auto bg-red-600 hover:bg-red-700"
                       onClick={() => setInvalidateDialogOpen(true)}
@@ -1057,7 +1057,7 @@ export function CommandeList({
                         </div>
                       )}
                     </Button>
-                  )}
+                  )} */}
                 </div>
                 <div className="border rounded-md p-4 bg-white shadow">
                   <h4 className="font-semibold text-gray-700 mb-3">
