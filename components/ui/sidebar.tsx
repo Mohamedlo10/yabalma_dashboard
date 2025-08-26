@@ -254,6 +254,25 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 </span>
               </Link>
 
+              {/* Colis Remis */}
+              <Link
+                href="/dashboard/colis-remis"
+                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                  pathname === "/dashboard/colis-remis"
+                    ? "bg-white text-red-700 shadow-sm"
+                    : "text-white hover:bg-white hover:text-red-700"
+                }`}
+              >
+                <CheckCircle className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "lg:hidden"
+                  }`}
+                >
+                  Colis Remis
+                </span>
+              </Link>
+
               {/* Messagerie */}
               {
                 <Link
