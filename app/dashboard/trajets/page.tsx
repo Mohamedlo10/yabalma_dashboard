@@ -61,6 +61,7 @@ import { createColumns } from "./components/columns";
 import { getCommandesByIdAnnonce } from "@/app/api/commandes/query";
 import { registerWarehouseInfo } from "@/app/api/commandes/query";
 import { Badge } from "@/components/ui/badge";
+import { createClient } from "@/lib/supabaseClient";
 
 const override: CSSProperties = {
   display: "block",
@@ -69,6 +70,7 @@ const override: CSSProperties = {
 };
 
 export default function AnnonceGestionPage() {
+  const supabase = createClient();
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
   const [filteredAnnonces, setFilteredAnnonces] = useState<Annonce[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -99,6 +101,8 @@ export default function AnnonceGestionPage() {
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [warehouseError, setWarehouseError] = useState("");
   const [selectedCommandeForWarehouse, setSelectedCommandeForWarehouse] = useState<any>(null);
+  const [isStartingShipment, setIsStartingShipment] = useState(false);
+  const [isEndingShipment, setIsEndingShipment] = useState(false);
   const [annonce, setAnnonce] = useState<Annonce>({
     type_transport: "economy",
     poids_max: null,
@@ -224,6 +228,10 @@ export default function AnnonceGestionPage() {
         return "bg-blue-100 text-blue-800";
       case "En cours":
         return "bg-yellow-100 text-yellow-800";
+      case "Expédié":
+        return "bg-orange-100 text-orange-800";
+      case "Arrivé":
+        return "bg-green-100 text-green-800";
       case "Terminé":
         return "bg-green-100 text-green-800";
       case "Annulé":
@@ -516,6 +524,262 @@ export default function AnnonceGestionPage() {
     }
   };
 
+  const handleEndShipment = async () => {
+    try {
+      if (!annonce || !annonce.id_annonce) {
+        showNotification('error', 'Annonce invalide pour marquer l\'arrivée');
+        return;
+      }
+
+      // Vérifier que l'annonce est en statut "Expédié"
+      if (annonce.statut !== 'Expédié') {
+        showNotification('error', 'Seules les annonces expédiées peuvent être marquées comme arrivées');
+        return;
+      }
+
+      setIsEndingShipment(true);
+      showNotification('info', 'Marquage de l\'arrivée en cours...');
+
+      // 1. Mise à jour du statut de l'annonce vers "Arrivé"
+      const { client, ...annonceSansClient } = annonce;
+      await modifierAnnonce(annonce.id_annonce, { 
+        ...annonceSansClient, 
+        statut: 'Arrivé'
+            });
+
+      // 2. Mise à jour de toutes les commandes expédiées vers "Arrivé"
+      const commandesExpediees = annonceCommandes.filter(cmd => cmd.statut === 'Expédié');
+
+      console.log('📦 Commandes à marquer comme arrivées:', {
+        total: annonceCommandes.length,
+        expediees: commandesExpediees.length
+      });
+
+      // Mettre à jour les commandes expédiées
+      for (const commande of commandesExpediees) {
+        try {
+          console.log(`🏁 Marquage arrivée commande ${commande.id || commande.id_commande}`);
+          await updateCommandeStatus(commande.id || commande.id_commande, 'Arrivé');
+        } catch (error) {
+          console.error(`Erreur lors du marquage d'arrivée de la commande ${commande.id || commande.id_commande}:`, error);
+        }
+      }
+
+      // 3. Mettre à jour l'état local
+      setAnnonce(prev => ({ ...prev, statut: 'Arrivé' }));
+      
+      // 4. Rafraîchir les données
+      await fetchData();
+      
+      showNotification('success', `Arrivée marquée avec succès ! ${commandesExpediees.length} commande(s) marquée(s) comme arrivée(s)`);
+      
+      // 5. Fermer le drawer des commandes
+      setIsCommandesDrawerOpen(false);
+      
+    } catch (error) {
+      console.error('Erreur lors du marquage de l\'arrivée:', error);
+      showNotification('error', 'Erreur lors du marquage de l\'arrivée');
+    } finally {
+      setIsEndingShipment(false);
+    }
+  };
+
+  const handleStartShipment = async () => {
+    try {
+      if (!annonce || !annonce.id_annonce) {
+        showNotification('error', 'Annonce invalide pour démarrer l\'expédition');
+        return;
+      }
+
+      // Vérifier que l'annonce est en statut "Entrepot"
+      if (annonce.statut !== 'Entrepot') {
+        showNotification('error', 'Seules les annonces en attente d\'entrepôt peuvent démarrer l\'expédition');
+        return;
+      }
+
+      setIsStartingShipment(true);
+      showNotification('info', 'Démarrage de l\'expédition en cours...');
+
+      // 1. Mise à jour du statut de l'annonce vers "Expédié"
+      const { client, ...annonceSansClient } = annonce;
+      await modifierAnnonce(annonce.id_annonce, { 
+        ...annonceSansClient, 
+        statut: 'Expédié',
+        shipping_started_at: new Date().toISOString()
+      });
+
+      // 2. Mise à jour des commandes préparées vers "Expédié"
+      const commandesPreparees = annonceCommandes.filter(cmd => cmd.warehouse_info);
+      const commandesNonPreparees = annonceCommandes.filter(cmd => !cmd.warehouse_info);
+
+      console.log('📦 Commandes à traiter:', {
+        total: annonceCommandes.length,
+        preparees: commandesPreparees.length,
+        nonPreparees: commandesNonPreparees.length,
+        structure: annonceCommandes[0] // Pour voir la structure
+      });
+
+      // Mettre à jour les commandes préparées
+      for (const commande of commandesPreparees) {
+        try {
+          console.log(`🔄 Mise à jour commande préparée ${commande.id || commande.id_commande} vers Expédié`);
+          await updateCommandeStatus(commande.id || commande.id_commande, 'Expédié');
+        } catch (error) {
+          console.error(`Erreur lors de la mise à jour de la commande ${commande.id || commande.id_commande}:`, error);
+        }
+      }
+
+      // 3. Réassigner les commandes non préparées
+      if (commandesNonPreparees.length > 0) {
+        await reassignNonPreparedOrders(commandesNonPreparees);
+      }
+
+      // 4. Mettre à jour l'état local
+      setAnnonce(prev => ({ ...prev, statut: 'Expédié' }));
+      
+      // 5. Rafraîchir les données
+      await fetchData();
+      
+      showNotification('success', `Expédition démarrée avec succès ! ${commandesPreparees.length} commande(s) expédiée(s), ${commandesNonPreparees.length} commande(s) réassignée(s)`);
+      
+      // 6. Fermer le drawer des commandes
+      setIsCommandesDrawerOpen(false);
+      
+    } catch (error) {
+      console.error('Erreur lors du démarrage de l\'expédition:', error);
+      showNotification('error', 'Erreur lors du démarrage de l\'expédition');
+    } finally {
+      setIsStartingShipment(false);
+    }
+  };
+
+  // Fonction pour mettre à jour le statut d'une commande
+  const updateCommandeStatus = async (commandeId: number, newStatus: string) => {
+    try {
+      console.log(`🔧 Tentative de mise à jour - ID: ${commandeId}, Statut: ${newStatus}`);
+      
+      const { data, error } = await supabase
+        .from('commande')
+        .update({
+          statut: newStatus,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', commandeId);
+
+      if (error) {
+        console.error('❌ Erreur Supabase:', error);
+        throw error;
+      }
+
+      console.log(`✅ Commande ${commandeId} mise à jour avec succès:`, data);
+      return data;
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut de la commande:', error);
+      throw error;
+    }
+  };
+
+  // Fonction pour réassigner les commandes non préparées
+  const reassignNonPreparedOrders = async (commandes: any[]) => {
+    try {
+      console.log('🔄 Début de réassignation des commandes non préparées:', commandes.length);
+      
+      // Rechercher l'annonce la plus proche avec le même type de transport
+      const closestAnnonce = await findClosestAnnonce(annonce);
+      
+      if (!closestAnnonce) {
+        console.log('⚠️ Aucune annonce de réassignation trouvée');
+        showNotification('warning', 'Aucune annonce de réassignation trouvée. Les commandes restent dans l\'annonce actuelle.');
+        return;
+      }
+
+      console.log('🎯 Annonce de réassignation trouvée:', closestAnnonce);
+
+      // Réassigner chaque commande
+      for (const commande of commandes) {
+        try {
+          console.log(`🔄 Réassignation commande ${commande.id || commande.id_commande} vers annonce ${closestAnnonce.id_annonce}`);
+          
+          const { data, error } = await supabase
+            .from('commande')
+            .update({
+              id_annonce: closestAnnonce.id_annonce,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', commande.id || commande.id_commande);
+
+          if (error) {
+            console.error(`❌ Erreur lors de la réassignation de la commande ${commande.id || commande.id_commande}:`, error);
+          } else {
+            console.log(`✅ Commande ${commande.id || commande.id_commande} réassignée avec succès`);
+          }
+        } catch (error) {
+          console.error(`❌ Erreur lors de la réassignation de la commande ${commande.id || commande.id_commande}:`, error);
+        }
+      }
+
+      showNotification('info', `${commandes.length} commande(s) réassignée(s) vers l'annonce ${closestAnnonce.source} → ${closestAnnonce.destination}`);
+    } catch (error) {
+      console.error('Erreur lors de la réassignation des commandes:', error);
+      showNotification('error', 'Erreur lors de la réassignation des commandes');
+    }
+  };
+
+  // Fonction pour trouver l'annonce la plus proche avec le même type de transport
+  const findClosestAnnonce = async (currentAnnonce: any) => {
+    try {
+      console.log('🔍 Recherche d\'annonce de réassignation pour:', {
+        id: currentAnnonce.id_annonce,
+        type_transport: currentAnnonce.type_transport
+      });
+      
+      // Récupérer toutes les annonces disponibles (seulement celles en Entrepot avec date future)
+      const today = new Date().toISOString().split('T')[0]; // Format YYYY-MM-DD
+      console.log('📅 Date du jour:', today);
+      
+      const { data: annonces, error } = await supabase
+        .from('annonce')
+        .select('*')
+        .neq('id_annonce', currentAnnonce.id_annonce)
+        .eq('statut', 'Entrepot')
+        .eq('type_transport', currentAnnonce.type_transport)
+        .gte('date_depart', today)
+        .order('date_depart', { ascending: true }); // Trier par date de départ (plus proche en premier)
+
+      if (error) {
+        console.error('❌ Erreur lors de la recherche d\'annonces:', error);
+        throw error;
+      }
+
+      console.log('📋 Annonces trouvées:', annonces?.length || 0);
+      
+      if (annonces && annonces.length > 0) {
+        console.log('📋 Détails des annonces trouvées:');
+        annonces.forEach((ann, index) => {
+          console.log(`  ${index + 1}. ${ann.source} → ${ann.destination} | Départ: ${ann.date_depart} | Transport: ${ann.type_transport}`);
+        });
+      }
+
+      if (!annonces || annonces.length === 0) {
+        console.log('⚠️ Aucune annonce disponible pour la réassignation (avec date future)');
+        return null;
+      }
+
+      // Prendre la première annonce (la plus proche dans le temps)
+      const selectedAnnonce = annonces[0];
+      console.log('✅ Annonce sélectionnée pour réassignation:', {
+        id: selectedAnnonce.id_annonce,
+        trajet: `${selectedAnnonce.source} → ${selectedAnnonce.destination}`,
+        date_depart: selectedAnnonce.date_depart,
+        type_transport: selectedAnnonce.type_transport
+      });
+      return selectedAnnonce;
+    } catch (error) {
+      console.error('Erreur lors de la recherche d\'annonce de réassignation:', error);
+      return null;
+    }
+  };
+
   const handleAddAnnonceClick = () => {
     setAnnonce({
       type_transport: "economy",
@@ -764,7 +1028,7 @@ export default function AnnonceGestionPage() {
                 </div>
                 
                 <div className="flex items-center gap-2 mb-4">
-                  {['Entrepot', 'En cours', 'Terminé', 'Annulé'].map((statut) => (
+                  {['Entrepot', 'Expédié', 'Arrivé'].map((statut) => (
                     <Button
                       key={statut}
                       variant={activeStatusFilter === statut ? "default" : "outline"}
@@ -798,19 +1062,19 @@ export default function AnnonceGestionPage() {
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-yellow-600"></div>
                     <div>
-                      <div className="text-2xl font-bold text-yellow-600">
-                        {annonces.filter(annonce => annonce.statut === 'En cours').length}
+                      <div className="text-2xl font-bold text-orange-600">
+                        {annonces.filter(annonce => annonce.statut === 'Expédié').length}
                       </div>
-                      <div className="text-sm text-gray-600">En cours</div>
+                      <div className="text-sm text-gray-600">Expédié</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <div className="w-3 h-3 rounded-full bg-green-600"></div>
                     <div>
                       <div className="text-2xl font-bold text-green-600">
-                        {annonces.filter(annonce => annonce.statut === 'Terminé').length}
+                        {annonces.filter(annonce => annonce.statut === 'Arrivé').length}
                       </div>
-                      <div className="text-sm text-gray-600">Terminé</div>
+                      <div className="text-sm text-gray-600">Arrivé</div>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -1043,8 +1307,8 @@ export default function AnnonceGestionPage() {
             <div className="flex w-full max-w-2xl flex-col items-center border bg-white p-6 text-left">
               <div className="flex items-center justify-between w-full mb-6">
                 <h2 className="text-2xl font-bold">
-                  Ajouter une Nouvelle Annonce
-                </h2>
+                Ajouter une Nouvelle Annonce
+              </h2>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1292,8 +1556,8 @@ export default function AnnonceGestionPage() {
                       <SelectContent>
                         <SelectItem value="Entrepot">Entrepôt</SelectItem>
                         <SelectItem value="En cours">En cours</SelectItem>
-                        <SelectItem value="Terminé">Terminé</SelectItem>
-                        <SelectItem value="Annulé">Annulé</SelectItem>
+                        <SelectItem value="Expédié">Expédié</SelectItem>
+                        <SelectItem value="Arrivé">Arrivé</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1578,8 +1842,8 @@ export default function AnnonceGestionPage() {
                       <SelectContent>
                         <SelectItem value="Entrepot">Entrepôt</SelectItem>
                         <SelectItem value="En cours">En cours</SelectItem>
-                        <SelectItem value="Terminé">Terminé</SelectItem>
-                        <SelectItem value="Annulé">Annulé</SelectItem>
+                        <SelectItem value="Expédié">Expédié</SelectItem>
+                        <SelectItem value="Arrivé">Arrivé</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1637,7 +1901,7 @@ export default function AnnonceGestionPage() {
               <div className="flex items-center justify-between w-full mb-6">
                 <h2 className="text-2xl font-bold">
                   Commandes du trajet
-                </h2>
+            </h2>
                 <Button
                   variant="outline"
                   size="sm"
@@ -1669,76 +1933,110 @@ export default function AnnonceGestionPage() {
                     <div className={`w-3 h-3 rounded-full ${
                       annonce.statut === 'Entrepot' ? 'bg-blue-500' :
                       annonce.statut === 'En cours' ? 'bg-yellow-500' :
-                      annonce.statut === 'Terminé' ? 'bg-green-500' :
+                      annonce.statut === 'Expédié' ? 'bg-orange-500' :
+                      annonce.statut === 'Arrivé' ? 'bg-green-500' :
                       'bg-red-500'
                     }`}></div>
                     <span className="text-sm font-medium text-gray-700">
                       {annonce.statut === 'Entrepot' ? '🔄 En attente' :
                        annonce.statut === 'En cours' ? '🚚 En cours' :
-                       annonce.statut === 'Terminé' ? '✅ Terminé' :
+                       annonce.statut === 'Expédié' ? '✈️ Expédié' :
+                       annonce.statut === 'Arrivé' ? '✅ Arrivé' :
                        '❌ Annulé'}
                     </span>
                   </div>
                   
                   <div className="flex items-center gap-3 flex-wrap">
-                    {/* Bouton de démarrage principal */}
+                    {/* Bouton de démarrage principal - Workflow simplifié */}
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant={annonce.statut === 'En cours' ? 'default' : 'outline'}
-                        size="sm"
-                        className={`h-8 px-4 font-medium transition-all duration-200 ${
-                          annonce.statut === 'En cours'
-                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                            : 'bg-white hover:bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400'
-                        }`}
-                        onClick={() => {
-                          if (annonce.statut === 'Entrepot') {
-                            handleUpdateAnnonceStatus('En cours');
-                          } else if (annonce.statut === 'En cours') {
-                            handleUpdateAnnonceStatus('Entrepot');
-                          }
-                        }}
-                      >
-                        {annonce.statut === 'En cours' ? (
-                          <>
-                            <Truck className="h-4 w-4 mr-2" />
-                            Trajet en cours
-                          </>
-                        ) : (
-                          <>
-                            <Play className="h-4 w-4 mr-2" />
-                            Démarrer le trajet
-                          </>
-                        )}
-                      </Button>
+                      {annonce.statut === 'Entrepot' ? (
+                <Button
+                          variant="default"
+                  size="sm"
+                          className="h-8 px-4 font-medium bg-orange-600 hover:bg-orange-700 text-white transition-all duration-200"
+                          onClick={handleStartShipment}
+                          disabled={isStartingShipment}
+                        >
+                          {isStartingShipment ? (
+                            <>
+                              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                              Démarrage...
+                            </>
+                          ) : (
+                            <>
+                              <Plane className="h-4 w-4 mr-2" />
+                              Démarrer l'Expédition
+                            </>
+                          )}
+                </Button>
+                      ) : annonce.statut === 'En cours' ? (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-4 font-medium bg-white hover:bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400 transition-all duration-200"
+                          onClick={() => handleUpdateAnnonceStatus('Entrepot')}
+                        >
+                          <Truck className="h-4 w-4 mr-2" />
+                          Retour à l'Entrepôt
+                        </Button>
+                      ) : annonce.statut === 'Expédié' ? (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-orange-50 rounded-lg border border-orange-200">
+                          <Plane className="h-4 w-4 text-orange-600" />
+                          <span className="text-sm font-medium text-orange-700">
+                            Expédition en cours
+                          </span>
+              </div>
+                      ) : annonce.statut === 'Arrivé' ? (
+                        <div className="flex items-center gap-2 px-3 py-2 bg-green-50 rounded-lg border border-green-200">
+                          <CheckIcon className="h-4 w-4 text-green-600" />
+                          <span className="text-sm font-medium text-green-700">
+                            Trajet arrivé
+                          </span>
+                        </div>
+                      ) : null}
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
-                        onClick={() => handleUpdateAnnonceStatus('Terminé')}
-                        disabled={annonce.statut !== 'En cours'}
-                      >
-                        <CheckIcon className="h-3 w-3 mr-1" />
-                        Terminer
-                      </Button>
+                                            {/* Bouton Arrivé - seulement pour les expéditions en cours */}
+                      {annonce.statut === 'Expédié' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                          onClick={handleEndShipment}
+                          disabled={isEndingShipment}
+                        >
+                          {isEndingShipment ? (
+                            <>
+                              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-green-600 mr-1"></div>
+                              Marquage...
+                            </>
+                          ) : (
+                            <>
+                              <CheckIcon className="h-3 w-3 mr-1" />
+                              Marquer Arrivé
+                            </>
+                          )}
+                        </Button>
+                      )}
                       
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-3 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
-                        onClick={() => handleUpdateAnnonceStatus('Annulé')}
-                      >
-                        <X className="h-3 w-3 mr-1" />
-                        Annuler
-                      </Button>
+                      {/* Bouton Réactiver - pour les annonces arrivées */}
+                      {annonce.statut === 'Arrivé' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 px-3 text-xs bg-blue-50 border-blue-200 text-blue-700 hover:bg-blue-100"
+                          onClick={() => handleUpdateAnnonceStatus('Entrepot')}
+                        >
+                          <Play className="h-3 w-3 mr-1" />
+                          Réactiver
+                        </Button>
+                      )}
                     </div>
                   </div>
                 </div>
-              </div>
             </div>
+          </div>
 
             {/* Contenu scrollable - Commandes */}
             <div className="flex-1 p-6 overflow-y-auto">
@@ -1822,24 +2120,24 @@ export default function AnnonceGestionPage() {
                                         className="h-8 w-8 rounded-full object-cover"
                                         src={commande.client.img_url}
                                         alt="Avatar"
-                                      />
-                                    ) : (
+            />
+          ) : (
                                       <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
                                         <span className="text-xs font-medium text-gray-600">
                                           {commande.client?.prenom?.[0]}{commande.client?.nom?.[0]}
-                                        </span>
-                                      </div>
+                        </span>
+                      </div>
                                     )}
-                                  </div>
+                    </div>
                                   <div className="ml-3 min-w-0">
                                     <div className="text-sm font-medium text-gray-900 truncate">
                                       {commande.client?.prenom} {commande.client?.nom}
-                                    </div>
+                    </div>
                                     <div className="text-sm text-gray-500 truncate">
                                       {commande.client?.ville}
                                       {commande.client?.Pays && `, ${commande.client.Pays}`}
-                                    </div>
-                                  </div>
+                    </div>
+                    </div>
                                 </div>
                               </td>
                               
@@ -1847,7 +2145,7 @@ export default function AnnonceGestionPage() {
                               <td className="w-32 px-3 py-3">
                                 <div className="text-sm text-gray-900 truncate">
                                   {commande.client?.Tel}
-                                </div>
+                    </div>
                                 <div className="text-sm text-gray-500 truncate">
                                   {new Date(commande.created_at).toLocaleDateString('fr-FR', {
                                     day: 'numeric',
@@ -1865,7 +2163,7 @@ export default function AnnonceGestionPage() {
                                     <span className="capitalize">{commande.detail_commande?.mode}</span>
                                     <span>•</span>
                                     <span className="truncate">{commande.detail_commande?.type}</span>
-                                  </div>
+                    </div>
                                   <div className="text-gray-500">
                                     {commande.detail_commande?.articles?.length || 0} article(s)
                                   </div>
@@ -1884,7 +2182,9 @@ export default function AnnonceGestionPage() {
                                       ? 'bg-blue-100 text-blue-800 border-blue-300'
                                       : commande.statut === 'En cours'
                                       ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
-                                      : commande.statut === 'Terminé'
+                                      : commande.statut === 'Expédié'
+                                      ? 'bg-orange-100 text-orange-800 border-orange-300'
+                                      : commande.statut === 'Arrivé'
                                       ? 'bg-green-100 text-green-800 border-green-300'
                                       : commande.statut === 'Annulé'
                                       ? 'bg-red-100 text-red-800 border-red-300'
@@ -1905,7 +2205,7 @@ export default function AnnonceGestionPage() {
                                     >
                                       {commande.payment_status === 'paid' ? 'Payé' : 'Non payé'}
                                     </Badge>
-                                  </div>
+                    </div>
                                 )}
                               </td>
                               
@@ -1914,8 +2214,8 @@ export default function AnnonceGestionPage() {
                                 <div className="flex items-center gap-2">
                                   {/* Bouton Préparer en Entrepôt (si commande validée et pas encore préparée) */}
                                   {commande.validation_status && !commande.warehouse_info && (
-                                    <Button
-                                      size="sm"
+                      <Button
+                        size="sm"
                                       className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-2 py-1"
                                                                               onClick={() => {
                                           setSelectedCommandeForWarehouse(commande);
@@ -1941,7 +2241,7 @@ export default function AnnonceGestionPage() {
                                         />
                                       </svg>
                                       Préparer
-                                    </Button>
+                      </Button>
                                   )}
                                   
                                   {/* Indicateur si déjà préparée */}
@@ -1964,8 +2264,8 @@ export default function AnnonceGestionPage() {
                                         Préparée
                                       </span>
                                       <div className="flex items-center gap-1">
-                                        <Button
-                                          variant="outline"
+                      <Button
+                        variant="outline"
                                           size="sm"
                                           className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-1 py-1 h-6"
                                           title="Voir les informations du warehouse"
@@ -1978,10 +2278,10 @@ export default function AnnonceGestionPage() {
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                           </svg>
-                                        </Button>
-                                        <Button
+                      </Button>
+                      <Button
                                           variant="outline"
-                                          size="sm"
+                        size="sm"
                                           className="text-green-600 border-green-200 hover:bg-green-50 text-xs px-1 py-1 h-6"
                                           title="Modifier les informations du warehouse"
                                           onClick={() => {
@@ -1997,11 +2297,11 @@ export default function AnnonceGestionPage() {
                                           <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                                           </svg>
-                                        </Button>
-                                      </div>
-                                    </div>
-                                  )}
-                                  
+                      </Button>
+                    </div>
+            </div>
+          )}
+
 
                                 </div>
                               </td>
@@ -2017,8 +2317,8 @@ export default function AnnonceGestionPage() {
                   <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
                   <h3 className="text-lg font-medium text-gray-900">
                     Aucune commande
-                  </h3>
-                  <p className="mt-1 text-sm text-gray-500">
+              </h3>
+              <p className="mt-1 text-sm text-gray-500">
                     Aucune commande n'est associée à ce trajet pour le moment.
                   </p>
                 </div>
@@ -2085,7 +2385,7 @@ export default function AnnonceGestionPage() {
                             {/* Raccourcis de valeurs rapides */}
                             <div className="flex flex-wrap gap-1 mt-2">
                               <button
-                                type="button"
+                  type="button"
                                 onClick={() => setWarehousePrice('1000')}
                                 className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
                               >
@@ -2112,8 +2412,8 @@ export default function AnnonceGestionPage() {
                               >
                                 2500
                               </button>
-                            </div>
-                          </div>
+              </div>
+            </div>
                           
                           <div>
                             <Label htmlFor="warehouseWeight" className="text-sm font-medium text-gray-700">
@@ -2192,7 +2492,7 @@ export default function AnnonceGestionPage() {
                               <SelectItem value="economy">Economy</SelectItem>
                             </SelectContent>
                           </Select>
-                        </div>
+        </div>
                         
                         <div>
                           <Label htmlFor="warehousePhotos" className="text-sm font-medium text-gray-700">
@@ -2230,8 +2530,8 @@ export default function AnnonceGestionPage() {
                               </div>
                             </div>
                           )}
-                        </div>
-                        
+      </div>
+
                         {warehouseError && (
                           <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
                             <div className="flex items-center gap-2">
@@ -2267,7 +2567,7 @@ export default function AnnonceGestionPage() {
                   >
                     Annuler
                   </Button>
-                  <Button
+            <Button
                     variant="outline"
                     onClick={() => {
                       setWarehousePrice("");
@@ -2297,8 +2597,8 @@ export default function AnnonceGestionPage() {
                     ) : (
                       selectedCommandeForWarehouse?.warehouse_info ? 'Modifier' : 'Confirmer'
                     )}
-                  </Button>
-                </div>
+            </Button>
+          </div>
               </div>
             </div>
           </div>
@@ -2328,18 +2628,18 @@ export default function AnnonceGestionPage() {
                   <div>
                     <h3 className="text-lg font-semibold text-gray-900">
                       Informations du Warehouse
-                    </h3>
+            </h3>
                     <p className="text-sm text-gray-600">
                       Commande #{selectedCommandeForWarehouse.id}
-                    </p>
+            </p>
                   </div>
-                </div>
+          </div>
 
                 {/* Informations du warehouse */}
-                <div className="space-y-4">
+              <div className="space-y-4">
                   {/* Prix */}
                   <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-                    <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
@@ -2351,13 +2651,13 @@ export default function AnnonceGestionPage() {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
                         })} XOF
-                      </span>
-                    </div>
-                  </div>
+                          </span>
+                        </div>
+                      </div>
 
                   {/* Poids */}
                   <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
@@ -2369,9 +2669,9 @@ export default function AnnonceGestionPage() {
                           minimumFractionDigits: 2,
                           maximumFractionDigits: 2
                         })} kg
-                      </span>
-                    </div>
-                  </div>
+                          </span>
+                        </div>
+                      </div>
 
                   {/* Type de transport */}
                   {selectedCommandeForWarehouse.warehouse_info.transport_type && (
@@ -2407,14 +2707,14 @@ export default function AnnonceGestionPage() {
                           hour: '2-digit',
                           minute: '2-digit'
                         })}
-                      </span>
-                    </div>
+                        </span>
+                      </div>
                   </div>
                 </div>
 
                 {/* Boutons d'action */}
                 <div className="flex gap-3 mt-6">
-                  <Button
+                        <Button
                     variant="outline"
                     onClick={() => setOpenWarehouseViewDialog(false)}
                     className="flex-1"
@@ -2437,11 +2737,11 @@ export default function AnnonceGestionPage() {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
                     </svg>
                     Modifier
-                  </Button>
-                </div>
+                        </Button>
+                      </div>
               </div>
-            </div>
-          </div>
+              </div>
+        </div>
         </>
       )}
     </>
