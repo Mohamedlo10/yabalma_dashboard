@@ -23,6 +23,7 @@ import {
   CheckCircle,
   Plane,
   LogIn,
+  ArrowLeftRight,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
@@ -254,6 +255,26 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                 </span>
               </Link>
 
+              {/* transferer commandes */}
+              <Link
+                href="/dashboard/transferer-commandes"
+                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
+                  pathname === "/dashboard/transferer-commandes" ||
+                  pathname === "/dashboard/transferer-commandes/profile"
+                    ? "bg-white text-red-700 shadow-sm"
+                    : "text-white hover:bg-white hover:text-red-700"
+                }`}
+              >
+                <ArrowLeftRight className="h-5 w-5 flex-shrink-0" />
+                <span
+                  className={`transition-opacity duration-300 ${
+                    isHovered ? "block" : "lg:hidden"
+                  }`}
+                >
+                  Transférer commandes
+                </span>
+              </Link>
+
               {/* Messagerie */}
               {
                 <Link
@@ -274,24 +295,6 @@ function Sidebar({ isOpen, toggleSidebar, isHovered = false }: SidebarProps) {
                   </span>
                 </Link>
               }
-              {/*      <Link
-                href="/dashboard/validation"
-                className={`flex items-center gap-2 w-full rounded-md px-2 py-1.5 font-medium text-sm transition-all ${
-                  pathname === "/dashboard/validation" ||
-                  pathname === "/dashboard/validation/profile"
-                    ? "bg-white text-red-700 shadow-sm"
-                    : "text-white hover:bg-white hover:text-red-700"
-                }`}
-              >
-                <CheckCircle className="h-5 w-5 flex-shrink-0" />
-                <span
-                  className={`transition-opacity duration-300 ${
-                    isHovered ? "block" : "lg:hidden"
-                  }`}
-                >
-                  À valider
-                </span>
-              </Link> */}
             </>
           )}
 

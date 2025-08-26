@@ -14,6 +14,7 @@ const articleSchema = z.object({
 });
 
 export const detailsCommandeSchema = z.object({
+  mode: z.string(),
   type: z.string(),
   articles: z.array(articleSchema).default([]),
   poids: z.string().optional(),

@@ -271,7 +271,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 {/* User Info */}
                 <div className="flex items-center gap-2 font-medium text-base transition-all text-red-700 hover:bg-red-700 hover:text-white rounded-md px-2 py-1">
                   <User className="h-5 w-5 flex-shrink-0" />
-                  <span className="transition-opacity duration-300">
+                  <span className="transition-opacity sm:text-base text-xs duration-300">
                     {userInfo?.user_metadata?.prenom || "Prénom"}{" "}
                     {userInfo?.user_metadata?.nom || role.nom || "Nom"}
                   </span>
@@ -281,7 +281,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
                 {walletUser && walletUser.id ? (
                   <div className="flex items-center gap-2 font-medium text-base transition-all text-green-700 hover:bg-green-700 hover:text-white rounded-md px-2 py-1">
                     <Wallet className="h-5 w-5 flex-shrink-0" />
-                    <span className="transition-opacity duration-300">
+                    <span className="transition-opacity sm:text-base text-xs duration-300">
                       {walletBalance.toLocaleString()} XOF
                     </span>
                   </div>
@@ -301,7 +301,7 @@ function Navbar({ toggleSidebar }: NavbarProps) {
           </div>
         </div>
 
-        <div className="grid grid-cols-8 items-center gap-8 h-22 w-60">
+        <div className=" grid-cols-8 sm:grid hidden items-center gap-8 h-22 w-60">
           <div className="col-span-6 flex flex-row items-center justify-center gap-4 h-1/3 rounded-xl">
             <Image
               src="/logoYabalma.svg"

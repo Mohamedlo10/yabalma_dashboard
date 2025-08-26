@@ -64,6 +64,25 @@ export const registerWarehouseInfo = async (
   }
 };
 
+// Récupérer toutes les commandes avec warehouse_info non null
+export const getCommandesWithWarehouse = async () => {
+  const role = getSupabaseSession();
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+  try {
+    const { data, error } = await supabase
+      .from("commande")
+      .select(`*, annonce(*), client(*)`)
+      .not("warehouse_info", "is", null)
+      .eq("statut", "Entrepot");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    throw err;
+  }
+};
+
 // Helper pour uploader plusieurs fichiers
 export const uploadMultipleFiles = async (
   files: File[],

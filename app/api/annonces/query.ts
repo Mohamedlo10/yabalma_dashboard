@@ -33,6 +33,23 @@ export const creerAnnonce = async (annonceData: Record<string, any>) => {
   }
 };
 
+// Récupérer toutes les annonces avec statut='Entrepot'
+export const getAnnoncesEntrepot = async () => {
+  const role = getSupabaseSession();
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+  try {
+    const { data, error } = await supabase
+      .from("annonce")
+      .select("*")
+      .eq("statut", "Entrepot");
+    if (error) throw error;
+    return data || [];
+  } catch (err) {
+    throw err;
+  }
+};
 export const getallannonces = async () => {
   const role = getSupabaseSession();
 
