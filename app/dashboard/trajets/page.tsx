@@ -59,6 +59,7 @@ import { Annonce } from "./schema";
 import { DataTable } from "./components/data-table";
 import { createColumns } from "./components/columns";
 import { getCommandesByIdAnnonce } from "@/app/api/commandes/query";
+import { registerWarehouseInfo } from "@/app/api/commandes/query";
 import { Badge } from "@/components/ui/badge";
 
 const override: CSSProperties = {
@@ -85,7 +86,19 @@ export default function AnnonceGestionPage() {
     type: 'success' | 'error' | 'info' | 'warning' | null;
     message: string;
   }>({ type: null, message: '' });
+  const [isLoadingCommandes, setIsLoadingCommandes] = useState(false);
   let [color, setColor] = useState("#ffffff");
+  
+  // États pour la préparation en entrepôt
+  const [openWarehouseDialog, setOpenWarehouseDialog] = useState(false);
+  const [openWarehouseViewDialog, setOpenWarehouseViewDialog] = useState(false);
+  const [warehousePrice, setWarehousePrice] = useState("");
+  const [warehouseWeight, setWarehouseWeight] = useState("");
+  const [warehouseTransportType, setWarehouseTransportType] = useState("");
+  const [warehousePhotos, setWarehousePhotos] = useState<File[]>([]);
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
+  const [warehouseError, setWarehouseError] = useState("");
+  const [selectedCommandeForWarehouse, setSelectedCommandeForWarehouse] = useState<any>(null);
   const [annonce, setAnnonce] = useState<Annonce>({
     type_transport: "economy",
     poids_max: null,
@@ -103,6 +116,56 @@ export default function AnnonceGestionPage() {
     date_arrive: "",
   });
   const router = useRouter();
+
+  // Protection contre les erreurs de rendu
+  const [renderError, setRenderError] = useState<string | null>(null);
+
+  // Gestionnaire d'erreur global - Version simplifiée
+  useEffect(() => {
+    const handleError = (error: ErrorEvent) => {
+      console.error('🚨 Erreur globale détectée:', error);
+      // Ne pas mettre à jour l'état pour éviter les boucles
+      // setRenderError(error.message);
+    };
+
+    window.addEventListener('error', handleError);
+    return () => window.removeEventListener('error', handleError);
+  }, []);
+
+  // Si il y a une erreur de rendu, afficher un message d'erreur
+  if (renderError) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-red-50">
+        <div className="text-center p-8">
+          <div className="text-red-500 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+            </svg>
+          </div>
+          <h1 className="text-2xl font-bold text-red-800 mb-4">
+            Erreur de l'application
+          </h1>
+          <p className="text-red-600 mb-6">
+            Une erreur s'est produite lors du rendu de l'application.
+          </p>
+          <p className="text-sm text-red-500 mb-6 font-mono bg-red-100 p-3 rounded">
+            {renderError}
+          </p>
+          <Button
+            onClick={() => {
+              setRenderError(null);
+              window.location.reload();
+            }}
+            className="bg-red-600 hover:bg-red-700"
+          >
+            Recharger l'application
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+
 
   async function fetchData() {
     setIsLoading(true);
@@ -258,9 +321,14 @@ export default function AnnonceGestionPage() {
 
   const handleOpenCommandes = async (annonce: Annonce) => {
     try {
+      // Vider les anciennes commandes avant de charger les nouvelles
+      setAnnonceCommandes([]);
+      setIsLoadingCommandes(true);
+      
       // Récupérer les commandes de l'annonce
       setIsCommandesDrawerOpen(true);
       setAnnonce(annonce);
+      
       const data = await getCommandesByIdAnnonce(annonce.id_annonce);
       if (data && data.length > 0) {
         setAnnonceCommandes(data);
@@ -268,6 +336,149 @@ export default function AnnonceGestionPage() {
     } catch (error) {
       console.error("Erreur:", error);
       showNotification('error', 'Erreur lors de la récupération des commandes');
+    } finally {
+      setIsLoadingCommandes(false);
+    }
+  };
+
+  const handleCloseCommandes = () => {
+    setIsCommandesDrawerOpen(false);
+    setAnnonceCommandes([]); // Vider les commandes
+    setAnnonce({} as Annonce); // Réinitialiser l'annonce sélectionnée
+  };
+
+  // Fonction pour formater le prix avec validation - Version simplifiée
+  const formatPrice = (value: string) => {
+    // Permettre toute saisie, juste nettoyer les espaces et virgules
+    return value.replace(/\s/g, '').replace(',', '.');
+  };
+
+  // Fonction pour formater le poids avec validation - Version simplifiée
+  const formatWeight = (value: string) => {
+    // Permettre toute saisie, juste nettoyer les espaces et virgules
+    return value.replace(/\s/g, '').replace(',', '.');
+  };
+
+  // Fonction pour la préparation en entrepôt - Version améliorée
+  const handleWarehouseSubmit = async () => {
+    try {
+      console.log('🚀 Début de la préparation en entrepôt');
+      
+      // Vérifications de sécurité
+      if (!selectedCommandeForWarehouse) {
+        setWarehouseError("Aucune commande sélectionnée");
+        return;
+      }
+      
+      if (!warehousePrice || !warehouseWeight) {
+        setWarehouseError("Veuillez remplir tous les champs obligatoires.");
+        return;
+      }
+      
+      // Validation des valeurs numériques
+      const price = parseFloat(warehousePrice.replace(/\s/g, '').replace(',', '.'));
+      const weight = parseFloat(warehouseWeight.replace(/\s/g, '').replace(',', '.'));
+      
+      if (isNaN(price) || price <= 0) {
+        setWarehouseError("Le prix doit être un nombre positif (ex: 1500.50)");
+        return;
+      }
+      
+      if (isNaN(weight) || weight <= 0) {
+        setWarehouseError("Le poids doit être un nombre positif (ex: 2.5)");
+        return;
+      }
+      
+      // Validation des décimales (max 2 décimales) - plus flexible
+      const priceStr = warehousePrice.replace(/\s/g, '').replace(',', '.');
+      const weightStr = warehouseWeight.replace(/\s/g, '').replace(',', '.');
+      
+      if (priceStr.includes('.') && priceStr.split('.')[1]?.length > 2) {
+        setWarehouseError("Le prix ne peut avoir que 2 décimales maximum");
+        return;
+      }
+      
+      if (weightStr.includes('.') && weightStr.split('.')[1]?.length > 2) {
+        setWarehouseError("Le poids ne peut avoir que 2 décimales maximum");
+        return;
+      }
+      
+      // Validation du type de transport
+      if (!warehouseTransportType) {
+        setWarehouseTransportType('economy'); // Valeur par défaut
+      }
+      
+      setWarehouseLoading(true);
+      setWarehouseError("");
+      
+      console.log('✅ Validation OK, appel API...');
+      console.log('📦 Données à envoyer:', {
+        commandeId: selectedCommandeForWarehouse.id,
+        price,
+        weight,
+        transportType: warehouseTransportType,
+        photosCount: warehousePhotos.length
+      });
+      
+      // Appel API
+      const result = await registerWarehouseInfo(
+        selectedCommandeForWarehouse.id,
+        warehousePhotos,
+        {
+          price: price,
+          weight: weight,
+          transport_type: warehouseTransportType,
+        }
+      );
+      
+      console.log('📡 Résultat API:', result);
+      
+      if (result.error) {
+        setWarehouseError(result.error);
+        showNotification('error', `Erreur: ${result.error}`);
+      } else {
+        // Mettre à jour l'état local des commandes
+        setAnnonceCommandes((prev) =>
+          prev.map((commande) =>
+            commande.id === selectedCommandeForWarehouse.id
+              ? { 
+                  ...commande, 
+                  warehouse_info: {
+                    price: price,
+                    weight: weight,
+                    transport_type: warehouseTransportType,
+                  }, 
+                  statut: "Entrepot" 
+                }
+              : commande
+          )
+        );
+        
+        // Fermer le dialog et réinitialiser
+        setOpenWarehouseDialog(false);
+        setWarehousePrice("");
+        setWarehouseWeight("");
+        setWarehouseTransportType("");
+        setWarehousePhotos([]);
+        setSelectedCommandeForWarehouse(null);
+        
+        // Notification de succès
+        const isModification = selectedCommandeForWarehouse.warehouse_info;
+        showNotification('success', isModification 
+          ? 'Informations du warehouse modifiées avec succès' 
+          : 'Commande préparée en entrepôt avec succès'
+        );
+        
+        // Rafraîchir les données si nécessaire
+        // await fetchData();
+      }
+    } catch (err: any) {
+      console.error('❌ Erreur lors de la préparation en entrepôt:', err);
+      const errorMessage = err?.message || err?.toString() || "Erreur inconnue";
+      setWarehouseError(errorMessage);
+      showNotification('error', `Erreur lors de la préparation en entrepôt: ${errorMessage}`);
+    } finally {
+      setWarehouseLoading(false);
     }
   };
 
@@ -280,6 +491,12 @@ export default function AnnonceGestionPage() {
 
   const handleUpdateAnnonceStatus = async (newStatut: string) => {
     try {
+      // Vérifier que l'annonce a un ID valide
+      if (!annonce || !annonce.id_annonce) {
+        showNotification('error', 'Annonce invalide pour la mise à jour du statut');
+        return;
+      }
+      
       setIsLoading(true);
       const { client, ...annonceSansClient } = annonce;
       await modifierAnnonce(annonce.id_annonce, { ...annonceSansClient, statut: newStatut });
@@ -1412,8 +1629,8 @@ export default function AnnonceGestionPage() {
       </Drawer>
 
       {/* Drawer pour afficher les commandes */}
-      <Drawer anchor="right" open={isCommandesDrawerOpen} onClose={() => setIsCommandesDrawerOpen(false)}>
-        <div className="p-4 flex items-center justify-center h-full w-[70vw] max-w-6xl">
+      <Drawer anchor="right" open={isCommandesDrawerOpen} onClose={handleCloseCommandes}>
+        <div className="p-4 flex items-center justify-center h-full w-[80vw] max-w-7xl">
           <div className="flex w-full max-w-none flex-col h-full border bg-white rounded-lg overflow-hidden">
             {/* Header fixe avec gestion de l'annonce */}
             <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-white">
@@ -1424,7 +1641,7 @@ export default function AnnonceGestionPage() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={() => setIsCommandesDrawerOpen(false)}
+                  onClick={handleCloseCommandes}
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -1525,7 +1742,17 @@ export default function AnnonceGestionPage() {
 
             {/* Contenu scrollable - Commandes */}
             <div className="flex-1 p-6 overflow-y-auto">
-              {annonceCommandes.length > 0 ? (
+              {isLoadingCommandes ? (
+                <div className="text-center py-12">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Chargement des commandes...
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Récupération des données en cours
+                  </p>
+                </div>
+              ) : annonceCommandes.length > 0 ? (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <h4 className="font-medium text-gray-800">
@@ -1683,16 +1910,99 @@ export default function AnnonceGestionPage() {
                               </td>
                               
                               {/* Actions */}
-                              <td className="w-24 px-3 py-3">
+                              <td className="w-64 px-3 py-3">
                                 <div className="flex items-center gap-2">
-                                  <Button
-                                    variant="outline"
-                                    size="sm"
-                                    className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-2 py-1"
-                                    onClick={() => handleVoirDetailCommande(commande)}
-                                  >
-                                    Voir détail
-                                  </Button>
+                                  {/* Bouton Préparer en Entrepôt (si commande validée et pas encore préparée) */}
+                                  {commande.validation_status && !commande.warehouse_info && (
+                                    <Button
+                                      size="sm"
+                                      className="bg-yellow-600 hover:bg-yellow-700 text-white text-xs px-2 py-1"
+                                                                              onClick={() => {
+                                          setSelectedCommandeForWarehouse(commande);
+                                          setWarehousePrice("");
+                                          setWarehouseWeight("");
+                                          setWarehouseTransportType("");
+                                          setWarehousePhotos([]);
+                                          setWarehouseError("");
+                                          setOpenWarehouseDialog(true);
+                                        }}
+                                    >
+                                      <svg
+                                        className="w-4 h-4 mr-1"
+                                        fill="none"
+                                        stroke="currentColor"
+                                        viewBox="0 0 24 24"
+                                      >
+                                        <path
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                          strokeWidth={2}
+                                          d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                                        />
+                                      </svg>
+                                      Préparer
+                                    </Button>
+                                  )}
+                                  
+                                  {/* Indicateur si déjà préparée */}
+                                  {commande.warehouse_info && (
+                                    <div className="flex flex-col gap-1">
+                                      <span className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold border border-green-300">
+                                        <svg
+                                          className="w-3 h-3 text-green-700"
+                                          fill="none"
+                                          stroke="currentColor"
+                                          viewBox="0 0 24 24"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                                          />
+                                        </svg>
+                                        Préparée
+                                      </span>
+                                      <div className="flex items-center gap-1">
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-1 py-1 h-6"
+                                          title="Voir les informations du warehouse"
+                                          onClick={() => {
+                                            setSelectedCommandeForWarehouse(commande);
+                                            setOpenWarehouseViewDialog(true);
+                                          }}
+                                        >
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                          </svg>
+                                        </Button>
+                                        <Button
+                                          variant="outline"
+                                          size="sm"
+                                          className="text-green-600 border-green-200 hover:bg-green-50 text-xs px-1 py-1 h-6"
+                                          title="Modifier les informations du warehouse"
+                                          onClick={() => {
+                                            setSelectedCommandeForWarehouse(commande);
+                                            setWarehousePrice(commande.warehouse_info.price.toString());
+                                            setWarehouseWeight(commande.warehouse_info.weight.toString());
+                                            setWarehouseTransportType(commande.warehouse_info.transport_type || '');
+                                            setWarehousePhotos([]);
+                                            setWarehouseError("");
+                                            setOpenWarehouseDialog(true);
+                                          }}
+                                        >
+                                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                          </svg>
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  )}
+                                  
+
                                 </div>
                               </td>
                             </tr>
@@ -1717,6 +2027,423 @@ export default function AnnonceGestionPage() {
           </div>
         </div>
       </Drawer>
+
+      {/* Modal de préparation en entrepôt */}
+      {openWarehouseDialog && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
+                                onClick={() => setOpenWarehouseDialog(false)}
+          />
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div 
+              className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto animate-in fade-in duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                <div className="mb-6">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-yellow-100 rounded-lg">
+                      <svg className="w-6 h-6 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+                      </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {selectedCommandeForWarehouse?.warehouse_info ? 'Modifier la Préparation' : 'Préparation en Entrepôt'}
+                    </h3>
+                  </div>
+                  
+                  {selectedCommandeForWarehouse ? (
+                    <div>
+                      <p className="text-sm text-gray-600 mb-4">
+                        Commande #{selectedCommandeForWarehouse.id} - {selectedCommandeForWarehouse.detail_commande?.type}
+                      </p>
+                      
+                      <div className="space-y-4">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label htmlFor="warehousePrice" className="text-sm font-medium text-gray-700">
+                              Prix (XOF)
+                            </Label>
+                            <div className="relative mt-1">
+                              <Input
+                                id="warehousePrice"
+                                type="text"
+                                inputMode="decimal"
+                                value={warehousePrice}
+                                onChange={(e) => setWarehousePrice(e.target.value)}
+                                placeholder="Ex: 1500.50"
+                                className="pr-8"
+                              />
+                              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                                XOF
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Ex: 1500.50 pour 1500 XOF et 50 centimes
+                            </p>
+                            {/* Raccourcis de valeurs rapides */}
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setWarehousePrice('1000')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                1000
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehousePrice('1500')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                1500
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehousePrice('2000')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                2000
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehousePrice('2500')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                2500
+                              </button>
+                            </div>
+                          </div>
+                          
+                          <div>
+                            <Label htmlFor="warehouseWeight" className="text-sm font-medium text-gray-700">
+                              Poids (kg)
+                            </Label>
+                            <div className="relative mt-1">
+                              <Input
+                                id="warehouseWeight"
+                                type="text"
+                                inputMode="decimal"
+                                value={warehouseWeight}
+                                onChange={(e) => setWarehouseWeight(e.target.value)}
+                                placeholder="Ex: 2.5"
+                                className="pr-8"
+                              />
+                              <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-sm">
+                                kg
+                              </span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">
+                              Ex: 2.5 pour 2 kg et 500 grammes
+                            </p>
+                            {/* Raccourcis de valeurs rapides */}
+                            <div className="flex flex-wrap gap-1 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => setWarehouseWeight('1')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                1 kg
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehouseWeight('2')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                2 kg
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehouseWeight('5')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                5 kg
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setWarehouseWeight('10')}
+                                className="px-2 py-1 text-xs bg-gray-100 hover:bg-gray-200 rounded border text-gray-600"
+                              >
+                                10 kg
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="warehouseTransportType" className="text-sm font-medium text-gray-700">
+                            Type de transport
+                          </Label>
+                          <Select
+                            value={warehouseTransportType}
+                            onValueChange={setWarehouseTransportType}
+                          >
+                            <SelectTrigger className="mt-1">
+                              <SelectValue placeholder="Sélectionner le type" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {selectedCommandeForWarehouse?.annonce?.type_transport && (
+                                <SelectItem value={selectedCommandeForWarehouse.annonce.type_transport}>
+                                  {selectedCommandeForWarehouse.annonce.type_transport} (défini)
+                                </SelectItem>
+                              )}
+                              <SelectItem value="express">Express</SelectItem>
+                              <SelectItem value="standard">Standard</SelectItem>
+                              <SelectItem value="economy">Economy</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        
+                        <div>
+                          <Label htmlFor="warehousePhotos" className="text-sm font-medium text-gray-700">
+                            Photos de la commande
+                          </Label>
+                          <Input
+                            id="warehousePhotos"
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) =>
+                              setWarehousePhotos(
+                                e.target.files ? Array.from(e.target.files) : []
+                              )
+                            }
+                            className="mt-1"
+                          />
+                          {warehousePhotos.length > 0 && (
+                            <div className="mt-2 p-3 bg-gray-50 rounded-lg border">
+                              <p className="text-sm text-gray-600 mb-2">
+                                {warehousePhotos.length} photo(s) sélectionnée(s) :
+                              </p>
+                              <div className="flex flex-wrap gap-2">
+                                {warehousePhotos.map((file, idx) => (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-medium"
+                                  >
+                                    <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                    </svg>
+                                    {file.name}
+                                  </span>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {warehouseError && (
+                          <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                              </svg>
+                              <span className="text-sm text-red-600 font-medium">
+                                {warehouseError}
+                              </span>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                        <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                      <p className="text-gray-500">Chargement des informations de la commande...</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                                      onClick={() => setOpenWarehouseDialog(false)}
+                    disabled={warehouseLoading}
+                    className="flex-1"
+                  >
+                    Annuler
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setWarehousePrice("");
+                      setWarehouseWeight("");
+                      setWarehouseTransportType("");
+                      setWarehousePhotos([]);
+                      setWarehouseError("");
+                    }}
+                    disabled={warehouseLoading}
+                    className="px-4"
+                  >
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Reset
+                  </Button>
+                  <Button
+                                      onClick={() => handleWarehouseSubmit()}
+                    disabled={warehouseLoading || !selectedCommandeForWarehouse}
+                    className="flex-1 bg-yellow-600 hover:bg-yellow-700 text-white"
+                  >
+                    {warehouseLoading ? (
+                      <span className="flex items-center gap-2 justify-center">
+                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                        {selectedCommandeForWarehouse?.warehouse_info ? 'Modification...' : 'Enregistrement...'}
+                      </span>
+                    ) : (
+                      selectedCommandeForWarehouse?.warehouse_info ? 'Modifier' : 'Confirmer'
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modal de visualisation des informations du warehouse */}
+      {openWarehouseViewDialog && selectedCommandeForWarehouse && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-[9999]"
+            onClick={() => setOpenWarehouseViewDialog(false)}
+          />
+          <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4">
+            <div 
+              className="bg-white rounded-lg shadow-xl max-w-md w-full animate-in fade-in duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="p-6">
+                {/* En-tête */}
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-green-100 rounded-lg">
+                    <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      Informations du Warehouse
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Commande #{selectedCommandeForWarehouse.id}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Informations du warehouse */}
+                <div className="space-y-4">
+                  {/* Prix */}
+                  <div className="p-4 bg-green-50 rounded-lg border border-green-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+                        </svg>
+                        <span className="font-medium text-gray-700">Prix</span>
+                      </div>
+                      <span className="text-2xl font-bold text-green-700">
+                        {Number(selectedCommandeForWarehouse.warehouse_info.price).toLocaleString('fr-FR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })} XOF
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Poids */}
+                  <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                        </svg>
+                        <span className="font-medium text-gray-700">Poids</span>
+                      </div>
+                      <span className="text-2xl font-bold text-blue-700">
+                        {Number(selectedCommandeForWarehouse.warehouse_info.weight).toLocaleString('fr-FR', {
+                          minimumFractionDigits: 2,
+                          maximumFractionDigits: 2
+                        })} kg
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Type de transport */}
+                  {selectedCommandeForWarehouse.warehouse_info.transport_type && (
+                    <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <span className="font-medium text-gray-700">Type de transport</span>
+                        </div>
+                        <span className="text-lg font-semibold text-purple-700 capitalize">
+                          {selectedCommandeForWarehouse.warehouse_info.transport_type}
+                        </span>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Date de préparation */}
+                  <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                        <span className="font-medium text-gray-700">Préparée le</span>
+                      </div>
+                      <span className="text-sm font-medium text-gray-600">
+                        {new Date(selectedCommandeForWarehouse.updated_at || selectedCommandeForWarehouse.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'long',
+                          year: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Boutons d'action */}
+                <div className="flex gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    onClick={() => setOpenWarehouseViewDialog(false)}
+                    className="flex-1"
+                  >
+                    Fermer
+                  </Button>
+                  <Button
+                    onClick={() => {
+                      setOpenWarehouseViewDialog(false);
+                      setWarehousePrice(selectedCommandeForWarehouse.warehouse_info.price.toString());
+                      setWarehouseWeight(selectedCommandeForWarehouse.warehouse_info.weight.toString());
+                      setWarehouseTransportType(selectedCommandeForWarehouse.warehouse_info.transport_type || '');
+                      setWarehousePhotos([]);
+                      setWarehouseError("");
+                      setOpenWarehouseDialog(true);
+                    }}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                    </svg>
+                    Modifier
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </>
   );
 }

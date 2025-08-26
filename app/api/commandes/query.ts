@@ -38,7 +38,7 @@ export const registerWarehouseInfo = async (
       transport_type: transportType,
       qr_code: qrCode,
       order_id: orderId,
-      is_paid: true,
+      is_paid: false,
       delivery_tracking_id: deliveryTrackingId,
       volume: info.weight || 0,
       payment_date: null,
