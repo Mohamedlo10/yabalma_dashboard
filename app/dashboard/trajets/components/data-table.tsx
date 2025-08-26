@@ -61,9 +61,9 @@ export function DataTable<TData, TValue>({
   })
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-6">
       <DataTableToolbar table={table} />
-      <div className="rounded-md border max-h-[60vh] overflow-auto">
+      <div className="rounded-md border max-h-[55vh] overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
@@ -92,7 +92,7 @@ export function DataTable<TData, TValue>({
                   className="hover:bg-gray-50"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-2">
+                    <TableCell key={cell.id} className="py-3">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext()
