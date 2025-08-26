@@ -1,3 +1,4 @@
+import { getSupabaseSession } from "@/lib/authMnager";
 import { createClient } from "@/lib/supabaseClient";
 import Cookies from "js-cookie";
 
@@ -11,7 +12,7 @@ export const userConnection = async (email: string, password: string) => {
     });
     const current_access = data.session?.user.user_metadata.poste;
     if (data) {
-      console.log(data);
+      // console.log(data);
       Cookies.set("user_session", JSON.stringify(data.user), { expires: 1 });
       Cookies.set(
         "supabase_session",

@@ -1,10 +1,10 @@
 "use client";
 
-
-
-
 // import { cookies } from "next/headers";
-import { getallcommandes } from "@/app/api/commandes/query";
+import {
+  getallcommandes,
+  getCommandesWithShop,
+} from "@/app/api/commandes/query";
 import { getSupabaseSession } from "@/lib/authMnager";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -22,49 +22,42 @@ const override: CSSProperties = {
 
 export default function Page() {
   const [config, setConfig] = useCommande();
-  const defaultLayout = [ 300,200 ];
+  const defaultLayout = [300, 200];
   const defaultCollapsed = false;
   const router = useRouter();
   const [commandes, setCommandes] = useState<Commande[]>([]);
   let [color, setColor] = useState("#ffffff");
   const [isLoading, setIsLoading] = useState(true);
 
-
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-
-        const data: any = await getallcommandes()
-        console.log(data)
+        const data: any = await getCommandesWithShop();
+        console.log(data);
 
         if (data && data.length > 0) {
-          console.log(data)
-          setCommandes(data)
+          console.log(data);
+          setCommandes(data);
         }
-       
-        const data3= getSupabaseSession()
+
+        const data3 = getSupabaseSession();
         if (data3 != null) {
-          if(data3.access_groups?.commandes)
-            {
-              console.log("autoriser...")
-            }
-            else
-            {
-              router.push(`/dashboard`);
-            }
-            
-        
-      }
+          if (data3.access_groups?.commandes) {
+            console.log("autoriser...");
+          } else {
+            router.push(`/dashboard`);
+          }
+        }
       } catch (error) {
-        console.error("Error fetching room details:", error)
+        console.error("Error fetching room details:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
-  
+    fetchData();
+  }, []);
+
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -82,28 +75,9 @@ export default function Page() {
     );
   }
 
-
-
-
   return (
     <>
-      <div className="md:hidden">
-        <Image
-          src="/examples/mail-dark.png"
-          width={1280}
-          height={727}
-          alt="Mail"
-          className="hidden dark:block"
-        />
-        <Image
-          src="/examples/mail-light.png"
-          width={1280}
-          height={727}
-          alt="Mail"
-          className="block dark:hidden"
-        />
-      </div>
-      <div className="hidden flex-col h-full md:flex">
+      <div className=" flex-col h-full flex">
         <CommandeData
           commandes={commandes}
           defaultLayout={defaultLayout}
@@ -112,5 +86,5 @@ export default function Page() {
         />
       </div>
     </>
-  )
+  );
 }

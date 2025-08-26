@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { annonceSchema } from "../annonces/schema";
+import { annonceSchema } from "../trajets/schema";
 import { clientSchema } from "../utilisateurs/schema";
 
 const articleSchema = z.object({
@@ -20,6 +20,7 @@ export const detailsCommandeSchema = z.object({
   payeur: z.string().optional(),
   expediteur: z.string().optional(),
   first_name: z.string().optional(),
+  whatsapp: z.string().optional(),
   destinataire_number: z.string().optional(),
   destination: z.string().optional(),
 });
@@ -35,7 +36,7 @@ export const shoppingSchema = z.object({
   user_id: z.string().uuid().nullable(),
 });
 
-z;
+// Schéma principal pour la commande
 export const commandeSchema = z.object({
   id: z.number(),
   id_annonce: z.string(),
@@ -51,7 +52,22 @@ export const commandeSchema = z.object({
   created_at: z.string().refine((date) => !isNaN(Date.parse(date))), // vérifie que c'est une date valide
   cancelled_status: z.boolean(),
   annonce: annonceSchema,
+  warehouse_info: z.object({
+    price: z.number().optional().nullable(),
+    weight: z.number().optional().nullable(),
+    transport_type: z.string().optional().nullable(),
+    photos: z.array(z.string()).optional().nullable(),
+    received_at: z.string().datetime().optional().nullable(),
+    qr_code: z.string().optional().nullable(),
+    order_id: z.string().optional().nullable(),
+    is_paid: z.boolean().optional().nullable(),
+    delivery_tracking_id: z.string().optional().nullable(),
+    volume: z.number().optional().nullable(),
+    payment_date: z.string().datetime().optional().nullable(),
+  }),
   total_price: z.string().optional().nullable(),
+  mail_valideur: z.string().optional().nullable(),
+  validationPending: z.boolean().optional().nullable(),
   client: clientSchema.nullable(),
   detail_commande: detailsCommandeSchema.optional(),
 });

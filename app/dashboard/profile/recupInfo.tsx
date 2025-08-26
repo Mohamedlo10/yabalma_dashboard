@@ -6,6 +6,10 @@ import { CSSProperties, useEffect, useRef, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { User } from "../accounts/schema";
 import PersonalInfo from "./personalInfo";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getSupabaseSession } from "@/lib/authMnager";
+import { WalletCard } from "./wallet-card";
 
 const override: CSSProperties = {
   display: "block",
@@ -18,8 +22,9 @@ const RecupInfo = () => {
   const [user, setUser] = useState<User>();
   const [isLoading, setIsLoading] = useState(true);
   let [color, setColor] = useState("#ffffff");
-  const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadedImage, setUploadedImage] = useState<string | null>(null);
+
+  const [hasCommandAccess, setHasCommandAccess] = useState(false);
+  const [isCheckingAccess, setIsCheckingAccess] = useState(true);
   const [userImage, setuserImage] = useState<string>("/avatars/01.png");
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -38,40 +43,36 @@ const RecupInfo = () => {
     return initials?.toUpperCase();
   };
 
-  const handleButtonClick = () => {
-    if (fileInputRef.current) fileInputRef.current.click(); // Déclenche le clic sur l'input file
-  };
-
-  const handleFileChange = (event: any) => {
-    const file = event.target.files[0];
-    if (file) {
-      console.log("Fichier sélectionné :", file);
-      // Ajouter ici le code pour uploader l'image
-    }
-  };
 
   useEffect(() => {
     async function fetchData() {
       setIsLoading(true);
+      setIsCheckingAccess(true);
       try {
         const data = getSupabaseUser();
+        console.log(data);
+        setHasCommandAccess(data?.user_metadata?.poste?.access_groups?.commandes);
         setUser(data);
       } catch (error) {
         console.error("Error fetching user details:", error);
       } finally {
         setIsLoading(false);
+        setIsCheckingAccess(false);
       }
     }
     fetchData();
   }, []);
 
-  if (isLoading) {
+
+
+
+  if (isLoading || isCheckingAccess) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
         <div className="sweet-loading">
           <BeatLoader
             color={color}
-            loading={isLoading}
+            loading={isLoading || isCheckingAccess}
             cssOverride={override}
             size={15}
             aria-label="Loading Spinner"
@@ -90,7 +91,7 @@ const RecupInfo = () => {
           <div className="flex flex-col sm:flex-row flex-auto sm:items-center min-w-0 my-4">
             {/* Avatar and name */}
             <div className="flex flex-auto items-center min-w-32 gap-12">
-              <div className="relative w-28 h-28  rounded-full border-4 bg-slate-100 hidden md:flex items-center justify-center">
+              <div className="relative w-28 h-28 rounded-full border-4 bg-slate-100 hidden md:flex items-center justify-center">
                 {!imageLoaded &&
                   (user?.email ? (
                     <span className="text-2xl font-bold text-red-700">
@@ -130,7 +131,7 @@ const RecupInfo = () => {
       <div className="flex-auto border-t bg-white -mt-px">
         <div className="w-full max-w-screen-xl mx-auto">
           {/* Tabs */}
-          <div className="tabs flex flex-row gap-28 p-2 py-8 items-center justify-center">
+          <div className="tabs flex flex-row gap-2 sm:gap-28 p-2 py-2 sm:py-8 items-center justify-center">
             <Button
               className={` hover:text-white hover:bg-red-700 hover:opacity-100 transition-shadow font-bold tab ${
                 activeTab === 0
@@ -144,14 +145,39 @@ const RecupInfo = () => {
           </div>
 
           {/* Tab content */}
-          <div className="tab-content">
-            {activeTab === 0 && (
-              <div>
-                <PersonalInfo user={user} />
-              </div>
-            )}
-            {activeTab === 1 && <div>Annonce</div>}
+          <div className="flex flex-col lg:flex-row gap-6 p-2 sm:p-6">
+            <div className="w-full lg:w-full">
+              <Tabs defaultValue="profile" className="w-full">
+             {/*    <TabsList className="grid w-full items-center justify-center grid-cols-1 max-w-md mb-6">
+                  <TabsTrigger value="profile">Profil</TabsTrigger>
+                </TabsList> */}
+                
+                <TabsContent className="grid grid-cols-1 md:grid-cols-2 w-full items-center justify-center gap-6" value="profile">
+                  <Card>
+                      <CardHeader>
+                        <CardTitle>Mon Compte</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                  <PersonalInfo user={user} />
+                      </CardContent>
+                    </Card>
+                  {hasCommandAccess && (
+                    <Card>
+                      <CardHeader>
+                        <CardTitle>Mon Portefeuille</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        {user?.id && <WalletCard userId={user.id} />}
+                      </CardContent>
+                    </Card>
+                  )}
+                </TabsContent>
+                
+                
+                </Tabs>
+            </div>
           </div>
+          {activeTab === 1 && <div>Annonce</div>}
         </div>
       </div>
     </div>

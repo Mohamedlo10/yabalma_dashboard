@@ -1,8 +1,14 @@
+import { getSupabaseSession } from "@/lib/authMnager";
 import { createClient } from "@/lib/supabaseClient";
 
 const supabase = createClient();
 
 export const creerCurrency = async (currencyData: Record<string, any>) => {
+    const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('settings')
@@ -16,6 +22,11 @@ export const creerCurrency = async (currencyData: Record<string, any>) => {
 };
 
 export const getAllCurrency = async () => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('settings')
@@ -30,6 +41,11 @@ export const getAllCurrency = async () => {
 };
 
 export const supprimerCurrency = async (id: any) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('settings')
@@ -44,6 +60,11 @@ export const supprimerCurrency = async (id: any) => {
 };
 
 export const modifierCurrency = async (id: any, currencyData: Record<string, any>) => {
+      const role = getSupabaseSession();
+
+    if (!role){
+      return { error: "Non autorisé - Session invalide", redirect: "/" };
+    }
   try {
     const { data, error } = await supabase
       .from('settings')

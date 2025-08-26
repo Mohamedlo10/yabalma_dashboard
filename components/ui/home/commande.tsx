@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { Area, AreaChart, CartesianGrid, XAxis } from "recharts"
+import * as React from "react";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 
-import { getcommandeAnnonceCount } from "@/app/api/commandes/query"
+import { getcommandeAnnonceCount } from "@/app/api/commandes/query";
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/components/ui/card";
 import {
   ChartConfig,
   ChartContainer,
@@ -18,34 +18,36 @@ import {
   ChartLegendContent,
   ChartTooltip,
   ChartTooltipContent,
-} from "@/components/ui/chart"
-import { CSSProperties, useEffect, useState } from "react"
-import BeatLoader from "react-spinners/BeatLoader"
+} from "@/components/ui/chart";
+import { CSSProperties, useEffect, useState } from "react";
+import BeatLoader from "react-spinners/BeatLoader";
 const override: CSSProperties = {
   display: "block",
   margin: "0 auto",
   borderColor: "red",
 };
 
-export const description = "An interactive area chart"
-
+export const description = "An interactive area chart";
 
 const chartConfig = {
   visitors: {
     label: "Visitors",
   },
   annonces: {
-    label: "annonces",
-    color: "#dc2626",
+    label: "Trajets",
+    color: "rgb(220, 38, 38)",
+    gradientStart: "rgb(220, 38, 38)",
+    gradientEnd: "rgb(220, 38, 38)",
   },
   commande: {
-    label: "commande",
-    color: "#1A6DEA",
+    label: "Commandes",
+    color: "#24801B",
+    gradientStart: "#24801B",
+    gradientEnd: "#24801B",
   },
-} satisfies ChartConfig
+} satisfies ChartConfig;
 
 export function Commande() {
-
   const [isLoading, setIsLoading] = useState(true);
   let [color, setColor] = useState("#ffffff");
   const [chartData, setchartData] = useState([]);
@@ -53,30 +55,24 @@ export function Commande() {
 
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true)
+      setIsLoading(true);
       try {
-        const data: any = await getcommandeAnnonceCount()
+        const data: any = await getcommandeAnnonceCount();
 
         if (data != null) {
-          setchartData(data)         
-
+          setchartData(data);
         }
-        
       } catch (error) {
-        console.error("Error fetching room details:", error)
+        console.error("Error fetching room details:", error);
       } finally {
-        setIsLoading(false)
+        setIsLoading(false);
       }
     }
-    fetchData()
-  }, [])
+    fetchData();
+  }, []);
 
-  
-  const [timeRange, setTimeRange] = React.useState("30d") // Définir par défaut sur 30 jours
+  const [timeRange, setTimeRange] = React.useState("30d"); // Définir par défaut sur 30 jours
 
-
-
- 
   if (isLoading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
@@ -94,14 +90,20 @@ export function Commande() {
     );
   }
 
-
   return (
-    <Card>
-      <CardHeader className="flex items-center gap-4 space-y-0 border-b py-5 sm:flex-row">
+    <Card className="h-full flex flex-col">
+      <CardHeader className="flex items-center gap-2 sm:gap-4 space-y-0 border-b py-2 sm:py-3 flex-row flex-shrink-0">
         <div className="grid flex-1 gap-1 text-center sm:text-left">
-          <CardTitle>Annonces - Commandes</CardTitle>
-          <CardDescription>
-            Annonces et commandes des {timeRange === "90d" ? "3 derniers mois" : timeRange === "30d" ? "30 derniers jours" : "7 derniers jours"}
+          <CardTitle className="text-sm sm:text-base lg:text-lg">
+            Trajets - Commandes
+          </CardTitle>
+          <CardDescription className="text-xs sm:text-sm">
+            Trajets et commandes des{" "}
+            {timeRange === "90d"
+              ? "3 derniers mois"
+              : timeRange === "30d"
+              ? "30 derniers jours"
+              : "7 derniers jours"}
           </CardDescription>
         </div>
         {/* <Select value={timeRange} onValueChange={setTimeRange}>
@@ -124,12 +126,12 @@ export function Commande() {
           </SelectContent>
         </Select> */}
       </CardHeader>
-      <CardContent className="px-2 pt-4 sm:px-6 sm:pt-24">
-        <ChartContainer
-          config={chartConfig}
-          className="aspect-auto h-[250px] w-full"
-        >
-          <AreaChart data={chartData}>
+      <CardContent className="px-2 pt-1 sm:px-4 sm:pt-2 flex-1 min-h-0 pb-1">
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <AreaChart
+            data={chartData}
+            margin={{ top: 3, right: 8, left: 8, bottom: 15 }}
+          >
             <defs>
               <linearGradient id="fillannonces" x1="0" y1="0" x2="0" y2="1">
                 <stop
@@ -161,14 +163,15 @@ export function Commande() {
               dataKey="date"
               tickLine={false}
               axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
+              tickMargin={4}
+              minTickGap={15}
+              fontSize={8}
               tickFormatter={(value) => {
-                const date = new Date(value)
+                const date = new Date(value);
                 return date.toLocaleDateString("en-US", {
                   month: "short",
                   day: "numeric",
-                })
+                });
               }}
             />
             <ChartTooltip
@@ -179,10 +182,10 @@ export function Commande() {
                     return new Date(value).toLocaleDateString("en-US", {
                       month: "short",
                       day: "numeric",
-                    })
+                    });
                   }}
                   indicator="dot"
-                  className="bg-white p-2 shadow-md rounded-md"
+                  className="text-xs fill-indigo-400 font-medium shadow-md rounded-md"
                 />
               }
             />
@@ -205,7 +208,7 @@ export function Commande() {
         </ChartContainer>
       </CardContent>
     </Card>
-  )
+  );
 }
 
-export default Commande
+export default Commande;

@@ -4,8 +4,7 @@ import { BarChartComponent } from "@/components/ui/home/bar-chart";
 import Commande from "@/components/ui/home/commande";
 import Commentaire from "@/components/ui/home/commentaire";
 import CirculaireComponent from "@/components/ui/home/utilisateurs-chart";
-import ClientPays from "@/components/ui/utilisateurs/clientPays";
-import GpPays from "@/components/ui/utilisateurs/gpPays";
+import ClientPays from "@/components/ui/home/clientPays";
 import { getSupabaseSession, getSupabaseUser } from "@/lib/authMnager";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -13,6 +12,8 @@ import { CSSProperties, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { User } from "./accounts/schema";
 import { Role } from "./settings/schema";
+import { ValidationDiag } from "../../components/ui/home/validationDiag";
+import { TotalAvalideComponent } from "../../components/ui/home/TotalAvalideDiag";
 
 const override: CSSProperties = {
   display: "block",
@@ -60,85 +61,92 @@ export default function DashboardPage() {
       </div>
     );
   }
-  return (
-    <div className="chart-wrapper h-full   mx-auto flex max-w-8xl flex-col flex-wrap items-start justify-center gap-2 p-2 md:p-6 sm:flex-row sm:p-8">
-      <div className="grid w-full mx-auto h-[90vh] md:pb-0 pb-28 overflow-y-auto gap-2 sm:grid-cols-1 lg:grid-cols-1 ">
-        <div className="w-full grid-cols-1 grid lg:grid-cols-2 gap-2">
-          <div className=" grid grid-cols-1 gap-2">
-            {role?.access_groups.finance ? (
-              <BarChartComponent />
-            ) : (
-              <div className=" flex flex-col md:pb-12 pb-4 justify-center items-center ">
-                <div className="relative w-full md:max-w-[485px] max-w-[70px] h-auto aspect-square">
-                  <Image
-                    src="/yabalma.jpg"
-                    alt="Image"
-                    fill
-                    style={{ objectFit: "cover" }}
-                    className="object-cover"
-                  />
-                </div>
-                <div className="h-8 md:text-3xl text-sm xl:text-4xl font-serif flex justify-center items-center font-extrabold text-red-800 mr-3 ">
-                  Bienvenue {user?.user_metadata?.prenom}{" "}
-                  {user?.user_metadata?.nom}
-                </div>
-              </div>
-            )}
-            {role?.access_groups.utilisateurs ? (
-              <div className=" grid grid-cols-2 gap-2">
-                <ClientPays />
 
-                <GpPays />
+  return (
+    <div className="h-full w-full sm:p-4 lg:p-6">
+      <div className="h-full w-full grid grid-cols-1 lg:grid-cols-2 gap-2 pb-12 sm:gap-3 lg:gap-4">
+        {/* Colonne gauche */}
+        <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+          {/* Section Finance ou Bienvenue */}
+          <div className="flex-1 min-h-0 sm:mb-0 mb-16">
+            {role?.access_groups.finance ? (
+              <div className="h-80 lg:h-96">
+                <BarChartComponent />
               </div>
             ) : (
-              <div></div>
-            )}
-          </div>
-          <div className=" grid grid-cols-1 gap-2">
-            {role?.access_groups.utilisateurs ||
-            role?.access_groups.commentaires ||
-            !role?.access_groups.finance ? (
-              <div className=" grid grid-cols-2 gap-2 ">
-                <div className="">
-                  {role?.access_groups.utilisateurs ? (
-                    <CirculaireComponent />
-                  ) : (
-                    <div></div>
-                  )}
-                </div>
-                <div className="">
-                  {role?.access_groups.commentaires ? (
-                    <Commentaire />
-                  ) : (
-                    <div></div>
-                  )}
-                </div>
-              </div>
-            ) : (
-              <div className=" flex flex-col justify-center items-center ">
-                <div className="relative w-full md:max-w-[485px] max-w-[70px] h-auto aspect-square">
+              <div className="h-full flex flex-col justify-center items-center">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48">
                   <Image
                     src="/yabalma.jpg"
-                    alt="Image"
+                    alt="Logo Yabalma"
                     fill
                     style={{ objectFit: "cover" }}
-                    className="object-cover"
+                    className="object-cover rounded-lg"
                   />
                 </div>
-                x
-                <div className="h-14 md:text-3xl text-sm xl:text-4xl  font-serif flex justify-center items-center font-extrabold text-red-800 mr-3 ">
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-serif font-extrabold text-red-800 mt-4 text-center">
                   Bienvenue {user?.user_metadata?.prenom}{" "}
                   {user?.user_metadata?.nom}
                 </div>
               </div>
             )}
-            {role?.access_groups.annonces || role?.access_groups.commandes ? (
-              <Commande />
+          </div>
+
+          {/* Section Utilisateurs */}
+         
+
+           {role?.access_groups.commandes && (
+              <div className="flex-1 min-h-0 ">
+                <div className="h-64 sm:h-80 lg:h-96">
+                <Commande />
+              </div>
+              </div>
+            )}
+          
+        </div>
+
+
+        {/* Colonne droite */}
+         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+          {/* Section Commandes ou Bienvenue */}
+          <div className="flex-1 min-h-0 sm:mb-0 mb-16">
+            {role?.access_groups.commandes ? (
+              <div className="h-48 grid grid-cols-2 sm:h-80 gap-4 lg:h-96">
+                <ValidationDiag />
+                <TotalAvalideComponent />
+              </div>
             ) : (
-              <div></div>
+              <div className="h-full flex flex-col justify-center items-center">
+                <div className="relative w-24 h-24 sm:w-32 sm:h-32 lg:w-40 lg:h-40 xl:w-48 xl:h-48">
+                  <Image
+                    src="/yabalma.jpg"
+                    alt="Logo Yabalma"
+                    fill
+                    style={{ objectFit: "cover" }}
+                    className="object-cover rounded-lg"
+                  />
+                </div>
+                <div className="text-base sm:text-lg lg:text-xl xl:text-2xl font-serif font-extrabold text-red-800 mt-4 text-center">
+                  Bienvenue {user?.user_metadata?.prenom}{" "}
+                  {user?.user_metadata?.nom}
+                </div>
+              </div>
             )}
           </div>
+
+          {/* Section users */}
+         
+
+           {role?.access_groups.utilisateurs && (
+              <div className="flex-1 min-h-0">
+                <div className="h-80 lg:h-96">
+               <ClientPays />    
+              </div>
+              </div>
+            )}
+          
         </div>
+
       </div>
     </div>
   );
