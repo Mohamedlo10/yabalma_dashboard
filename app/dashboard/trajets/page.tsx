@@ -29,6 +29,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { getSupabaseSession } from "@/lib/authMnager";
 import { DEFAULT_SENDER_ID } from "@/lib/constants";
 import Drawer from "@mui/material/Drawer";
+import { Cross2Icon } from "@radix-ui/react-icons";
 import {
   Plus,
   Trash2,
@@ -44,6 +45,11 @@ import {
   Package,
   Truck,
   ShoppingCart,
+  Filter,
+  CheckIcon,
+  Info,
+  AlertTriangle,
+  Play,
 } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { useRouter } from "next/navigation";
@@ -53,6 +59,7 @@ import { Annonce } from "./schema";
 import { DataTable } from "./components/data-table";
 import { createColumns } from "./components/columns";
 import { getCommandesByIdAnnonce } from "@/app/api/commandes/query";
+import { Badge } from "@/components/ui/badge";
 
 const override: CSSProperties = {
   display: "block",
@@ -62,6 +69,7 @@ const override: CSSProperties = {
 
 export default function AnnonceGestionPage() {
   const [annonces, setAnnonces] = useState<Annonce[]>([]);
+  const [filteredAnnonces, setFilteredAnnonces] = useState<Annonce[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedAnnonce, setSelectedAnnonce] = useState<Annonce | null>(null);
   const [selectedAnnonceId, setSelectedAnnonceId] = useState<any>(null);
@@ -72,6 +80,11 @@ export default function AnnonceGestionPage() {
   const [viewMode, setViewMode] = useState<"cards" | "table">("cards");
   const [isCommandesDrawerOpen, setIsCommandesDrawerOpen] = useState(false);
   const [annonceCommandes, setAnnonceCommandes] = useState<any[]>([]);
+  const [activeStatusFilter, setActiveStatusFilter] = useState<string | null>(null);
+  const [notification, setNotification] = useState<{
+    type: 'success' | 'error' | 'info' | 'warning' | null;
+    message: string;
+  }>({ type: null, message: '' });
   let [color, setColor] = useState("#ffffff");
   const [annonce, setAnnonce] = useState<Annonce>({
     type_transport: "economy",
@@ -97,6 +110,7 @@ export default function AnnonceGestionPage() {
       const data: any = await getallannonces();
       if (data && data.length > 0) {
         setAnnonces(data);
+        setFilteredAnnonces(data); // Initialiser les annonces filtrées
         console.log(data);
       }
 
@@ -119,10 +133,42 @@ export default function AnnonceGestionPage() {
     fetchData();
   }, []);
 
-  // Force re-render des selects quand l'état change
-  useEffect(() => {
-    console.log("Annonce state changed:", annonce);
-  }, [annonce]);
+  // Fonction de filtrage par statut
+  const handleStatusFilter = (statut: string) => {
+    if (activeStatusFilter === statut) {
+      setActiveStatusFilter(null);
+      setFilteredAnnonces(annonces);
+    } else {
+      setActiveStatusFilter(statut);
+      const filtered = annonces.filter(annonce => annonce.statut === statut);
+      setFilteredAnnonces(filtered);
+    }
+  };
+
+  // Fonction de réinitialisation des filtres
+  const clearFilters = () => {
+    setActiveStatusFilter(null);
+    setFilteredAnnonces(annonces);
+  };
+
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("fr-FR");
+  };
+
+  const getStatusColor = (statut: string) => {
+    switch (statut) {
+      case "Entrepot":
+        return "bg-blue-100 text-blue-800";
+      case "En cours":
+        return "bg-yellow-100 text-yellow-800";
+      case "Terminé":
+        return "bg-green-100 text-green-800";
+      case "Annulé":
+        return "bg-red-100 text-red-800";
+      default:
+        return "bg-gray-100 text-gray-800";
+    }
+  };
 
   const handleInputChange = (
     e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
@@ -137,9 +183,6 @@ export default function AnnonceGestionPage() {
     });
   };
 
-  const handleNavigation = (idCommande: number) => {
-    router.push(`/dashboard/commandes/profile/${idCommande}`);
-  };
   const handleSelectChange = (name: string, value: string) => {
     console.log(
       `Changing ${name} from ${
@@ -157,14 +200,23 @@ export default function AnnonceGestionPage() {
     try {
       await supprimerAnnonce(id_annonce);
       console.log("Suppression réussie");
+      showNotification('success', 'Annonce supprimée avec succès');
       fetchData();
     } catch (error) {
       console.error("Erreur lors de la suppression de l'annonce:", error);
+      showNotification('error', 'Erreur lors de la suppression de l\'annonce');
     }
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validation des dates
+    if (!validateDates(annonce.date_depart, annonce.date_arrive)) {
+      showNotification('error', 'La date d\'arrivée doit être après la date de départ');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       console.log(annonce);
@@ -188,10 +240,12 @@ export default function AnnonceGestionPage() {
       });
       setIsDrawerOpen(false);
       setSelectedAnnonce(null);
+      showNotification('success', 'Annonce créée avec succès');
       fetchData();
       setIsLoading(false);
     } catch (error) {
       console.error("Erreur lors de l'ajout de l'annonce:", error);
+      showNotification('error', 'Erreur lors de la création de l\'annonce');
       setIsLoading(false);
     }
   };
@@ -213,7 +267,35 @@ export default function AnnonceGestionPage() {
       }
     } catch (error) {
       console.error("Erreur:", error);
-      // Gérer l'erreur (afficher une notification, etc.)
+      showNotification('error', 'Erreur lors de la récupération des commandes');
+    }
+  };
+
+  const handleVoirDetailCommande = (commande: any) => {
+    console.log('Détails de la commande:', commande);
+    // Ici vous pouvez ajouter la logique pour afficher les détails
+    // Par exemple, ouvrir un autre drawer ou naviguer vers une page
+    showNotification('info', `Affichage des détails de la commande #${commande.id_commande || commande.numero_commande}`);
+  };
+
+  const handleUpdateAnnonceStatus = async (newStatut: string) => {
+    try {
+      setIsLoading(true);
+      const { client, ...annonceSansClient } = annonce;
+      await modifierAnnonce(annonce.id_annonce, { ...annonceSansClient, statut: newStatut });
+      
+      // Mettre à jour l'état local
+      setAnnonce(prev => ({ ...prev, statut: newStatut }));
+      
+      // Rafraîchir les données
+      await fetchData();
+      
+      showNotification('success', `Statut du trajet mis à jour vers: ${newStatut}`);
+    } catch (error) {
+      console.error('Erreur lors de la mise à jour du statut:', error);
+      showNotification('error', 'Erreur lors de la mise à jour du statut');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -240,6 +322,13 @@ export default function AnnonceGestionPage() {
 
   const handleSubmitEdit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validation des dates
+    if (!validateDates(annonce.date_depart, annonce.date_arrive)) {
+      showNotification('error', 'La date d\'arrivée doit être après la date de départ');
+      return;
+    }
+    
     setIsLoading(true);
     try {
       console.log(annonce);
@@ -264,10 +353,12 @@ export default function AnnonceGestionPage() {
       });
       setIsDrawerOpen(false);
       setSelectedAnnonce(null);
+      showNotification('success', 'Annonce modifiée avec succès');
       fetchData();
       setIsLoading(false);
     } catch (error) {
       console.error("Erreur lors de la modification de l'annonce:", error);
+      showNotification('error', 'Erreur lors de la modification de l\'annonce');
       setIsLoading(false);
     }
   };
@@ -277,31 +368,26 @@ export default function AnnonceGestionPage() {
     setSelectedAnnonce(null);
   };
 
+  const showNotification = (type: 'success' | 'error' | 'info' | 'warning', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => {
+      setNotification({ type: null, message: '' });
+    }, 3000);
+  };
+
+  const validateDates = (dateDepart: string, dateArrive: string): boolean => {
+    if (!dateDepart || !dateArrive) return true; // Permettre les champs vides
+    const depart = new Date(dateDepart);
+    const arrive = new Date(dateArrive);
+    return depart <= arrive;
+  };
+
   const handleDeleteClick = (annonceItem: Annonce) => {
     setSelectedAnnonceId(annonceItem.id_annonce);
     setSelectedAnnonceTitle(
       `${annonceItem.source} → ${annonceItem.destination}`
     );
     setDialogOpen(true);
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("fr-FR");
-  };
-
-  const getStatusColor = (statut: string) => {
-    switch (statut) {
-      case "Entrepot":
-        return "bg-blue-100 text-blue-800";
-      case "En cours":
-        return "bg-yellow-100 text-yellow-800";
-      case "Terminé":
-        return "bg-green-100 text-green-800";
-      case "Annulé":
-        return "bg-red-100 text-red-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
   };
 
   if (isLoading) {
@@ -321,15 +407,435 @@ export default function AnnonceGestionPage() {
     );
   }
 
+  // Composant de test minimal pour l'instant
   return (
     <>
+      {/* Notification toast */}
+      {notification.type && (
+        <div className={`fixed top-4 right-4 z-50 p-4 rounded-lg shadow-lg transition-all duration-300 ${
+          notification.type === 'success' 
+            ? 'bg-green-500 text-white' 
+            : notification.type === 'error'
+            ? 'bg-red-500 text-white'
+            : notification.type === 'warning'
+            ? 'bg-orange-500 text-white'
+            : 'bg-blue-500 text-white'
+        }`}>
+          <div className="flex items-center gap-2">
+            {notification.type === 'success' ? (
+              <CheckIcon className="h-5 w-5" />
+            ) : notification.type === 'error' ? (
+              <X className="h-5 w-5" />
+            ) : notification.type === 'warning' ? (
+              <AlertTriangle className="h-5 w-5" />
+            ) : (
+              <Info className="h-5 w-5" />
+            )}
+            <span className="font-medium">{notification.message}</span>
+          </div>
+        </div>
+      )}
+
+      <div className="hidden flex-col max-h-[90vh] overflow-y-auto md:flex">
+        <div className="border-b"></div>
+        <div className="flex-1 md:space-y-4 space-y-4 p-8 pt-6">
+          <div className="flex items-center justify-between pb-2">
+            <h2 className="text-4xl flex items-center justify-center gap-2 font-bold tracking-tight">
+              <Plane /> Gestion des Trajets
+            </h2>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center border rounded-lg">
+                <Button
+                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("cards")}
+                  className="rounded-r-none"
+                >
+                  <Grid className="h-4 w-4 mr-2" />
+                  Cartes
+                </Button>
+                <Button
+                  variant={viewMode === "table" ? "default" : "ghost"}
+                  size="sm"
+                  onClick={() => setViewMode("table")}
+                  className="rounded-l-none"
+                >
+                  <List className="h-4 w-4 mr-2" />
+                  Tableau
+                </Button>
+              </div>
+              <Button
+                type="button"
+                className="w-fit h-fit font-bold bg-red-600"
+                onClick={handleAddAnnonceClick}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Ajouter un trajet
+              </Button>
+            </div>
+          </div>
+
+          {/* Résumé des filtres actifs */}
+          {activeStatusFilter && viewMode === "cards" && (
+            <div className="mb-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                    <Filter className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-blue-900">
+                      Filtrage actif par statut
+                    </h3>
+                    <p className="text-sm text-blue-700">
+                      Affichage des trajets avec le statut : 
+                      <Badge variant="outline" className="ml-2 bg-blue-100 text-blue-800 border-blue-300">
+                        {activeStatusFilter}
+                      </Badge>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <div className="text-2xl font-bold text-blue-600">
+                      {filteredAnnonces.length}
+                    </div>
+                    <div className="text-sm text-blue-600">
+                      trajet{filteredAnnonces.length > 1 ? 's' : ''} trouvé{filteredAnnonces.length > 1 ? 's' : ''}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={clearFilters}
+                    className="border-blue-300 text-blue-700 hover:bg-blue-50"
+                  >
+                    <Cross2Icon className="h-4 w-4 mr-1" />
+                    Effacer
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {viewMode === "table" ? (
+            <DataTable
+              columns={createColumns({
+                onEdit: handleAnnonceClick,
+                onDelete: handleDeleteClick,
+              })}
+              data={annonces}
+            />
+          ) : (
+            <>
+              {/* Filtres rapides pour la vue cartes */}
+              <div className="mb-6">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-lg font-semibold text-gray-700">Filtres rapides</h3>
+                  <div className="flex items-center gap-2">
+                    {activeStatusFilter && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={clearFilters}
+                        className="text-xs"
+                      >
+                        <Cross2Icon className="h-4 w-4 mr-1" />
+                        Effacer les filtres
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2 mb-4">
+                  {['Entrepot', 'En cours', 'Terminé', 'Annulé'].map((statut) => (
+                    <Button
+                      key={statut}
+                      variant={activeStatusFilter === statut ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => handleStatusFilter(statut)}
+                      className={`text-xs transition-all duration-200 ${
+                        activeStatusFilter === statut 
+                          ? getStatusColor(statut)
+                          : "hover:bg-muted"
+                      }`}
+                    >
+                      {statut}
+                      <Badge variant="secondary" className="ml-2">
+                        {annonces.filter(annonce => annonce.statut === statut).length}
+                      </Badge>
+                    </Button>
+                  ))}
+                </div>
+                
+                {/* Statistiques rapides */}
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-blue-600"></div>
+                    <div>
+                      <div className="text-2xl font-bold text-blue-600">
+                        {annonces.filter(annonce => annonce.statut === 'Entrepot').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Entrepôt</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-yellow-600"></div>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {annonces.filter(annonce => annonce.statut === 'En cours').length}
+                      </div>
+                      <div className="text-sm text-gray-600">En cours</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-green-600"></div>
+                    <div>
+                      <div className="text-2xl font-bold text-green-600">
+                        {annonces.filter(annonce => annonce.statut === 'Terminé').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Terminé</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-red-600"></div>
+                    <div>
+                      <div className="text-2xl font-bold text-red-600">
+                        {annonces.filter(annonce => annonce.statut === 'Annulé').length}
+                      </div>
+                      <div className="text-sm text-gray-600">Annulé</div>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 rounded-full bg-yellow-500"></div>
+                    <div>
+                      <div className="text-2xl font-bold text-yellow-600">
+                        {annonces.filter(annonce => annonce.is_boost).length}
+                      </div>
+                      <div className="text-sm text-gray-600">Boostées</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Indicateur de filtres actifs */}
+                {activeStatusFilter && (
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-center gap-2 text-blue-800">
+                      <Filter className="h-4 w-4" />
+                      <span className="font-medium">
+                        Filtrage par statut : {activeStatusFilter}
+                      </span>
+                      <Badge variant="outline" className="ml-2 bg-blue-100 text-blue-800 border-blue-300">
+                        {filteredAnnonces.length} trajet{filteredAnnonces.length > 1 ? 's' : ''} trouvé{filteredAnnonces.length > 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredAnnonces.map((annonceItem) => (
+                  <Card
+                    key={annonceItem.id}
+                    className="hover:shadow-lg transition-shadow"
+                  >
+                    <CardHeader className="pb-2">
+                      <CardTitle className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Truck
+                            className={`h-5 w-5 ${
+                              annonceItem.type_transport === "express"
+                                ? "text-red-600"
+                                : "text-blue-600"
+                            }`}
+                          />
+                          <span className="text-sm font-medium">
+                            {annonceItem.type_transport === "express"
+                              ? "Express"
+                              : "Economy"}
+                          </span>
+                        </div>
+                        {annonceItem.is_boost && (
+                          <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
+                            Boostée
+                          </span>
+                        )}
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-3">
+                      <div className="flex items-center gap-2">
+                        <MapPin className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium">
+                          {annonceItem.source} → {annonceItem.destination}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Package className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">
+                          {annonceItem.stock_annonce
+                            ? `${annonceItem.stock_annonce}kg max`
+                            : "Poids non spécifié"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-gray-600">
+                          Tarif par kilo:{" "}
+                          {annonceItem.poids_max
+                            ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
+                            : "Non spécifié"}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        <Calendar className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm">
+                          {formatDate(annonceItem.date_depart)} →{" "}
+                          {formatDate(annonceItem.date_arrive)}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-lg font-bold text-green-600">
+                          {annonceItem.poids_max
+                            ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
+                            : "Prix non spécifié"}
+                        </span>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                            annonceItem.statut
+                          )}`}
+                        >
+                          {annonceItem.statut}
+                        </span>
+                      </div>
+
+                      <div className="text-xs text-gray-500">
+                        Dépôt: {annonceItem.lieu_depot}
+                      </div>
+
+                      <div className="text-xs text-gray-500">
+                        ID: {annonceItem.id_annonce}
+                      </div>
+                    </CardContent>
+                    <CardFooter className="pt-2">
+                      <div className="w-full grid grid-cols-3 gap-2">
+                        <Button
+                          onClick={() => handleDeleteClick(annonceItem)}
+                          variant="destructive"
+                          size="sm"
+                          className="font-bold gap-1"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Supprimer
+                        </Button>
+                        <Button
+                          onClick={() => handleAnnonceClick(annonceItem)}
+                          size="sm"
+                          variant="outline"
+                          className="font-bold gap-1"
+                        >
+                          <Edit className="h-4 w-4" />
+                          Modifier
+                        </Button>
+                        <Button
+                          onClick={() => handleOpenCommandes(annonceItem)}
+                          size="sm"
+                          variant="secondary"
+                          className="font-bold gap-1"
+                        >
+                          <ShoppingCart className="h-4 w-4" />
+                          Commandes
+                        </Button>
+                      </div>
+                    </CardFooter>
+                  </Card>
+                ))}
+              </div>
+
+              {/* Message si aucun résultat */}
+              {filteredAnnonces.length === 0 && activeStatusFilter && (
+                <div className="text-center py-12">
+                  <Filter className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Aucun trajet trouvé
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Aucun trajet avec le statut "{activeStatusFilter}" n'a été trouvé.
+                  </p>
+                  <div className="mt-6">
+                    <Button
+                      onClick={clearFilters}
+                      variant="outline"
+                      className="font-bold"
+                    >
+                      Effacer les filtres
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {annonces.length === 0 && (
+                <div className="text-center py-12">
+                  <Book className="mx-auto h-12 w-12 text-gray-400" />
+                  <h3 className="mt-2 text-sm font-medium text-gray-900">
+                    Aucun trajet
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Commencez par ajouter un nouveau trajet.
+                  </p>
+                  <div className="mt-6">
+                    <Button
+                      type="button"
+                      className="font-bold bg-red-600"
+                      onClick={handleAddAnnonceClick}
+                    >
+                      <Plus className="mr-2 h-4 w-4" />
+                      Ajouter un trajet
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
+          <ConfirmDialog
+            isOpen={isDialogOpen}
+            message={`Êtes-vous sûr de vouloir supprimer le trajet : ${selectedAnnonceTitle} ?`}
+            onConfirm={() => {
+              if (selectedAnnonceId !== null) {
+                deleteAnnonce(selectedAnnonceId);
+                setSelectedAnnonceId(null);
+                setSelectedAnnonceTitle(null);
+              }
+              setDialogOpen(false);
+            }}
+            onCancel={() => {
+              setDialogOpen(false);
+              setSelectedAnnonceId(null);
+              setSelectedAnnonceTitle(null);
+            }}
+          />
+        </div>
+      </div>
+
+      {/* Drawer pour ajouter/modifier une annonce */}
       <Drawer anchor="right" open={isDrawerOpen} onClose={closeDrawer}>
         <div className="p-4 flex items-center justify-center h-full w-[40vw] overflow-y-auto">
           {isAddingAnnonce ? (
             <div className="flex w-full max-w-2xl flex-col items-center border bg-white p-6 text-left">
-              <h2 className="mb-6 text-2xl font-bold">
-                Ajouter une Nouvelle Annonce
-              </h2>
+              <div className="flex items-center justify-between w-full mb-6">
+                <h2 className="text-2xl font-bold">
+                  Ajouter une Nouvelle Annonce
+                </h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={closeDrawer}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <form className="w-full space-y-4" onSubmit={handleSubmit}>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
@@ -505,6 +1011,11 @@ export default function AnnonceGestionPage() {
                       onChange={handleInputChange}
                       required
                     />
+                    {annonce.date_depart && annonce.date_arrive && !validateDates(annonce.date_depart, annonce.date_arrive) && (
+                      <p className="text-red-500 text-xs mt-1">
+                        La date d'arrivée doit être après la date de départ
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -587,7 +1098,11 @@ export default function AnnonceGestionPage() {
                 </div>
 
                 <div className="pt-4 w-full flex justify-center">
-                  <Button type="submit" className="w-fit h-10 font-bold">
+                  <Button 
+                    type="submit" 
+                    className="w-fit h-10 font-bold"
+                    disabled={Boolean(annonce.date_depart && annonce.date_arrive && !validateDates(annonce.date_depart, annonce.date_arrive))}
+                  >
                     <Save className="mr-2 h-4 w-4" />
                     Enregistrer
                   </Button>
@@ -596,7 +1111,16 @@ export default function AnnonceGestionPage() {
             </div>
           ) : (
             <div className="flex w-full max-w-2xl flex-col items-center border bg-white p-6 text-left">
-              <h2 className="mb-6 text-2xl font-bold">Modifier l'annonce</h2>
+              <div className="flex items-center justify-between w-full mb-6">
+                <h2 className="text-2xl font-bold">Modifier l'annonce</h2>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={closeDrawer}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
               <form onSubmit={handleSubmitEdit} className="w-full space-y-4">
                 {/* Même formulaire que pour l'ajout, mais avec les valeurs pré-remplies */}
                 <div className="grid grid-cols-2 gap-4">
@@ -773,6 +1297,47 @@ export default function AnnonceGestionPage() {
                       onChange={handleInputChange}
                       required
                     />
+                    {annonce.date_depart && annonce.date_arrive && !validateDates(annonce.date_depart, annonce.date_arrive) && (
+                      <p className="text-red-500 text-xs mt-1">
+                        La date d'arrivée doit être après la date de départ
+                      </p>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <Label
+                      htmlFor="sourceAddress-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
+                      Adresse Source (optionnel)
+                    </Label>
+                    <Textarea
+                      id="sourceAddress-edit"
+                      name="sourceAddress"
+                      value={annonce.sourceAddress || ""}
+                      onChange={handleInputChange}
+                      placeholder="Adresse complète de départ"
+                      rows={2}
+                    />
+                  </div>
+
+                  <div>
+                    <Label
+                      htmlFor="destinationAddress-edit"
+                      className="block text-sm font-bold mb-2"
+                    >
+                      Adresse Destination (optionnel)
+                    </Label>
+                    <Textarea
+                      id="destinationAddress-edit"
+                      name="destinationAddress"
+                      value={annonce.destinationAddress || ""}
+                      onChange={handleInputChange}
+                      placeholder="Adresse complète d'arrivée"
+                      rows={2}
+                    />
                   </div>
                 </div>
 
@@ -822,7 +1387,11 @@ export default function AnnonceGestionPage() {
                 </div>
 
                 <div className="pt-4 w-full flex justify-center space-x-4">
-                  <Button type="submit" className="font-bold gap-2">
+                  <Button 
+                    type="submit" 
+                    className="font-bold gap-2"
+                    disabled={Boolean(annonce.date_depart && annonce.date_arrive && !validateDates(annonce.date_depart, annonce.date_arrive))}
+                  >
                     <Save />
                     Enregistrer
                   </Button>
@@ -842,331 +1411,314 @@ export default function AnnonceGestionPage() {
         </div>
       </Drawer>
 
-      <div className="hidden flex-col max-h-[90vh] overflow-y-auto md:flex">
-        <div className="border-b"></div>
-        <div className="flex-1 md:space-y-4 space-y-4 p-8 pt-6">
-          <div className="flex items-center justify-between pb-2">
-            <h2 className="text-4xl flex items-center justify-center gap-2 font-bold tracking-tight">
-              <Plane /> Gestion des Trajets
-            </h2>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center border rounded-lg">
+      {/* Drawer pour afficher les commandes */}
+      <Drawer anchor="right" open={isCommandesDrawerOpen} onClose={() => setIsCommandesDrawerOpen(false)}>
+        <div className="p-4 flex items-center justify-center h-full w-[70vw] max-w-6xl">
+          <div className="flex w-full max-w-none flex-col h-full border bg-white rounded-lg overflow-hidden">
+            {/* Header fixe avec gestion de l'annonce */}
+            <div className="flex-shrink-0 p-6 border-b border-gray-200 bg-white">
+              <div className="flex items-center justify-between w-full mb-6">
+                <h2 className="text-2xl font-bold">
+                  Commandes du trajet
+                </h2>
                 <Button
-                  variant={viewMode === "cards" ? "default" : "ghost"}
+                  variant="outline"
                   size="sm"
-                  onClick={() => setViewMode("cards")}
-                  className="rounded-r-none"
+                  onClick={() => setIsCommandesDrawerOpen(false)}
                 >
-                  <Grid className="h-4 w-4 mr-2" />
-                  Cartes
-                </Button>
-                <Button
-                  variant={viewMode === "table" ? "default" : "ghost"}
-                  size="sm"
-                  onClick={() => setViewMode("table")}
-                  className="rounded-l-none"
-                >
-                  <List className="h-4 w-4 mr-2" />
-                  Tableau
+                  <X className="h-4 w-4" />
                 </Button>
               </div>
-              <Button
-                type="button"
-                className="w-fit h-fit font-bold bg-red-600"
-                onClick={handleAddAnnonceClick}
-              >
-                <Plus className="mr-2 h-4 w-4" /> Ajouter un trajet
-              </Button>
-            </div>
-          </div>
+              
+              <div className="w-full">
+                <div className="mb-4">
+                  <h3 className="text-lg font-semibold text-gray-700 mb-2">
+                    {annonce.source} → {annonce.destination}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    ID: {annonce.id_annonce} | Statut: {annonce.statut}
+                  </p>
+                </div>
 
-          <ConfirmDialog
-            isOpen={isDialogOpen}
-            message={`Êtes-vous sûr de vouloir supprimer le trajet : ${selectedAnnonceTitle} ?`}
-            onConfirm={() => {
-              if (selectedAnnonceId !== null) {
-                deleteAnnonce(selectedAnnonceId);
-                setSelectedAnnonceId(null);
-                setSelectedAnnonceTitle(null);
-              }
-              setDialogOpen(false);
-            }}
-            onCancel={() => {
-              setDialogOpen(false);
-              setSelectedAnnonceId(null);
-              setSelectedAnnonceTitle(null);
-            }}
-          />
-
-          {viewMode === "table" ? (
-            <DataTable
-              columns={createColumns({
-                onEdit: handleAnnonceClick,
-                onDelete: handleDeleteClick,
-              })}
-              data={annonces}
-            />
-          ) : (
-            <div className="grid gap-4 py-4 md:grid-cols-2 lg:grid-cols-3">
-              {annonces.map((annonceItem) => (
-                <Card
-                  key={annonceItem.id}
-                  className="hover:shadow-lg transition-shadow"
-                >
-                  <CardHeader className="pb-2">
-                    <CardTitle className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <Truck
-                          className={`h-5 w-5 ${
-                            annonceItem.type_transport === "express"
-                              ? "text-red-600"
-                              : "text-blue-600"
-                          }`}
-                        />
-                        <span className="text-sm font-medium">
-                          {annonceItem.type_transport === "express"
-                            ? "Express"
-                            : "Economy"}
-                        </span>
-                      </div>
-                      {annonceItem.is_boost && (
-                        <span className="bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded-full">
-                          Boostée
-                        </span>
-                      )}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-3">
+                {/* Contrôle du statut de l'annonce - TOUJOUR VISIBLE */}
+                <div className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                  <div className="text-sm min-w-0">
+                    <div className="font-medium text-gray-900">Statut du trajet</div>
+                    <div className="text-gray-600">Gérer le statut</div>
+                  </div>
+                  
+                  {/* Indicateur du statut actuel */}
+                  <div className="flex items-center gap-2 px-3 py-2 bg-white rounded-lg border border-blue-200">
+                    <div className={`w-3 h-3 rounded-full ${
+                      annonce.statut === 'Entrepot' ? 'bg-blue-500' :
+                      annonce.statut === 'En cours' ? 'bg-yellow-500' :
+                      annonce.statut === 'Terminé' ? 'bg-green-500' :
+                      'bg-red-500'
+                    }`}></div>
+                    <span className="text-sm font-medium text-gray-700">
+                      {annonce.statut === 'Entrepot' ? '🔄 En attente' :
+                       annonce.statut === 'En cours' ? '🚚 En cours' :
+                       annonce.statut === 'Terminé' ? '✅ Terminé' :
+                       '❌ Annulé'}
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-3 flex-wrap">
+                    {/* Bouton de démarrage principal */}
                     <div className="flex items-center gap-2">
-                      <MapPin className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm font-medium">
-                        {annonceItem.source} → {annonceItem.destination}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Package className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm">
-                        {annonceItem.stock_annonce
-                          ? `${annonceItem.stock_annonce}kg max`
-                          : "Poids non spécifié"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">
-                        Tarif par kilo:{" "}
-                        {annonceItem.poids_max
-                          ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
-                          : "Non spécifié"}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-4 w-4 text-gray-500" />
-                      <span className="text-sm">
-                        {formatDate(annonceItem.date_depart)} →{" "}
-                        {formatDate(annonceItem.date_arrive)}
-                      </span>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <span className="text-lg font-bold text-green-600">
-                        {annonceItem.poids_max
-                          ? `${annonceItem.poids_max} ${annonceItem.devise_prix}`
-                          : "Prix non spécifié"}
-                      </span>
-                      <span
-                        className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                          annonceItem.statut
-                        )}`}
-                      >
-                        {annonceItem.statut}
-                      </span>
-                    </div>
-
-                    <div className="text-xs text-gray-500">
-                      Dépôt: {annonceItem.lieu_depot}
-                    </div>
-
-                    <div className="text-xs text-gray-500">
-                      ID: {annonceItem.id_annonce}
-                    </div>
-                  </CardContent>
-                  <CardFooter className="pt-2">
-                    <div className="w-full grid grid-cols-3 gap-2">
                       <Button
-                        onClick={() => handleDeleteClick(annonceItem)}
-                        variant="destructive"
+                        variant={annonce.statut === 'En cours' ? 'default' : 'outline'}
                         size="sm"
-                        className="font-bold gap-1"
+                        className={`h-8 px-4 font-medium transition-all duration-200 ${
+                          annonce.statut === 'En cours'
+                            ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                            : 'bg-white hover:bg-blue-50 border-blue-300 text-blue-700 hover:border-blue-400'
+                        }`}
+                        onClick={() => {
+                          if (annonce.statut === 'Entrepot') {
+                            handleUpdateAnnonceStatus('En cours');
+                          } else if (annonce.statut === 'En cours') {
+                            handleUpdateAnnonceStatus('Entrepot');
+                          }
+                        }}
                       >
-                        <Trash2 className="h-4 w-4" />
-                        Supprimer
+                        {annonce.statut === 'En cours' ? (
+                          <>
+                            <Truck className="h-4 w-4 mr-2" />
+                            Trajet en cours
+                          </>
+                        ) : (
+                          <>
+                            <Play className="h-4 w-4 mr-2" />
+                            Démarrer le trajet
+                          </>
+                        )}
                       </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
                       <Button
-                        onClick={() => handleAnnonceClick(annonceItem)}
-                        size="sm"
                         variant="outline"
-                        className="font-bold gap-1"
-                      >
-                        <Edit className="h-4 w-4" />
-                        Modifier
-                      </Button>
-                      <Button
-                        onClick={() => handleOpenCommandes(annonceItem)}
                         size="sm"
-                        variant="secondary"
-                        className="font-bold gap-1"
+                        className="h-7 px-3 text-xs bg-green-50 border-green-200 text-green-700 hover:bg-green-100"
+                        onClick={() => handleUpdateAnnonceStatus('Terminé')}
+                        disabled={annonce.statut !== 'En cours'}
                       >
-                        <ShoppingCart className="h-4 w-4" />
-                        Commandes
+                        <CheckIcon className="h-3 w-3 mr-1" />
+                        Terminer
+                      </Button>
+                      
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-3 text-xs bg-red-50 border-red-200 text-red-700 hover:bg-red-100"
+                        onClick={() => handleUpdateAnnonceStatus('Annulé')}
+                      >
+                        <X className="h-3 w-3 mr-1" />
+                        Annuler
                       </Button>
                     </div>
-                  </CardFooter>
-                </Card>
-              ))}
-            </div>
-          )}
-
-          {annonces.length === 0 && (
-            <div className="text-center py-12">
-              <Book className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">
-                Aucun trajet
-              </h3>
-              <p className="mt-1 text-sm text-gray-500">
-                Commencez par ajouter un nouveau trajet.
-              </p>
-              <div className="mt-6">
-                <Button
-                  type="button"
-                  className="font-bold bg-red-600"
-                  onClick={handleAddAnnonceClick}
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  Ajouter un trajet
-                </Button>
+                  </div>
+                </div>
               </div>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* Drawer des commandes de l'annonce */}
-      <Drawer
-        anchor="right"
-        open={isCommandesDrawerOpen}
-        onClose={() => setIsCommandesDrawerOpen(false)}
-      >
-        <div className="p-4 w-[600px] h-full flex flex-col">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold">Commandes du trajet</h2>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => setIsCommandesDrawerOpen(false)}
-            >
-              <X className="h-5 w-5" />
-            </Button>
+            {/* Contenu scrollable - Commandes */}
+            <div className="flex-1 p-6 overflow-y-auto">
+              {annonceCommandes.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-medium text-gray-800">
+                      Commandes associées ({annonceCommandes.length})
+                    </h4>
+                    <div className="flex items-center gap-3">
+                      <Input
+                        placeholder="Rechercher une commande..."
+                        className="w-56 h-8 text-sm"
+                      />
+                      <Select defaultValue="all">
+                        <SelectTrigger className="w-28 h-8 text-sm">
+                          <SelectValue placeholder="Statut" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">Tous</SelectItem>
+                          <SelectItem value="Entrepot">Entrepôt</SelectItem>
+                          <SelectItem value="En cours">En cours</SelectItem>
+                          <SelectItem value="Terminé">Terminé</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  
+                  {/* Tableau des commandes */}
+                  <div className="border border-gray-200 rounded-lg overflow-hidden w-full">
+                    <div className="w-full">
+                      <table className="w-full table-fixed">
+                        <thead className="bg-gray-50 border-b border-gray-200">
+                          <tr>
+                            <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Commande
+                            </th>
+                            <th className="w-48 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Client
+                            </th>
+                            <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Contact
+                            </th>
+                            <th className="w-48 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Détails
+                            </th>
+                            <th className="w-32 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Statut
+                            </th>
+                            <th className="w-24 px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                              Actions
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {annonceCommandes.map((commande, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              {/* Numéro de commande */}
+                              <td className="w-24 px-3 py-3">
+                                <div className="flex items-center">
+                                  <span className="font-bold text-blue-600 text-sm">#{commande.id}</span>
+                                </div>
+                              </td>
+                              
+                              {/* Client */}
+                              <td className="w-48 px-3 py-3">
+                                <div className="flex items-center">
+                                  <div className="flex-shrink-0 h-8 w-8">
+                                    {commande.client?.img_url ? (
+                                      <img
+                                        className="h-8 w-8 rounded-full object-cover"
+                                        src={commande.client.img_url}
+                                        alt="Avatar"
+                                      />
+                                    ) : (
+                                      <div className="h-8 w-8 rounded-full bg-gray-300 flex items-center justify-center">
+                                        <span className="text-xs font-medium text-gray-600">
+                                          {commande.client?.prenom?.[0]}{commande.client?.nom?.[0]}
+                                        </span>
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="ml-3 min-w-0">
+                                    <div className="text-sm font-medium text-gray-900 truncate">
+                                      {commande.client?.prenom} {commande.client?.nom}
+                                    </div>
+                                    <div className="text-sm text-gray-500 truncate">
+                                      {commande.client?.ville}
+                                      {commande.client?.Pays && `, ${commande.client.Pays}`}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              
+                              {/* Contact */}
+                              <td className="w-32 px-3 py-3">
+                                <div className="text-sm text-gray-900 truncate">
+                                  {commande.client?.Tel}
+                                </div>
+                                <div className="text-sm text-gray-500 truncate">
+                                  {new Date(commande.created_at).toLocaleDateString('fr-FR', {
+                                    day: 'numeric',
+                                    month: 'short',
+                                    hour: '2-digit',
+                                    minute: '2-digit'
+                                  })}
+                                </div>
+                              </td>
+                              
+                              {/* Détails */}
+                              <td className="w-48 px-3 py-3">
+                                <div className="text-sm text-gray-900">
+                                  <div className="flex items-center gap-2 truncate">
+                                    <span className="capitalize">{commande.detail_commande?.mode}</span>
+                                    <span>•</span>
+                                    <span className="truncate">{commande.detail_commande?.type}</span>
+                                  </div>
+                                  <div className="text-gray-500">
+                                    {commande.detail_commande?.articles?.length || 0} article(s)
+                                  </div>
+                                  <div className="font-medium text-green-600">
+                                    {commande.total_price} €
+                                  </div>
+                                </div>
+                              </td>
+                              
+                              {/* Statut */}
+                              <td className="w-32 px-3 py-3">
+                                <Badge
+                                  variant="outline"
+                                  className={`${
+                                    commande.statut === 'Entrepot'
+                                      ? 'bg-blue-100 text-blue-800 border-blue-300'
+                                      : commande.statut === 'En cours'
+                                      ? 'bg-yellow-100 text-yellow-800 border-yellow-300'
+                                      : commande.statut === 'Terminé'
+                                      ? 'bg-green-100 text-green-800 border-green-300'
+                                      : commande.statut === 'Annulé'
+                                      ? 'bg-red-100 text-red-800 border-red-300'
+                                      : 'bg-gray-100 text-gray-800 border-gray-300'
+                                  }`}
+                                >
+                                  {commande.statut || 'Non défini'}
+                                </Badge>
+                                {commande.payment_status && (
+                                  <div className="mt-1">
+                                    <Badge
+                                      variant="outline"
+                                      className={`text-xs ${
+                                        commande.payment_status === 'paid'
+                                          ? 'bg-green-100 text-green-800 border-green-300'
+                                          : 'bg-red-100 text-red-800 border-red-300'
+                                      }`}
+                                    >
+                                      {commande.payment_status === 'paid' ? 'Payé' : 'Non payé'}
+                                    </Badge>
+                                  </div>
+                                )}
+                              </td>
+                              
+                              {/* Actions */}
+                              <td className="w-24 px-3 py-3">
+                                <div className="flex items-center gap-2">
+                                  <Button
+                                    variant="outline"
+                                    size="sm"
+                                    className="text-blue-600 border-blue-200 hover:bg-blue-50 text-xs px-2 py-1"
+                                    onClick={() => handleVoirDetailCommande(commande)}
+                                  >
+                                    Voir détail
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+                  <h3 className="text-lg font-medium text-gray-900">
+                    Aucune commande
+                  </h3>
+                  <p className="mt-1 text-sm text-gray-500">
+                    Aucune commande n'est associée à ce trajet pour le moment.
+                  </p>
+                </div>
+              )}
+            </div>
           </div>
-
-          <div className="mb-4">
-            <h3 className="font-semibold">
-              Trajet: {annonce?.source} → {annonce?.destination}
-            </h3>
-            <p className="text-sm text-muted-foreground">
-              {annonce?.statut} • {formatDate(annonce?.date_depart)} -{" "}
-              {formatDate(annonce?.date_arrive)}
-            </p>
-          </div>
-
-          <ScrollArea className="flex-1 pr-4">
-            {annonceCommandes.length > 0 ? (
-              <div className="space-y-4">
-                {annonceCommandes.map((item) => (
-                  <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <CardHeader className="pb-3 px-3 pt-3">
-                      <div className="flex items-center justify-between">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                          <span className="text-foreground text-green-700 font-extrabold text-lg">
-                            #{item.id}
-                          </span>
-                          <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
-                            {item.detail_commande?.type || "Standard"}
-                          </span>
-                        </CardTitle>
-                        <div
-                          className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            item.validation_status
-                              ? "bg-green-100 text-green-700"
-                              : "bg-amber-100 text-amber-700"
-                          }`}
-                        >
-                          {item.validation_status
-                            ? "✓ Validé"
-                            : "⏳ En attente"}
-                        </div>
-                      </div>
-                    </CardHeader>
-
-                    <CardContent className="px-3 pb-4 space-y-3">
-                      {/* Client info compacte */}
-                      <div className="bg-muted/30 rounded-lg p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-foreground">
-                            {item.client?.prenom} {item.client?.nom}
-                          </span>
-                          <span className="text-xs text-muted-foreground">
-                            {item.client?.Tel}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Date compacte */}
-                      <div className="flex items-center justify-between text-sm">
-                        <span className="text-muted-foreground">Créé le</span>
-                        <span className="font-medium">
-                          {new Date(item.created_at).toLocaleDateString(
-                            "fr-FR",
-                            {
-                              day: "2-digit",
-                              month: "short",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            }
-                          )}
-                        </span>
-                      </div>
-                    </CardContent>
-
-                    <CardFooter className="px-2 pb-4 pt-0">
-                      <div className="w-full flex justify-end items-end space-y-2">
-                        <Button
-                          onClick={() => handleNavigation(item.id)}
-                          className="w-fit h-8 font-bold"
-                        >
-                          Voir Détails
-                        </Button>
-                      </div>
-                    </CardFooter>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-12">
-                <ShoppingCart className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900">
-                  Aucune commande
-                </h3>
-                <p className="mt-1 text-sm text-gray-500">
-                  Aucune commande n'a été passée pour ce trajet.
-                </p>
-              </div>
-            )}
-          </ScrollArea>
         </div>
       </Drawer>
     </>
   );
 }
+
+
