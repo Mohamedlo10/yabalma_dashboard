@@ -9,6 +9,90 @@ import { getOrCreateUserWallet } from "@/app/api/wallets/query";
 import { error } from "console";
 const supabase = createClient();
 
+// Nouvelle fonction pour enregistrer les infos d'entrepôt et uploader plusieurs photos
+export const registerWarehouseInfo = async (
+  orderId: number | string,
+  photos: File[],
+  info: Record<string, any>
+) => {
+  const role = getSupabaseSession();
+  if (!role) {
+    return { error: "Non autorisé - Session invalide", redirect: "/" };
+  }
+  try {
+    // 1. Upload des photos vers le stockage
+    const photoUrls = await uploadMultipleFiles(photos, orderId);
+
+    // 2. Générer les champs QR code et delivery_tracking_id
+    const transportType = info.transport_type || "express";
+    const qrCode = `QR${orderId}${Date.now()}`;
+    const deliveryTrackingId = `${transportType.toUpperCase()}_${orderId}_${Math.floor(
+      Math.random() * 10000
+    )}`;
+
+    // 3. Construire l'objet warehouse_info
+    const warehouseInfo = {
+      ...info,
+      photos: photoUrls,
+      received_at: new Date().toISOString(),
+      transport_type: transportType,
+      qr_code: qrCode,
+      order_id: orderId,
+      is_paid: true,
+      delivery_tracking_id: deliveryTrackingId,
+      volume: info.weight || 0,
+      payment_date: null,
+    };
+
+    // 4. Mettre à jour la commande
+    const { data, error } = await supabase
+      .from("commande")
+      .update({
+        warehouse_info: warehouseInfo,
+        statut: "Entrepot",
+        updated_at: new Date().toISOString(),
+        modification_locked: false,
+        grouping_available: true,
+        is_given_to_gp: true,
+      })
+      .eq("id", orderId);
+    if (error) throw error;
+    return { success: true, data };
+  } catch (err) {
+    console.error("Erreur registerWarehouseInfo:", err);
+    return { error: err instanceof Error ? err.message : "Erreur inconnue" };
+  }
+};
+
+// Helper pour uploader plusieurs fichiers
+export const uploadMultipleFiles = async (
+  files: File[],
+  orderId: number | string
+) => {
+  const role = getSupabaseSession();
+  if (!role) {
+    return [];
+  }
+  const uploadedUrls = [];
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    // Supabase Storage: le key doit être relatif au bucket, donc pas de 'images/'
+    const fileName = `commande_${orderId}_${Date.now()}_${i}`;
+    try {
+      const { error } = await supabase.storage
+        .from("yabalma/images")
+        .upload(fileName, file);
+      if (error) throw error;
+      const { data } = supabase.storage
+        .from("yabalma/images")
+        .getPublicUrl(fileName);
+      uploadedUrls.push(data.publicUrl);
+    } catch (err) {
+      console.error("Erreur upload fichier:", err);
+    }
+  }
+  return uploadedUrls;
+};
 export const getallcommandes = async () => {
   const role = getSupabaseSession();
 
@@ -259,6 +343,8 @@ export const validerCommande = async (
       .update({
         validation_status: true,
         mail_valideur: mail_valideur || null,
+        statut: "Validé",
+        is_received_by_gp: true,
         validationPending: false, // Débloquer automatiquement lors de la validation
       })
       .eq("id", id_commande);
@@ -637,6 +723,8 @@ export const invalidateCommande = async (id_commande: number) => {
       .update({
         validation_status: false,
         validationPending: false,
+        statut: "En attente",
+        is_received_by_gp: true,
         mail_valideur: null,
         updated_at: new Date().toISOString(),
       })

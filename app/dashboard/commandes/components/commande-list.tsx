@@ -8,7 +8,7 @@ import {
   DialogTitle as MuiDialogTitle,
 } from "@mui/material";
 import { useRouter } from "next/navigation";
-import { CSSProperties, useCallback, useEffect, useState } from "react";
+import { act, CSSProperties, useCallback, useEffect, useState } from "react";
 import BeatLoader from "react-spinners/BeatLoader";
 import { Avatar, AvatarFallback, AvatarImage } from "@radix-ui/react-avatar";
 import { triggerWalletRefresh } from "@/hooks/use-wallet-refresh";
@@ -34,6 +34,7 @@ import {
   updateValidationStatus,
   unblockValidationStatus,
   invalidateCommande,
+  registerWarehouseInfo,
 } from "@/app/api/commandes/query";
 import { processRefund } from "@/app/api/payment/query";
 import { extractCurrencyFromCommande } from "@/app/api/payment/query";
@@ -70,6 +71,67 @@ export function CommandeList({
   const [openRefundDialog, setOpenRefundDialog] = useState(false);
   const [refundPaymentMethod, setRefundPaymentMethod] = useState<string>("");
   const [showRefundSuccess, setShowRefundSuccess] = useState(false);
+
+  // Entrepôt dialog state
+  const [openWarehouseDialog, setOpenWarehouseDialog] = useState(false);
+  const [warehousePrice, setWarehousePrice] = useState("");
+  const [warehouseWeight, setWarehouseWeight] = useState("");
+  const [warehouseTransportType, setWarehouseTransportType] = useState("");
+  const [warehousePhotos, setWarehousePhotos] = useState<File[]>([]);
+  const [warehouseLoading, setWarehouseLoading] = useState(false);
+  const [warehouseError, setWarehouseError] = useState("");
+
+  // Handler for warehouse info registration
+  const handleWarehouseSubmit = async () => {
+    setWarehouseLoading(true);
+    setWarehouseError("");
+    try {
+      if (!warehousePrice || !warehouseWeight) {
+        setWarehouseError("Veuillez remplir tous les champs.");
+        setWarehouseLoading(false);
+        return;
+      }
+      // Prepare info object
+      const info = {
+        price: parseFloat(warehousePrice),
+        weight: parseFloat(warehouseWeight),
+        transport_type: warehouseTransportType,
+      };
+      if (activeItem?.id) {
+        // Call API
+        const result = await registerWarehouseInfo(
+          activeItem.id,
+          warehousePhotos,
+          info
+        );
+        if (result.error) {
+          setWarehouseError(result.error);
+        } else {
+          // Update local commande in list
+          setItems((prev) =>
+            prev.map((item) =>
+              item.id === activeItem.id
+                ? { ...item, warehouse_info: info, statut: "Entrepot" }
+                : item
+            )
+          );
+          // Update activeItem for drawer UI
+          setActiveItem((prev) =>
+            prev ? { ...prev, warehouse_info: info, statut: "Entrepot" } : prev
+          );
+          setOpenWarehouseDialog(false);
+          setWarehousePrice("");
+          setWarehouseWeight("");
+          setWarehouseTransportType("");
+          setWarehousePhotos([]);
+        }
+      }
+    } catch (err: any) {
+      setWarehouseError(err.message || "Erreur inconnue");
+    } finally {
+      setWarehouseLoading(false);
+    }
+  };
 
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
@@ -789,7 +851,7 @@ export function CommandeList({
     <ScrollArea className="h-[75vh] ">
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4  pb-80 gap-2 p-4 pt-0">
         {items.map((item) => (
-          <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200">
+          <Card className="w-full max-w-md mx-auto border border-border/50 shadow-sm hover:shadow-md transition-shadow duration-200 relative">
             <CardHeader className="pb-3 px-3 pt-3">
               <div className="flex items-center justify-between">
                 <CardTitle className="text-base font-semibold flex items-center gap-2">
@@ -799,6 +861,24 @@ export function CommandeList({
                   <span className="text-xs px-2 py-1 bg-primary/10 text-primary rounded-full font-medium">
                     {item.detail_commande?.type || "Standard"}
                   </span>
+                  {item.warehouse_info && (
+                    <span className="ml-2 inline-flex items-center gap-1 px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs font-bold border border-yellow-300">
+                      <svg
+                        className="w-3 h-3 text-yellow-700"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                        />
+                      </svg>
+                      Entrepôt traité
+                    </span>
+                  )}
                 </CardTitle>
                 <div
                   className={`px-2 py-1 rounded-full text-xs font-medium ${
@@ -872,7 +952,13 @@ export function CommandeList({
 
                   <button
                     onClick={() => handleOpenDrawer(item)}
-                    className="w-full bg-secondary text-secondary-foreground hover:bg-secondary/80 px-4 py-2 rounded-md text-sm font-bold transition-colors"
+                    className={`w-full px-4 py-2 rounded-md text-sm font-bold transition-colors
+                      ${
+                        item.warehouse_info
+                          ? "bg-blue-600 text-white hover:bg-blue-700 border border-blue-700"
+                          : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
+                      }
+                    `}
                   >
                     Voir les détails
                   </button>
@@ -911,27 +997,133 @@ export function CommandeList({
                 </Button>
               </div>
               <div className="flex-grow overflow-auto p-4 xl:text-base text-xs space-y-6">
-                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow mb-6">
-                  <h4 className="font-bold text-lg mb-2 text-yellow-800 flex items-center gap-2">
-                    <span className="inline-block bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
-                      Instructions
-                    </span>
-                    de validation
-                  </h4>
-                  <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
-                    <li>
-                      Cliquez sur "Ouvrir le site" pour accéder au site marchand
-                    </li>
-                    <li>Connectez-vous à votre compte si nécessaire</li>
-                    <li>
-                      Vérifiez les détails de la commande #{activeItem.id}
-                    </li>
-                    <li>Procédez à la validation sur le site</li>
-                    <li>
-                      Une fois terminé, revenez ici et cliquez sur "J'ai validé"
-                    </li>
-                  </ol>
-                </div>
+                {/* Affichage conditionnel : instructions ou infos entrepôt */}
+                {activeItem?.warehouse_info ? (
+                  <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg shadow mb-6">
+                    <h4 className="font-bold text-lg mb-2 text-blue-800 flex items-center gap-2">
+                      <span className="inline-block bg-blue-200 text-blue-800 px-2 py-1 rounded-full text-xs font-semibold">
+                        Entrepôt
+                      </span>
+                      Informations de traitement
+                    </h4>
+                    <ul className="list-disc pl-5 space-y-2 text-sm text-blue-700">
+                      <li>
+                        <span className="font-semibold">Prix :</span>{" "}
+                        {activeItem.warehouse_info.price} XOF
+                      </li>
+                      <li>
+                        <span className="font-semibold">Poids :</span>{" "}
+                        {activeItem.warehouse_info.weight} kg
+                      </li>
+                      <li>
+                        <span className="font-semibold">
+                          Type de transport :
+                        </span>{" "}
+                        {activeItem.warehouse_info.transport_type || "-"}
+                      </li>
+                      <li>
+                        <span className="font-semibold">Annonce :</span>{" "}
+                        {activeItem.annonce?.source} →{" "}
+                        {activeItem.annonce?.destination} (
+                        {activeItem.annonce?.type_transport || "-"})
+                      </li>
+                      {activeItem.annonce?.created_at && (
+                        <li>
+                          <span className="font-semibold">
+                            Date de l'annonce :
+                          </span>{" "}
+                          {new Date(
+                            activeItem.annonce.created_at
+                          ).toLocaleDateString("fr-FR", {
+                            day: "2-digit",
+                            month: "short",
+                            year: "numeric",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </li>
+                      )}
+                      {activeItem.warehouse_info.photos &&
+                        activeItem.warehouse_info.photos.length > 0 && (
+                          <li>
+                            <span className="font-semibold">Photos :</span>
+                            <div className="flex flex-wrap gap-2 mt-2">
+                              {activeItem.warehouse_info.photos.map(
+                                (url: string, idx: number) => (
+                                  <button
+                                    key={idx}
+                                    type="button"
+                                    className="focus:outline-none"
+                                    onClick={() => window.open(url, "_blank")}
+                                    title="Cliquez pour agrandir"
+                                  >
+                                    <img
+                                      src={url}
+                                      alt={`Photo entrepôt ${idx + 1}`}
+                                      className="w-16 h-16 object-cover rounded border hover:scale-105 transition-transform"
+                                    />
+                                  </button>
+                                )
+                              )}
+                            </div>
+                            <span className="text-xs text-blue-500 mt-1 block">
+                              Cliquez sur une photo pour l'agrandir
+                            </span>
+                          </li>
+                        )}
+                    </ul>
+                  </div>
+                ) : (
+                  <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4 rounded-lg shadow mb-6">
+                    <h4 className="font-bold text-lg mb-2 text-yellow-800 flex items-center gap-2">
+                      <span className="inline-block bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-semibold">
+                        Instructions
+                      </span>
+                      de validation
+                    </h4>
+                    <ol className="list-decimal pl-5 space-y-2 text-sm text-gray-700">
+                      <li>
+                        Cliquez sur "Ouvrir le site" pour accéder au site
+                        marchand
+                      </li>
+                      <li>Connectez-vous à votre compte si nécessaire</li>
+                      <li>
+                        Vérifiez les détails de la commande #{activeItem.id}
+                      </li>
+                      <li>Procédez à la validation sur le site</li>
+                      <li>
+                        Une fois terminé, revenez ici et cliquez sur "J'ai
+                        validé"
+                      </li>
+                    </ol>
+                  </div>
+                )}
+                {/* Indicateur entrepôt traité dans le drawer */}
+                {activeItem?.warehouse_info && (
+                  <div className="bg-blue-50 border-l-4 border-blue-400 p-4 rounded-lg shadow mb-6 flex items-center gap-3">
+                    <svg
+                      className="w-5 h-5 text-blue-700"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                      />
+                    </svg>
+                    <div>
+                      <h4 className="font-semibold text-blue-800">
+                        Entrepôt déjà traité
+                      </h4>
+                      <p className="text-sm text-blue-700">
+                        Cette commande a déjà été préparée en entrepôt.
+                      </p>
+                    </div>
+                  </div>
+                )}
 
                 {/* Message d'information si le bouton est bloqué */}
                 {isButtonBlocked(activeItem) && (
@@ -1005,6 +1197,30 @@ export function CommandeList({
                       )}
                     </Button>
                   )}
+                  {/* Préparation en Entrepôt */}
+                  {activeItem?.validation_status &&
+                    !activeItem?.warehouse_info && (
+                      <Button
+                        disabled={activeItem?.warehouse_info !== null}
+                        className="bg-yellow-600 hover:bg-yellow-700 w-full md:w-auto"
+                        onClick={() => setOpenWarehouseDialog(true)}
+                      >
+                        <svg
+                          className="w-4 h-4 mr-2"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                          />
+                        </svg>
+                        Préparation en Entrepôt
+                      </Button>
+                    )}
 
                   {!activeItem.validation_status && (
                     <Button
@@ -1247,6 +1463,154 @@ export function CommandeList({
                       console.log("Articles sélectionnés:", selectedIds);
                     }}
                   />
+
+                  {/* Dialog de préparation en entrepôt */}
+                  <MuiDialog
+                    open={openWarehouseDialog}
+                    onClose={() => setOpenWarehouseDialog(false)}
+                    maxWidth="sm"
+                    fullWidth
+                    PaperProps={{ className: "rounded-2xl shadow-2xl" }}
+                  >
+                    <MuiDialogTitle className="pb-2">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                          <svg
+                            className="w-5 h-5 text-yellow-600"
+                            fill="none"
+                            stroke="currentColor"
+                            viewBox="0 0 24 24"
+                          >
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M20 13V7a2 2 0 00-2-2H6a2 2 0 00-2 2v6m16 0v6a2 2 0 01-2 2H6a2 2 0 01-2-2v-6m16 0H4"
+                            />
+                          </svg>
+                        </div>
+                        <div>
+                          <h2 className="text-xl font-semibold text-gray-900">
+                            Préparation en Entrepôt
+                          </h2>
+                          <p className="text-sm text-gray-500 mt-1">
+                            Renseignez les informations d'entrepôt
+                          </p>
+                        </div>
+                      </div>
+                    </MuiDialogTitle>
+                    <MuiDialogContent className="px-6 py-4">
+                      <div className="space-y-6">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Prix
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={warehousePrice}
+                              onChange={(e) => {
+                                setWarehousePrice(e.target.value),
+                                  setWarehouseTransportType(
+                                    activeItem.annonce.type_transport
+                                  );
+                              }}
+                              className="w-full border rounded px-3 py-2"
+                              placeholder="Prix"
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">
+                              Poids (kg)
+                            </label>
+                            <input
+                              type="number"
+                              min="0"
+                              step="0.01"
+                              value={warehouseWeight}
+                              onChange={(e) =>
+                                setWarehouseWeight(e.target.value)
+                              }
+                              className="w-full border rounded px-3 py-2"
+                              placeholder="Poids"
+                            />
+                          </div>
+                        </div>
+                        {/*  <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Type de transport
+                          </label>
+                          <select
+                            value={warehouseTransportType}
+                            onChange={(e) =>
+                              setWarehouseTransportType(e.target.value)
+                            }
+                            className="w-full border rounded px-3 py-2"
+                          >
+                            <option value="">Sélectionner</option>
+                            {activeItem?.annonce?.type_transport && (
+                              <option value={activeItem.annonce.type_transport}>
+                                {activeItem.annonce.type_transport}
+                              </option>
+                            )}
+                            <option value="express">Express</option>
+                            <option value="standard">Standard</option>
+                          </select>
+                        </div> */}
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">
+                            Photos de la commande
+                          </label>
+                          <input
+                            type="file"
+                            multiple
+                            accept="image/*"
+                            onChange={(e) =>
+                              setWarehousePhotos(
+                                e.target.files ? Array.from(e.target.files) : []
+                              )
+                            }
+                            className="w-full"
+                          />
+                          <div className="flex flex-wrap gap-2 mt-2">
+                            {warehousePhotos &&
+                              warehousePhotos.length > 0 &&
+                              warehousePhotos.map((file, idx) => (
+                                <span
+                                  key={idx}
+                                  className="bg-gray-100 px-2 py-1 rounded text-xs"
+                                >
+                                  {file.name}
+                                </span>
+                              ))}
+                          </div>
+                        </div>
+                        {warehouseError && (
+                          <div className="text-red-600 text-sm mt-2">
+                            {warehouseError}
+                          </div>
+                        )}
+                      </div>
+                    </MuiDialogContent>
+                    <MuiDialogActions className="grid grid-cols-2 px-6 py-4 bg-gray-50 rounded-b-2xl">
+                      <Button
+                        variant="outline"
+                        onClick={() => setOpenWarehouseDialog(false)}
+                        disabled={warehouseLoading}
+                      >
+                        Annuler
+                      </Button>
+                      <Button
+                        className="bg-yellow-600 hover:bg-yellow-700 text-white"
+                        onClick={handleWarehouseSubmit}
+                        disabled={warehouseLoading}
+                      >
+                        {warehouseLoading ? "Enregistrement..." : "Confirmer"}
+                      </Button>
+                    </MuiDialogActions>
+                  </MuiDialog>
                 </div>
               </div>
             </div>
