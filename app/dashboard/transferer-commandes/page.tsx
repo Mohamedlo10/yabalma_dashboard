@@ -5,65 +5,130 @@ import { getAnnoncesEntrepot } from "@/app/api/annonces/query";
 import { modifierCommande } from "@/app/api/commandes/query";
 
 export default function TransfererCommandesPage() {
-  // Sélectionne l'annonce cible la plus proche et ouvre le modal
-  const handleTransferClick = async (commande: any) => {
-    setError("");
+  // Nouvelle logique : select pour choisir l'annonce compatible
+  const [annoncesCompatibles, setAnnoncesCompatibles] = useState<{
+    [key: number]: any[];
+  }>({});
+  const [selectedAnnonce, setSelectedAnnonce] = useState<{
+    [key: number]: string;
+  }>({});
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [pendingChange, setPendingChange] = useState<{
+    commandeId: number;
+    newAnnonceId: string;
+    oldAnnonceId: string;
+  } | null>(null);
+
+  const fetchAnnoncesCompatibles = async (commande: any) => {
     try {
       const annonces = await getAnnoncesEntrepot();
+      console.log(annonces);
       const annoncesArray = Array.isArray(annonces) ? annonces : [];
       const now = new Date();
-      // Filtrer les annonces compatibles
-      const compatibles = annoncesArray.filter((annonce: any) => {
-        const dateDepart = new Date(annonce.date_depart);
-        return (
-          annonce.statut === "Entrepot" &&
-          annonce.type_transport === commande.detail_commande?.mode &&
-          dateDepart >= now
+
+      // Récupérer l'annonce actuelle de la commande
+      const annonceActuelle = annoncesArray.find(
+        (annonce: any) => annonce.id_annonce === commande.id_annonce
+      );
+
+      // Filtrer et trier par date
+      const compatibles = annoncesArray
+        .filter((annonce: any) => {
+          const dateDepart = new Date(annonce.date_depart);
+          return (
+            annonce.statut === "Entrepot" &&
+            annonce.type_transport === commande.detail_commande?.mode &&
+            dateDepart >= now
+          );
+        })
+        .sort(
+          (a: any, b: any) =>
+            new Date(a.date_depart).getTime() -
+            new Date(b.date_depart).getTime()
         );
-      });
-      let cible = null;
-      if (compatibles.length > 0) {
-        // Prendre l'annonce avec la date la plus proche
-        cible = compatibles.reduce((prev: any, curr: any) => {
-          const prevDate = new Date(prev.date_depart);
-          const currDate = new Date(curr.date_depart);
-          return currDate < prevDate ? curr : prev;
-        });
+
+      // Ajouter l'annonce actuelle au début si elle existe et n'est pas déjà dans la liste
+      let toutesAnnonces = [...compatibles];
+      if (
+        annonceActuelle &&
+        !compatibles.find((a) => a.id_annonce === annonceActuelle.id_annonce)
+      ) {
+        toutesAnnonces.unshift(annonceActuelle);
       }
-      if (!cible) {
-        setError("Aucune annonce compatible trouvée");
-        return;
-      }
-      setSelectedCommande(commande);
-      setAnnonceCible(cible);
-      setShowModal(true);
+
+      setAnnoncesCompatibles((prev) => ({
+        ...prev,
+        [commande.id]: toutesAnnonces,
+      }));
     } catch (err) {
-      setError("Erreur lors du calcul du transfert");
+      setError("Erreur lors du chargement des annonces compatibles");
     }
   };
 
-  // Confirme le transfert et met à jour la commande
-  const handleConfirmTransfer = async () => {
-    if (!selectedCommande || !annonceCible) return;
-    setError("");
-    setShowModal(false);
-    try {
-      await modifierCommande(selectedCommande.id, {
-        id_annonce: annonceCible.id_annonce,
+  const handleSelectAnnonce = async (commandeId: number, annonceId: string) => {
+    const currentAnnonceId = selectedAnnonce[commandeId] || "";
+
+    // Si c'est le même trajet, ne rien faire
+    if (currentAnnonceId === annonceId) {
+      return;
+    }
+
+    // Si c'est un changement, demander confirmation
+    if (currentAnnonceId && currentAnnonceId !== annonceId) {
+      setPendingChange({
+        commandeId,
+        newAnnonceId: annonceId,
+        oldAnnonceId: currentAnnonceId,
       });
+      setShowConfirmDialog(true);
+      return;
+    }
+
+    // Si c'est la première sélection, procéder directement
+    await processAnnonceChange(commandeId, annonceId);
+  };
+
+  const processAnnonceChange = async (
+    commandeId: number,
+    annonceId: string
+  ) => {
+    setError("");
+    try {
+      await modifierCommande(commandeId, { id_annonce: annonceId });
       setCommandes((prev: any[]) =>
         prev.map((c) =>
-          c.id === selectedCommande.id
-            ? { ...c, id_annonce: annonceCible.id }
-            : c
+          c.id === commandeId ? { ...c, id_annonce: annonceId } : c
         )
       );
-      setSelectedCommande(null);
-      setAnnonceCible(null);
+      setSelectedAnnonce((prev) => ({ ...prev, [commandeId]: annonceId }));
     } catch (err) {
       setError("Erreur lors du transfert");
     }
   };
+
+  const confirmAnnonceChange = async () => {
+    if (pendingChange) {
+      await processAnnonceChange(
+        pendingChange.commandeId,
+        pendingChange.newAnnonceId
+      );
+      setShowConfirmDialog(false);
+      setPendingChange(null);
+    }
+  };
+
+  const cancelAnnonceChange = () => {
+    setShowConfirmDialog(false);
+    setPendingChange(null);
+    // Remettre la valeur précédente dans le select
+    if (pendingChange) {
+      setSelectedAnnonce((prev) => ({
+        ...prev,
+        [pendingChange.commandeId]: pendingChange.oldAnnonceId,
+      }));
+    }
+  };
+
   const [commandes, setCommandes] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -79,6 +144,14 @@ export default function TransfererCommandesPage() {
         if (Array.isArray(data)) {
           console.log(data);
           setCommandes(data);
+          // Initialiser les annonces sélectionnées avec les annonces actuelles des commandes
+          const initialAnnonces: { [key: number]: string } = {};
+          data.forEach((commande: any) => {
+            if (commande.id_annonce) {
+              initialAnnonces[commande.id] = commande.id_annonce;
+            }
+          });
+          setSelectedAnnonce(initialAnnonces);
         } else {
           setError(data.error || "Erreur lors du chargement des commandes");
         }
@@ -107,65 +180,148 @@ export default function TransfererCommandesPage() {
               {commandes.map((commande: any) => (
                 <div
                   key={commande.id}
-                  className="border rounded p-4 flex flex-col gap-2"
+                  className="border rounded-lg p-4 flex flex-col gap-3 bg-white shadow-sm hover:shadow-md transition-shadow duration-200"
+                  onMouseEnter={() => {
+                    if (!annoncesCompatibles[commande.id])
+                      fetchAnnoncesCompatibles(commande);
+                  }}
                 >
-                  <div>
-                    <span className="font-semibold">
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-base text-gray-800">
                       Commande #{commande.id}
                     </span>
-                    <span className="ml-2">
-                      Prix: {commande.warehouse_info?.price} XOF
-                    </span>
-                    <span className="ml-2">
-                      Poids: {commande.warehouse_info?.weight} kg
+                    <div className="flex flex-col items-start font-semibold md:flex-row gap-4 text-sm text-gray-600">
+                      <span>Prix: {commande.warehouse_info?.price} XOF</span>
+                      <span>Poids: {commande.warehouse_info?.weight} kg</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-blue-50 rounded-lg p-3 border border-blue-200">
+                    <span className="font-semibold text-blue-700 text-sm">
+                      Type transport : {commande.detail_commande?.mode}
                     </span>
                   </div>
-                  <span className="font-semibold text-blue-700">
-                    Type transport : {commande.detail_commande?.mode}
-                  </span>
-                  <div>
-                    <span>Trajet actuelle:</span>
-                    <span className="font-bold text-xs">
-                      {" "}
-                      {commande.id_annonce}
-                    </span>
+
+                  <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm text-gray-600">
+                        Trajet actuel:
+                      </span>
+                      {commande.id_annonce ? (
+                        <span className="font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded-full text-xs">
+                          📍{" "}
+                          {new Date(
+                            commande.annonce.date_depart
+                          ).toLocaleDateString("fr-FR")}{" "}
+                        </span>
+                      ) : (
+                        <span className="font-bold text-gray-500 bg-gray-100 px-2 py-1 rounded-full text-xs">
+                          Aucun trajet assigné
+                        </span>
+                      )}
+                    </div>
+                    {commande.id_annonce && (
+                      <div className="mt-2 text-xs text-gray-500">
+                        Ce trajet sera présélectionné dans la liste ci-dessous
+                      </div>
+                    )}
                   </div>
-                  <button
-                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-                    onClick={() => handleTransferClick(commande)}
-                  >
-                    Transférer vers trajet le plus proche
-                  </button>
+
+                  <div className="mt-2">
+                    <label className="block text-sm font-medium mb-2 text-gray-700">
+                      Sélectionner un trajet compatible :
+                    </label>
+                    <select
+                      className="border rounded-lg px-3 py-2 w-full focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                      value={selectedAnnonce[commande.id] || ""}
+                      onChange={(e) =>
+                        handleSelectAnnonce(commande.id, e.target.value)
+                      }
+                    >
+                      <option value="">-- Choisir un trajet --</option>
+                      {(annoncesCompatibles[commande.id] || []).map(
+                        (annonce: any) => (
+                          <option
+                            key={annonce.id_annonce}
+                            value={annonce.id_annonce}
+                            className={
+                              annonce.id_annonce === commande.id_annonce
+                                ? "font-bold text-blue-600"
+                                : ""
+                            }
+                          >
+                            {annonce.id_annonce === commande.id_annonce
+                              ? "📍 "
+                              : ""}
+                            Départ:{" "}
+                            {new Date(annonce.date_depart).toLocaleDateString(
+                              "fr-FR"
+                            )}{" "}
+                            | {annonce.type_transport}
+                            {annonce.id_annonce === commande.id_annonce
+                              ? " (Trajet actuel)"
+                              : ""}
+                          </option>
+                        )
+                      )}
+                    </select>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </div>
       )}
-      {/* Modal de confirmation */}
-      {showModal && annonceCible && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-          <div className="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h3 className="text-lg font-bold mb-2">Confirmer le transfert</h3>
-            <p className="mb-4">
-              Voulez-vous vraiment transférer la commande{" "}
-              <b>#{selectedCommande?.id}</b> vers le trajet&nbsp;? <br />
-              <span className="font-semibold text-blue-700">
-                Du {new Date(annonceCible.date_depart).toLocaleString("fr-FR")}
-                <br />
-                Type transport : {annonceCible.type_transport}
-              </span>
-            </p>
-            <div className="flex gap-4 justify-end">
+
+      {/* Dialog de confirmation pour le changement de trajet */}
+      {showConfirmDialog && pendingChange && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 max-w-md w-full mx-4 shadow-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 bg-yellow-100 rounded-full flex items-center justify-center">
+                <svg
+                  className="w-5 h-5 text-yellow-600"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z"
+                  />
+                </svg>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Confirmer le changement de trajet
+              </h3>
+            </div>
+
+            <div className="space-y-3 mb-6">
+              <p className="text-sm text-gray-600">
+                Êtes-vous sûr de vouloir changer le trajet de la commande #
+                {pendingChange.commandeId} ?
+              </p>
+
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <p className="text-sm text-red-700">
+                  <strong>Attention :</strong> Ce changement peut affecter le
+                  suivi de la commande.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-3">
               <button
-                className="px-4 py-2 rounded bg-gray-200 hover:bg-gray-300"
-                onClick={() => setShowModal(false)}
+                onClick={cancelAnnonceChange}
+                className="flex-1 px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors duration-200"
               >
                 Annuler
               </button>
               <button
-                className="px-4 py-2 rounded bg-blue-600 text-white hover:bg-blue-700"
-                onClick={handleConfirmTransfer}
+                onClick={confirmAnnonceChange}
+                className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
               >
                 Confirmer
               </button>
