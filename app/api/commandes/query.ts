@@ -279,7 +279,9 @@ export const modifierCommande = async (
 export const validerCommande = async (
   id_commande: number,
   mail_valideur?: string,
-  userId?: string
+  userId?: string,
+  actualPaidAmount?: number,
+  proofUrl?: string
 ) => {
   const role = getSupabaseSession();
 
@@ -329,30 +331,24 @@ export const validerCommande = async (
         const commandeCurrency = extractCurrencyFromCommande(commandeExistante);
 
         console.log(
-          `💰 Montant à débiter: ${commandeAmount} ${commandeCurrency}`
+          `💰 Montant à débiter (commande): ${commandeAmount} ${commandeCurrency}`
         );
 
-        // Traiter le paiement de validation si le montant est valide
-        if (commandeAmount > 0) {
-          paymentResult = await processValidationPayment(
-            id_commande,
-            userId,
-            validatorWallet.id,
-            commandeAmount,
-            commandeCurrency
-          );
-          console.log(`✅ Paiement de validation traité avec succès`);
-        } else {
-          console.warn(
-            `⚠️ Montant de commande invalide (${commandeAmount}), paiement ignoré`
-          );
-        }
+        // Traiter le paiement de validation
+        paymentResult = await processValidationPayment(
+          id_commande,
+          userId,
+          validatorWallet.id,
+          commandeAmount,
+          commandeCurrency,
+          actualPaidAmount,
+          proofUrl
+        );
+        console.log(`✅ Paiement de validation traité avec succès`);
       } catch (paymentError) {
         console.error("Erreur lors du traitement du paiement:", paymentError);
         return paymentError;
         // Ne pas faire échouer la validation pour des erreurs de paiement
-        // mais logger l'erreur pour investigation
-        console.warn("La validation continue malgré l'erreur de paiement");
       }
     }
 

@@ -364,7 +364,9 @@ export const createValidationTransaction = async (
   userId: string,
   walletId: string,
   amount: bigint,
-  originalCurrency?: string
+  originalCurrency?: string,
+  proofUrl?: string,
+  initialStatus: "pending" | "completed" = "pending"
 ): Promise<any> => {
   const role = getSupabaseSession();
 
@@ -396,6 +398,8 @@ export const createValidationTransaction = async (
       transactionId,
       paymentTime: timeWithTz,
       originalCurrency,
+      proofUrl,
+      initialStatus,
     });
 
     // Créer la transaction dans payment_info
@@ -407,13 +411,13 @@ export const createValidationTransaction = async (
           method: "wallet",
           amount: amount.toString(), // Stocker comme string pour les gros nombres
           transaction_id: transactionId,
-          status: "pending",
+          status: initialStatus,
           payment_date: timeWithTz, // Maintenant au bon format pour time with time zone
           bulk_payment: false,
           wallet_id: walletId,
           user_id_perform: userId,
           details: null,
-          preuve_url: null,
+          preuve_url: proofUrl || null,
           operation: "validation",
           type: "debit", // Débit du compte du validateur
         },
@@ -603,7 +607,9 @@ export const processValidationPayment = async (
   userId: string,
   walletId: string,
   commandeAmount: number,
-  commandeCurrency: string = "XOF"
+  commandeCurrency: string = "XOF",
+  actualPaidAmount?: number,
+  proofUrl?: string
 ): Promise<{ transaction: any; wallet: any }> => {
   const role = getSupabaseSession();
 
@@ -618,53 +624,52 @@ export const processValidationPayment = async (
       walletId,
       commandeAmount,
       commandeCurrency,
+      actualPaidAmount,
+      proofUrl,
     });
 
     // Diagnostic des taux de change disponibles (utile pour le débogage)
     await debugCurrencyRates();
 
-    // 1. Convertir le montant si nécessaire
-    let convertedAmount = commandeAmount;
+    // 1. Déterminer le montant à utiliser: si un montant réel est fourni, on l'utilise
+    const sourceAmount =
+      typeof actualPaidAmount === "number" && actualPaidAmount > 0
+        ? actualPaidAmount
+        : commandeAmount;
+
+    // 2. Convertir le montant si nécessaire
+    let convertedAmount = sourceAmount;
     if (commandeCurrency && commandeCurrency !== "XOF") {
       console.log(
-        `💱 Conversion nécessaire: ${commandeAmount} ${commandeCurrency} → XOF`
+        `💱 Conversion nécessaire: ${sourceAmount} ${commandeCurrency} → XOF`
       );
-      convertedAmount = await convertCurrency(commandeAmount, commandeCurrency);
+      convertedAmount = await convertCurrency(sourceAmount, commandeCurrency);
       console.log(`💱 Montant après conversion: ${convertedAmount} XOF`);
     } else {
       console.log(
-        `💱 Pas de conversion nécessaire, montant en XOF: ${commandeAmount}`
+        `💱 Pas de conversion nécessaire, montant en XOF: ${sourceAmount}`
       );
     }
 
     // Convertir en bigint pour les calculs précis
     const amountBigInt = BigInt(Math.round(convertedAmount));
 
-    // 2. Créer la transaction
+    // 3. Créer la transaction avec statut selon la présence de la preuve
+    const initialStatus: "pending" | "completed" = proofUrl
+      ? "completed"
+      : "pending";
     const transaction = await createValidationTransaction(
       orderId,
       userId,
       walletId,
       amountBigInt,
-      commandeCurrency
+      commandeCurrency,
+      proofUrl,
+      initialStatus
     );
 
-    // 3. Débiter le portefeuille
+    // 4. Débiter le portefeuille
     const updatedWallet = await debitValidatorWallet(walletId, amountBigInt);
-
-    // 4. Mettre à jour le statut de la transaction à 'completed'
-    const { error: updateTransactionError } = await supabase
-      .from("payment_info")
-      .update({ status: "pending" })
-      .eq("id", transaction.id);
-
-    if (updateTransactionError) {
-      console.error(
-        "Erreur lors de la mise à jour du statut de transaction:",
-        updateTransactionError
-      );
-      // Ne pas faire échouer l'opération pour cette erreur non critique
-    }
 
     console.log(`🎉 Paiement de validation traité avec succès!`);
 

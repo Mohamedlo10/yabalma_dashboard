@@ -49,6 +49,7 @@ import {
   X,
 } from "lucide-react";
 import ArticlesList from "@/components/ui/article/article-list";
+import { uploadProofFile } from "@/app/api/finance/query";
 
 const override: CSSProperties = {
   display: "block",
@@ -168,6 +169,10 @@ export function CommandeList({
   const [isInvalidating, setIsInvalidating] = useState(false);
   const [invalidateDialogOpen, setInvalidateDialogOpen] = useState(false);
   const [walletUser, setWalletUser] = useState<any>(null);
+  const [actualPaidAmount, setActualPaidAmount] = useState<string>("");
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
+  const [selectedProofFile, setSelectedProofFile] = useState<File | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
 
   // Mettre à jour les items quand initialItems change, en préservant les modifications locales
   useEffect(() => {
@@ -640,6 +645,18 @@ export function CommandeList({
         return;
       }
 
+      // Lire le montant payé réel si fourni
+      let paidNumber: number | undefined = undefined;
+      if (actualPaidAmount.trim() !== "") {
+        const parsed = Number(actualPaidAmount.replace(/,/g, "."));
+        if (!isNaN(parsed) && parsed > 0) {
+          paidNumber = parsed;
+        } else {
+          alert("Montant payé invalide");
+          return;
+        }
+      }
+
       try {
         setIsLoading(true);
 
@@ -647,7 +664,9 @@ export function CommandeList({
         const result = (await validerCommande(
           activeItem.id,
           currentUser?.email || undefined,
-          currentUser?.id || undefined
+          currentUser?.id || undefined,
+          paidNumber,
+          paymentProofUrl || undefined
         )) as any;
         if (result.error) {
           alert(`❌ Erreur: ${result.error}`);
@@ -688,12 +707,12 @@ export function CommandeList({
           )
         );
 
-        // Mettre à jour via la prop de callback si fournie
+        // Notifier le parent si nécessaire
         if (onItemUpdate) {
           onItemUpdate(updatedItem);
         }
 
-        // Mettre à jour les stats
+        // Rafraîchir les stats
         if (updateStats) {
           await updateStats();
         }
@@ -703,8 +722,9 @@ export function CommandeList({
 
         // Fermer le drawer après un court délai
         setTimeout(() => {
-          setDrawerOpen(false);
           setActiveItem(null);
+          setDrawerOpen(false);
+          setIsLoading(false);
         }, 1000);
       } catch (error) {
         console.error("Erreur lors de la validation de la commande:", error);
@@ -741,7 +761,15 @@ export function CommandeList({
         setIsLoading(false);
       }
     },
-    [activeItem, onItemUpdate, currentUser, updateStats, walletUser]
+    [
+      activeItem,
+      walletUser,
+      currentUser,
+      actualPaidAmount,
+      paymentProofUrl,
+      onItemUpdate,
+      updateStats,
+    ]
   );
 
   const handleInvalidateCommande = useCallback(async () => {
@@ -954,13 +982,15 @@ export function CommandeList({
                     onClick={() => handleOpenDrawer(item)}
                     className={`w-full px-4 py-2 rounded-md text-sm font-bold transition-colors
                       ${
-                        item.warehouse_info
+                        !item.warehouse_info && item.validation_status
                           ? "bg-blue-600 text-white hover:bg-blue-700 border border-blue-700"
                           : "bg-secondary text-secondary-foreground hover:bg-secondary/80"
                       }
                     `}
                   >
-                    Voir les détails
+                    {item.validation_status && !item.warehouse_info
+                      ? "Préparer en Entrepôt"
+                      : "Voir les détails"}
                   </button>
 
                   {currentUser?.email === item.mail_valideur && (
@@ -1999,37 +2029,286 @@ export function CommandeList({
                       "XOF" && " (converti automatiquement en XOF)"}
                   </p>
                 </div>
-                {/* <div className="bg-blue-50 p-4 rounded-lg border-l-4 border-blue-400">
-                  <h4 className="font-semibold text-blue-800 mb-2">
-                    📋 Processus de validation :
-                  </h4>
-                  <ul className="text-sm text-blue-700 space-y-1">
-                    <li>• Validation de la commande sur le site externe</li>
-                    <li>• Débit automatique de votre portefeuille</li>
-                    <li>
-                      • Création d'une transaction en attente (status: pending)
-                    </li>
-                  </ul>
-                </div> */}
 
-                <div className="bg-orange-50 p-4 rounded-lg border-l-4 border-orange-400">
-                  <h4 className="font-semibold text-orange-800 mb-2">
-                    ⚠️ Étapes suivantes :
+                {/* Saisie du montant réel payé et justificatif */}
+                <div className="border rounded-md p-4 bg-white shadow-sm">
+                  <h4 className="font-semibold text-gray-700 mb-3">
+                    Paiement effectué
                   </h4>
-                  <ol className="text-sm text-orange-700 space-y-1">
-                    <li>
-                      1. Rendez-vous dans la section <strong>Finance</strong>
-                    </li>
-                    <li>2. Trouvez votre transaction (status: En attente)</li>
-                    <li>
-                      3. Uploadez la preuve de paiement (photo/capture d'écran)
-                    </li>
-                    <li>
-                      4. La transaction passera au status{" "}
-                      <strong>Confirmé</strong>
-                    </li>
-                  </ol>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div>
+                      <label className="text-sm text-gray-600">
+                        Montant payé (optionnel) en{" "}
+                        {activeItem?.detail_commande?.articles[0]?.currency}
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={actualPaidAmount}
+                        onChange={(e) => setActualPaidAmount(e.target.value)}
+                        placeholder={`Ex: 125.50 ${activeItem?.detail_commande?.articles[0]?.currency}`}
+                        className="w-full mt-1 border rounded px-3 py-2"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-sm font-medium text-gray-700 mb-2 block">
+                        Justificatif de paiement (optionnel)
+                      </label>
+
+                      {/* Zone de drag & drop */}
+                      <div
+                        className={`relative border-2 border-dashed rounded-lg p-6 text-center transition-all duration-200 ${
+                          selectedProofFile
+                            ? "border-green-300 bg-green-50"
+                            : "border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50"
+                        }`}
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.add(
+                            "border-blue-500",
+                            "bg-blue-100"
+                          );
+                        }}
+                        onDragLeave={(e) => {
+                          e.currentTarget.classList.remove(
+                            "border-blue-500",
+                            "bg-blue-100"
+                          );
+                        }}
+                        onDrop={(e) => {
+                          e.preventDefault();
+                          e.currentTarget.classList.remove(
+                            "border-blue-500",
+                            "bg-blue-100"
+                          );
+                          const files = e.dataTransfer.files;
+                          if (files.length > 0) {
+                            setSelectedProofFile(files[0]);
+                          }
+                        }}
+                      >
+                        {!selectedProofFile ? (
+                          <>
+                            <div className="mx-auto w-12 h-12 mb-4 text-gray-400">
+                              <svg
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                />
+                              </svg>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              Glissez-déposez votre fichier ici ou
+                            </p>
+                            <label className="cursor-pointer inline-flex items-center px-4 py-2 bg-blue-600 text-white text-sm font-medium rounded-md hover:bg-blue-700 transition-colors">
+                              <svg
+                                className="w-4 h-4 mr-2"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M12 4v16m8-8H4"
+                                />
+                              </svg>
+                              Choisir un fichier
+                              <input
+                                type="file"
+                                accept="image/*,application/pdf"
+                                onChange={(e) => {
+                                  const f = e.target.files && e.target.files[0];
+                                  setSelectedProofFile(f || null);
+                                }}
+                                className="hidden"
+                              />
+                            </label>
+                            <p className="text-xs text-gray-500 mt-2">
+                              Formats acceptés : JPG, PNG, PDF (max 5MB)
+                            </p>
+                          </>
+                        ) : (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-center">
+                              <div className="w-16 h-16 bg-green-100 rounded-lg flex items-center justify-center">
+                                {selectedProofFile.type.startsWith("image/") ? (
+                                  <svg
+                                    className="w-8 h-8 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                ) : (
+                                  <svg
+                                    className="w-8 h-8 text-green-600"
+                                    fill="none"
+                                    stroke="currentColor"
+                                    viewBox="0 0 24 24"
+                                  >
+                                    <path
+                                      strokeLinecap="round"
+                                      strokeLinejoin="round"
+                                      strokeWidth={2}
+                                      d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"
+                                    />
+                                  </svg>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="text-center">
+                              <p className="text-sm font-medium text-gray-900 truncate">
+                                {selectedProofFile.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {(selectedProofFile.size / 1024 / 1024).toFixed(
+                                  2
+                                )}{" "}
+                                MB
+                              </p>
+                            </div>
+
+                            <div className="flex items-center justify-center space-x-2">
+                              <button
+                                type="button"
+                                onClick={() => setSelectedProofFile(null)}
+                                className="px-3 py-1.5 text-xs text-red-600 hover:text-red-800 hover:bg-red-100 rounded transition-colors"
+                              >
+                                Supprimer
+                              </button>
+                              <button
+                                type="button"
+                                disabled={isUploadingProof}
+                                onClick={async () => {
+                                  if (!selectedProofFile) return;
+                                  try {
+                                    setIsUploadingProof(true);
+                                    const url = await uploadProofFile(
+                                      selectedProofFile
+                                    );
+                                    if (url) {
+                                      setPaymentProofUrl(url);
+                                      // Notification de succès plus élégante
+                                      const successDiv =
+                                        document.createElement("div");
+                                      successDiv.className =
+                                        "fixed top-4 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50";
+                                      successDiv.textContent =
+                                        "✅ Preuve téléversée avec succès !";
+                                      document.body.appendChild(successDiv);
+                                      setTimeout(
+                                        () => successDiv.remove(),
+                                        3000
+                                      );
+                                    } else {
+                                      throw new Error("Échec du téléversement");
+                                    }
+                                  } catch (err) {
+                                    console.error(err);
+                                    const errorDiv =
+                                      document.createElement("div");
+                                    errorDiv.className =
+                                      "fixed top-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50";
+                                    errorDiv.textContent =
+                                      "❌ Erreur lors du téléversement";
+                                    document.body.appendChild(errorDiv);
+                                    setTimeout(() => errorDiv.remove(), 3000);
+                                  } finally {
+                                    setIsUploadingProof(false);
+                                  }
+                                }}
+                                className={`px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 ${
+                                  isUploadingProof
+                                    ? "bg-gray-400 text-gray-600 cursor-not-allowed"
+                                    : "bg-green-600 text-white hover:bg-green-700 shadow-sm hover:shadow-md"
+                                }`}
+                              >
+                                {isUploadingProof ? (
+                                  <div className="flex items-center space-x-2">
+                                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                                    <span>Téléversement...</span>
+                                  </div>
+                                ) : (
+                                  <div className="flex items-center space-x-2">
+                                    <svg
+                                      className="w-4 h-4"
+                                      fill="none"
+                                      stroke="currentColor"
+                                      viewBox="0 0 24 24"
+                                    >
+                                      <path
+                                        strokeLinecap="round"
+                                        strokeLinejoin="round"
+                                        strokeWidth={2}
+                                        d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"
+                                      />
+                                    </svg>
+                                    <span>Téléverser</span>
+                                  </div>
+                                )}
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Indicateur de statut */}
+                      {paymentProofUrl && (
+                        <div className="mt-3 p-3 bg-green-100 border border-green-200 rounded-md">
+                          <div className="flex items-center space-x-2">
+                            <svg
+                              className="w-5 h-5 text-green-600"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M5 13l4 4L19 7"
+                              />
+                            </svg>
+                            <span className="text-sm font-medium text-green-800">
+                              Preuve téléversée avec succès
+                            </span>
+                          </div>
+                        </div>
+                      )}
+
+                      <p className="text-xs text-gray-600 mt-3 text-center">
+                        <span className="font-medium">💡 Astuce :</span> Si vous
+                        téléversez une preuve, la transaction sera marquée{" "}
+                        <span className="font-semibold text-green-700">
+                          completed
+                        </span>
+                        . Sinon, elle restera{" "}
+                        <span className="font-semibold text-orange-700">
+                          pending
+                        </span>
+                        .
+                      </p>
+                    </div>
+                  </div>
                 </div>
+
+                {/* Instructions */}
 
                 <div className="bg-red-50 p-4 rounded-lg border-l-4 border-red-400">
                   <p className="text-sm text-red-700">
