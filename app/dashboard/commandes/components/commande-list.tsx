@@ -35,6 +35,7 @@ import {
   unblockValidationStatus,
   invalidateCommande,
   registerWarehouseInfo,
+  getCommandesWithShop,
 } from "@/app/api/commandes/query";
 import { processRefund } from "@/app/api/payment/query";
 import { extractCurrencyFromCommande } from "@/app/api/payment/query";
@@ -81,6 +82,64 @@ export function CommandeList({
   const [warehousePhotos, setWarehousePhotos] = useState<File[]>([]);
   const [warehouseLoading, setWarehouseLoading] = useState(false);
   const [warehouseError, setWarehouseError] = useState("");
+  const [commande, setCommande] = useCommande();
+  const [color] = useState("#ffffff");
+  const updateStats = useUpdateStats()[1]; // On ne prend que le setter
+  const router = useRouter();
+  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeItem, setActiveItem] = useState<Commande | null>(null);
+  const [items, setItems] = useState<Commande[]>(initialItems);
+  const [isRefundMode, setIsRefundMode] = useState(false);
+  const [selectedRefundArticles, setSelectedRefundArticles] = useState<
+    number[]
+  >([]);
+  const [refundAmount, setRefundAmount] = useState<number>(0);
+  const [refundCurrency, setRefundCurrency] = useState<string>("XOF");
+  const [blockingCommandeId, setBlockingCommandeId] = useState<number | null>(
+    null
+  );
+  const [localBlockedItems, setLocalBlockedItems] = useState<{
+    [key: number]: { email: string; name?: string };
+  }>({});
+  const [isBlocking, setIsBlocking] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isInvalidating, setIsInvalidating] = useState(false);
+  const [invalidateDialogOpen, setInvalidateDialogOpen] = useState(false);
+  const [walletUser, setWalletUser] = useState<any>(null);
+  const [actualPaidAmount, setActualPaidAmount] = useState<string>("");
+
+  const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
+  const [selectedProofFile, setSelectedProofFile] = useState<File | null>(null);
+  const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
+
+  async function fetchData() {
+    setIsLoading(true);
+    try {
+      const data: any = await getCommandesWithShop();
+      console.log(data);
+
+      if (data && data.length > 0) {
+        console.log(data);
+        setItems(data);
+      }
+    } catch (error) {
+      console.error("Error fetching room details:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // Appel périodique toutes les 2 minutes
+  useEffect(() => {
+    fetchData(); // Appel initial
+    const interval = setInterval(() => {
+      fetchData();
+    }, 30 * 1000); // 30 seconds
+
+    return () => clearInterval(interval);
+  }, []);
 
   // Handler for warehouse info registration
   const handleWarehouseSubmit = async () => {
@@ -125,6 +184,7 @@ export function CommandeList({
           setWarehouseWeight("");
           setWarehouseTransportType("");
           setWarehousePhotos([]);
+          fetchData();
         }
       }
     } catch (err: any) {
@@ -142,37 +202,6 @@ export function CommandeList({
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
   }, []);
-
-  const [commande, setCommande] = useCommande();
-  const [color] = useState("#ffffff");
-  const updateStats = useUpdateStats()[1]; // On ne prend que le setter
-  const router = useRouter();
-  const [confirmDialogOpen, setConfirmDialogOpen] = useState(false);
-  const [drawerOpen, setDrawerOpen] = useState(false);
-  const [activeItem, setActiveItem] = useState<Commande | null>(null);
-  const [items, setItems] = useState<Commande[]>(initialItems);
-  const [isRefundMode, setIsRefundMode] = useState(false);
-  const [selectedRefundArticles, setSelectedRefundArticles] = useState<
-    number[]
-  >([]);
-  const [refundAmount, setRefundAmount] = useState<number>(0);
-  const [refundCurrency, setRefundCurrency] = useState<string>("XOF");
-  const [blockingCommandeId, setBlockingCommandeId] = useState<number | null>(
-    null
-  );
-  const [localBlockedItems, setLocalBlockedItems] = useState<{
-    [key: number]: { email: string; name?: string };
-  }>({});
-  const [isBlocking, setIsBlocking] = useState(false);
-  const [currentUser, setCurrentUser] = useState<any>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isInvalidating, setIsInvalidating] = useState(false);
-  const [invalidateDialogOpen, setInvalidateDialogOpen] = useState(false);
-  const [walletUser, setWalletUser] = useState<any>(null);
-  const [actualPaidAmount, setActualPaidAmount] = useState<string>("");
-  const [paymentProofUrl, setPaymentProofUrl] = useState<string>("");
-  const [selectedProofFile, setSelectedProofFile] = useState<File | null>(null);
-  const [isUploadingProof, setIsUploadingProof] = useState<boolean>(false);
 
   // Mettre à jour les items quand initialItems change, en préservant les modifications locales
   useEffect(() => {
@@ -692,40 +721,11 @@ export function CommandeList({
           console.log("ℹ️ Aucun paiement traité pour cette validation");
         }
 
-        // Créer la commande mise à jour avec les propriétés valides
-        const updatedItem: Commande = {
-          ...activeItem,
-          validation_status: true,
-          mail_valideur: currentUser?.email || null,
-          validationPending: false,
-        };
-
-        // Mettre à jour l'état local
-        setItems((prevItems: Commande[]) =>
-          prevItems.map((item) =>
-            item.id === activeItem.id ? updatedItem : item
-          )
-        );
-
-        // Notifier le parent si nécessaire
-        if (onItemUpdate) {
-          onItemUpdate(updatedItem);
-        }
-
-        // Rafraîchir les stats
-        if (updateStats) {
-          await updateStats();
-        }
+        fetchData();
 
         // Fermer la boîte de dialogue de confirmation
         setConfirmDialogOpen(false);
-
-        // Fermer le drawer après un court délai
-        setTimeout(() => {
-          setActiveItem(null);
-          setDrawerOpen(false);
-          setIsLoading(false);
-        }, 1000);
+        setDrawerOpen(false);
       } catch (error) {
         console.error("Erreur lors de la validation de la commande:", error);
 
@@ -831,10 +831,6 @@ export function CommandeList({
       setIsInvalidating(false);
     }
   }, [activeItem, onItemUpdate, updateStats]);
-
-  const handleNavigation = (idCommande: number) => {
-    router.push(`/dashboard/commandes/profile?id=${idCommande}`);
-  };
 
   const handleOpenSite = async (item: Commande) => {
     const url = item.shop?.url || item.detail_commande?.whatsapp;

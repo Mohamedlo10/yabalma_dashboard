@@ -93,21 +93,18 @@ export default function DashboardPage() {
           </div>
 
           {/* Section Utilisateurs */}
-         
 
-           {role?.access_groups.commandes && (
-              <div className="flex-1 min-h-0 ">
-                <div className="h-64 sm:h-80 lg:h-96">
+          {role?.access_groups.commandes && (
+            <div className="flex-1 min-h-0 ">
+              <div className="h-64 sm:h-80 lg:h-96">
                 <Commande />
               </div>
-              </div>
-            )}
-          
+            </div>
+          )}
         </div>
 
-
         {/* Colonne droite */}
-         <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
+        <div className="flex flex-col gap-2 sm:gap-3 lg:gap-4 h-full">
           {/* Section Commandes ou Bienvenue */}
           <div className="flex-1 min-h-0 sm:mb-0 mb-16">
             {role?.access_groups.commandes ? (
@@ -135,18 +132,15 @@ export default function DashboardPage() {
           </div>
 
           {/* Section users */}
-         
 
-           {role?.access_groups.utilisateurs && (
-              <div className="flex-1 min-h-0">
-                <div className="h-80 lg:h-96">
-               <ClientPays />    
+          {role?.access_groups.utilisateurs && (
+            <div className="flex-1 min-h-0">
+              <div className="h-80 lg:h-96">
+                <ClientPays />
               </div>
-              </div>
-            )}
-          
+            </div>
+          )}
         </div>
-
       </div>
     </div>
   );

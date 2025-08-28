@@ -19,6 +19,13 @@ export default function TransfererCommandesPage() {
     oldAnnonceId: string;
   } | null>(null);
 
+  const [commandes, setCommandes] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [showModal, setShowModal] = useState(false);
+  const [selectedCommande, setSelectedCommande] = useState<any>(null);
+  const [annonceCible, setAnnonceCible] = useState<any>(null);
+
   const fetchAnnoncesCompatibles = async (commande: any) => {
     try {
       const annonces = await getAnnoncesEntrepot();
@@ -129,13 +136,6 @@ export default function TransfererCommandesPage() {
     }
   };
 
-  const [commandes, setCommandes] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [showModal, setShowModal] = useState(false);
-  const [selectedCommande, setSelectedCommande] = useState<any>(null);
-  const [annonceCible, setAnnonceCible] = useState<any>(null);
-
   useEffect(() => {
     async function fetchCommandes() {
       setLoading(true);
@@ -162,6 +162,11 @@ export default function TransfererCommandesPage() {
       }
     }
     fetchCommandes();
+    const interval = setInterval(() => {
+      fetchCommandes();
+    }, 25 * 1000);
+
+    return () => clearInterval(interval);
   }, []);
 
   return (
