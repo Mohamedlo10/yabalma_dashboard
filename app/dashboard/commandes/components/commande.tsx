@@ -122,9 +122,11 @@ export function CommandeData({
       );
     });
     if (activeTab === "Validé")
-      return filtered.filter((item) => item.validation_status);
+      return filtered.filter((item) => item.validation_status === true);
     if (activeTab === "NonValidé")
-      return filtered.filter((item) => !item.validation_status);
+      return filtered.filter(
+        (item) => !item.validation_status && !item.is_received_by_gp
+      );
     return filtered;
   })();
 
@@ -173,8 +175,6 @@ export function CommandeData({
         }}
         className="h-full max-h-[88vh] items-stretch"
       >
- 
-
         {/* Deuxième panel - prend toute la largeur sur mobile */}
         <ResizablePanel
           defaultSize={isMobile ? 100 : defaultLayout[1]}
@@ -195,8 +195,8 @@ export function CommandeData({
                     <TabsTrigger value="Validé">Validées</TabsTrigger>
                     <TabsTrigger value="NonValidé">Non validées</TabsTrigger>
                   </TabsList>
-                   <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-lgt">
-                    {filteredItems.length} 
+                  <span className="px-3 py-1 rounded-full bg-blue-100 text-blue-700 font-semibold text-lgt">
+                    {filteredItems.length}
                   </span>
                 </div>
                 {/* Recherche et dates */}
@@ -229,7 +229,6 @@ export function CommandeData({
                       <DatePickerDemo date={endDate} setDate={setEndDate} />
                     </div>
                   </div>
-                 
                 </div>
               </div>
             </div>

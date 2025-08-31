@@ -131,7 +131,7 @@ export function CommandeList({
     }
   }
 
-  // Appel périodique toutes les 2 minutes
+  /*   // Appel périodique toutes les 2 minutes
   useEffect(() => {
     fetchData(); // Appel initial
     const interval = setInterval(() => {
@@ -139,7 +139,7 @@ export function CommandeList({
     }, 30 * 1000); // 30 seconds
 
     return () => clearInterval(interval);
-  }, []);
+  }, []); */
 
   // Handler for warehouse info registration
   const handleWarehouseSubmit = async () => {

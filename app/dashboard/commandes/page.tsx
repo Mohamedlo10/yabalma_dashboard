@@ -1,24 +1,13 @@
 "use client";
 
 // import { cookies } from "next/headers";
-import {
-  getallcommandes,
-  getCommandesWithShop,
-} from "@/app/api/commandes/query";
+import { getCommandesWithShop } from "@/app/api/commandes/query";
 import { getSupabaseSession } from "@/lib/authMnager";
-import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { CSSProperties, useEffect, useState } from "react";
-import BeatLoader from "react-spinners/BeatLoader";
+import { useEffect, useState } from "react";
 import { CommandeData } from "./components/commande";
 import { type Commande } from "./schema";
 import { useCommande } from "./use-commande";
-
-const override: CSSProperties = {
-  display: "block",
-  margin: "0 auto",
-  borderColor: "red",
-};
 
 export default function Page() {
   const [config, setConfig] = useCommande();
@@ -26,12 +15,9 @@ export default function Page() {
   const defaultCollapsed = false;
   const router = useRouter();
   const [commandes, setCommandes] = useState<Commande[]>([]);
-  let [color, setColor] = useState("#ffffff");
-  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchData() {
-      setIsLoading(true);
       try {
         const data: any = await getCommandesWithShop();
         console.log(data);
@@ -51,29 +37,15 @@ export default function Page() {
         }
       } catch (error) {
         console.error("Error fetching room details:", error);
-      } finally {
-        setIsLoading(false);
       }
     }
     fetchData();
-  }, []);
+    const interval = setInterval(() => {
+      fetchData();
+    }, 30 * 1000); // 30 seconds
 
-  if (isLoading) {
-    return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-30">
-        <div className="sweet-loading">
-          <BeatLoader
-            color={color}
-            loading={isLoading}
-            cssOverride={override}
-            size={15}
-            aria-label="Loading Spinner"
-            data-testid="loader"
-          />
-        </div>
-      </div>
-    );
-  }
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <>
